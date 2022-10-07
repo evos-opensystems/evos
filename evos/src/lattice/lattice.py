@@ -14,3 +14,10 @@ class Lattice():
         #else: #ADD AN ERROR THAT IS RAISED ONLY WHEN INPUT IS GIVEN BUT WRONG, IN ORDER NOT TO OVERWRITE THE TypeError
             #raise IOError('the valid representations are: {0}'.format(representation_list))    
             #arguments types contained in lat.Lattice.__init__.__annotations__
+            
+    def specify_lattice(self, lattice_name:str):
+        """""" 
+        if lattice_name == 'spin_one_half_lattice':
+            import evos.src.lattice.spin_one_half_lattice as spin_one_half_lattice
+            self.spin_one_half_lattice = spin_one_half_lattice
+        
