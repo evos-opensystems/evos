@@ -1,8 +1,9 @@
 """Compute Lindblad evolution of system density matrix. This should be, at least in the beginning, the only method that works only with ED and not with MPS"""
-
-
+import numpy as np
 class Lindblad():
     """"""
+   
+    
     def __init__(self, lindbl_op_list, H, n_sites):
         lindbl_op_list_conj = []
         for op in lindbl_op_list:
@@ -17,12 +18,9 @@ class Lindblad():
     #def lindblad_time_evolution(self, rho_0, t_max, dt):
         """"""
     def ket_to_projector(self, ket):
-        import numpy as np
         return np.outer(np.conjugate(ket), ket)   
     
-    
     def vectorize_density_matrix(self, rho):
-        import numpy as np
         rho_v = [] #np.zeros((int(dim_H*(dim_H+1)/2)),dtype='complex')
         for n in range( self.dim_H ):
             for m in range(n, self.dim_H):
@@ -31,7 +29,6 @@ class Lindblad():
         return rho_v 
     
     def un_vectorize_density_matrix(self, rho_v):
-        import numpy as np
         rho = np.zeros( (self.dim_H, self.dim_H ),dtype="complex" )
         #compute upper triangular part
         rho_v_count=0
@@ -47,7 +44,6 @@ class Lindblad():
     #def lindblad_time_evolution(self, rho_0, t_max, dt):
         
     def right_hand_side_lindblad_eq(self, t, rho_v):
-        import numpy as np
         #arrange vectorized density matrix into matrix
         rho = self.un_vectorize_density_matrix(rho_v)
         #compute rhs of Lindblad equation
@@ -60,7 +56,6 @@ class Lindblad():
         
     def solve_lindblad_equation(self, rho_0, dt, t_max):
         """"""
-        import numpy as np
         from scipy.integrate import solve_ivp
         
         rho_0_v =  self.vectorize_density_matrix(rho_0)
@@ -85,7 +80,6 @@ class Lindblad():
         
     def compute_observables(self,rho_res, names_and_operators_dict, dt, t_max ):
         """"""
-        import numpy as np
         obs_vector = np.zeros(self.n_timesteps)
         #initialize numpy vectors to save observables
         observables_dict = {}

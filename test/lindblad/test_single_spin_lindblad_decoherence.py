@@ -36,7 +36,7 @@ def density_matrix_from_bloch_vector(rx, ry, rz):
 rho_0 = density_matrix_from_bloch_vector(rx, ry, rz)
 # print(rho_0)
 # quit()
-lindblad_test = evos.src.methods.lindblad.Lindblad([L],H,n_sites,)
+lindblad_test = evos.src.methods.lindblad.Lindblad([L],H,n_sites)
 
 rho_t = lindblad_test.solve_lindblad_equation(rho_0, dt, t_max)
 

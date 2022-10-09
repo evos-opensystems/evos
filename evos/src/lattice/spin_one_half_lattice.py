@@ -1,18 +1,19 @@
 """One-dimensional spin 1/2 lattice. First make this independently, in order to see what methods and attributes it need.
 Later make it inherit from an ABC class 'Lattice'. """
+import numpy as np
 
 class SpinOneHalfLattice():
     """Vacuum = |1 0 ... 0 > = |up up .... up >. sigma plus (sp) is the annihilator and sigma minus (sm) is the creator"""
+    
     def __init__(self, n_sites):
         """ """
-        import numpy as np  #do I have to import it every time?
         #operators
         sx = np.array([[0,1], [1,0]],dtype='complex')
         sy = np.array([[0,-1j], [1j,0]],dtype='complex')
         sz = np.array([[1,0], [0,-1]],dtype='complex')
         sp = 0.5 * (sx +1j*sy)
         sm = 0.5 * (sx -1j*sy)
-        I = np.eye(2)
+        I = np.eye(2, dtype='complex')
         self.I = I
         self.n_sites = n_sites 
         operators = {}
@@ -27,10 +28,8 @@ class SpinOneHalfLattice():
         vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
      
-     
     def sso(self, operator_name:str, site:int):
         """ """
-        import numpy as np #do I have to import it every time?
         operator = self.operators[operator_name]
         if site == 0:
             single_site_operator = operator.copy()
