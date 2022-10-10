@@ -1,8 +1,15 @@
 class Lattice():
-    """Generates lattice for choosen particles species and representation"""
-    
-    def __init__(self, representation:str):  #typing module to define types
-        #representation_list = ['mps', 'ed']
+    """Choose a representation and a lattice file to be imported.
+    """
+
+    def __init__(self, representation: str):  #use typing module to define new types
+        """Initialize the object by storing the representation time as exact diagonalization (ed) or matrix product state (mps)
+
+        Parameters
+        ----------
+        representation : str
+            must be either 'mps' or 'ed'
+        """
         if representation == 'mps':
             import evos.src.representation.mps as mps
             self.mps = mps
@@ -15,8 +22,14 @@ class Lattice():
             #raise IOError('the valid representations are: {0}'.format(representation_list))    
             #arguments types contained in lat.Lattice.__init__.__annotations__
             
-    def specify_lattice(self, lattice_name:str):
-        """""" 
+    def specify_lattice(self, lattice_name: str):
+        """Import the selected lattice if it has been implemented. Need to add a NotImplementedError!
+
+        Parameters
+        ----------
+        lattice_name : str
+            name of the lattice file
+        """
         if lattice_name == 'spin_one_half_lattice':
             import evos.src.lattice.spin_one_half_lattice as spin_one_half_lattice
             self.spin_one_half_lattice = spin_one_half_lattice
