@@ -4,7 +4,9 @@ class Lindblad():
     """"""
    
     
-    def __init__(self, lindbl_op_list, H, n_sites):
+    def __init__(self, lindbl_op_list: list, H: np.ndarray, n_sites: int):
+        if not all( type(op) == np.matrix for op in lindbl_op_list ):
+            raise TypeError('please cast all lindblad operators into numpy matrices in order to enable the use of the numpy .H method')
         lindbl_op_list_conj = []
         for op in lindbl_op_list:
             lindbl_op_list_conj.append( op.H)
@@ -17,10 +19,10 @@ class Lindblad():
     
     #def lindblad_time_evolution(self, rho_0, t_max, dt):
         """"""
-    def ket_to_projector(self, ket):
+    def ket_to_projector(self, ket: np.ndarray) -> np.ndarray :
         return np.outer(np.conjugate(ket), ket)   
     
-    def vectorize_density_matrix(self, rho):
+    def vectorize_density_matrix(self, rho: np.ndarray) -> np.ndarray :
         rho_v = [] #np.zeros((int(dim_H*(dim_H+1)/2)),dtype='complex')
         for n in range( self.dim_H ):
             for m in range(n, self.dim_H):
@@ -28,7 +30,7 @@ class Lindblad():
         rho_v = np.array(rho_v, dtype='complex')      
         return rho_v 
     
-    def un_vectorize_density_matrix(self, rho_v):
+    def un_vectorize_density_matrix(self, rho_v: np.ndarray) -> np.ndarray :
         rho = np.zeros( (self.dim_H, self.dim_H ),dtype="complex" )
         #compute upper triangular part
         rho_v_count=0
@@ -43,7 +45,7 @@ class Lindblad():
         return rho
     #def lindblad_time_evolution(self, rho_0, t_max, dt):
         
-    def right_hand_side_lindblad_eq(self, t, rho_v):
+    def right_hand_side_lindblad_eq(self, t: int, rho_v: np.ndarray):
         #arrange vectorized density matrix into matrix
         rho = self.un_vectorize_density_matrix(rho_v)
         #compute rhs of Lindblad equation
@@ -54,7 +56,7 @@ class Lindblad():
         rhs_v = self.vectorize_density_matrix(rhs)
         return rhs_v
         
-    def solve_lindblad_equation(self, rho_0, dt, t_max):
+    def solve_lindblad_equation(self, rho_0: np.ndarray, dt: float, t_max: float) -> np.ndarray:
         """"""
         from scipy.integrate import solve_ivp
         
@@ -78,7 +80,7 @@ class Lindblad():
         
         return rho_res
         
-    def compute_observables(self,rho_res, names_and_operators_dict, dt, t_max ):
+    def compute_observables(self,rho_res: np.ndarray, names_and_operators_dict: dict, dt: float, t_max: float ) -> dict:
         """"""
         obs_vector = np.zeros(self.n_timesteps)
         #initialize numpy vectors to save observables

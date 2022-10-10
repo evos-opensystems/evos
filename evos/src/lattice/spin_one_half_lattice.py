@@ -5,7 +5,7 @@ import numpy as np
 class SpinOneHalfLattice():
     """Vacuum = |1 0 ... 0 > = |up up .... up >. sigma plus (sp) is the annihilator and sigma minus (sm) is the creator"""
     
-    def __init__(self, n_sites):
+    def __init__(self, n_sites: int):
         """ """
         #operators
         sx = np.array([[0,1], [1,0]],dtype='complex')
@@ -28,7 +28,7 @@ class SpinOneHalfLattice():
         vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
      
-    def sso(self, operator_name:str, site:int):
+    def sso(self, operator_name: str, site: int) -> np.ndarray :
         """ """
         operator = self.operators[operator_name]
         if site == 0:
