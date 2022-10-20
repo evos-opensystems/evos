@@ -22,21 +22,13 @@ class EdQuantumJumps():
             Hamiltonian (the hermitian, not the effective one)
         lindbl_op_list : list
             list with the lindblad operators
-
-        Raises
-        ------
-        TypeError
-            check that all entries of lindbl_op_list are of type np.matrix and not np.ndarray in order to be able to hermitian conjugate them
         """
-        
-        if not all( type(op) == np.matrix for op in lindbl_op_list ):
-            raise TypeError('please cast all lindblad operators into numpy matrices in order to enable the use of the numpy .H method')
         
         self.n_sites = n_sites
         
         lindbl_op_list_conj = []
         for op in lindbl_op_list:
-            lindbl_op_list_conj.append( op.H)
+            lindbl_op_list_conj.append( op.conj().T )
         self.lindbl_op_list = lindbl_op_list
         self.lindbl_op_list_conj = lindbl_op_list_conj
         
@@ -66,7 +58,6 @@ class EdQuantumJumps():
         
         states_after_jump_operator_application_list = []
         for jump_op in self.lindbl_op_list:
-            jump_op = np.array(jump_op) #FIXME: find a better solution for this, i.e. replace .H in order to use only np.arrays and not np.matrix
             states_after_jump_operator_application_list.append( np.dot( jump_op, psi.copy( ) ) )
 
         norms_after_jump_operator_application_vector = np.zeros( len( states_after_jump_operator_application_list ) )
@@ -127,14 +118,14 @@ class EdQuantumJumps():
         np.random.seed( int( ( trajectory + 1 ) / dt ) ) #set seed for r2 this trajectory
         r2_array = np.random.uniform( 0, 1, n_timesteps )  #generate random numbers array r2 to be used by method 'select_jump_operator()'
 
-        #initialize observables
-        
+        #Compute observables with initiql state
+        obsdict.compute_all_observables_at_one_timestep(psi_t, 0)
         #loop over timesteps
         for i in range( n_timesteps ):
             #print('computing timestep ',i)
             psi_1 = np.dot( U, psi_t.copy() )
             norm_psi1 = LA.norm( psi_1 )
-            print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
+            #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
             r1 = r1_array[i] 
             delta_p = 1 - norm_psi1 ** 2
             
@@ -142,19 +133,19 @@ class EdQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
-                print('jump occured at timestep {}'.format(i)) #debugging
+                #print('jump occured at timestep {}'.format(i)) #debugging
                 jump_time_list.append(i) #debugging
                 psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
                 which_jump_op_list.append( which_jump_op ) #debugging
                 r2_atjump_list.append( r2_array[i] ) #debugging
                 jump_counter +=1 #debugging
-                print('state after jump: ',psi_t)
+                #print('state after jump: ',psi_t)
             psi_t /= LA.norm( psi_t )
 
             #Compute observables
-            obsdict.compute_all_observables_at_one_timestep(psi_t, i) 
+            obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
         os.chdir('..') #exit the trajectory directory
-        print('jump_counter: ',jump_counter)    
+        #print('jump_counter: ',jump_counter)    
             
         
         

@@ -18,18 +18,11 @@ class Lindblad():
             Hamiltonian matrix
         n_sites : int
             number of sites of the one-dimensional lattice
-
-        Raises
-        ------
-        TypeError
-            check that all entries of lindbl_op_list are of type np.matrix and not np.ndarray in order to be able to hermitian conjugate them
         """
         
-        if not all( type(op) == np.matrix for op in lindbl_op_list ):
-            raise TypeError('please cast all lindblad operators into numpy matrices in order to enable the use of the numpy .H method')
         lindbl_op_list_conj = []
         for op in lindbl_op_list:
-            lindbl_op_list_conj.append( op.H)
+            lindbl_op_list_conj.append( op.conj().T )
         self.lindbl_op_list = lindbl_op_list
         self.lindbl_op_list_conj = lindbl_op_list_conj
         
