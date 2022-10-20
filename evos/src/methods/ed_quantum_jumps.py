@@ -119,7 +119,7 @@ class EdQuantumJumps():
         r2_array = np.random.uniform( 0, 1, n_timesteps )  #generate random numbers array r2 to be used by method 'select_jump_operator()'
 
         #Compute observables with initiql state
-        obsdict.compute_all_observables_at_one_timestep(psi_t, 0)
+        obsdict.compute_all_observables_at_one_timestep(psi_t, 0)        
         #loop over timesteps
         for i in range( n_timesteps ):
             #print('computing timestep ',i)
@@ -143,7 +143,9 @@ class EdQuantumJumps():
             psi_t /= LA.norm( psi_t )
 
             #Compute observables
+            #t_obs_start = time.process_time()
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
+            #print('process time for observables at timest {}: {}'.format(i, time.process_time() - t_obs_start) )
         os.chdir('..') #exit the trajectory directory
         #print('jump_counter: ',jump_counter)    
             
