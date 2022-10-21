@@ -96,28 +96,40 @@ class MPSQuantumJumps():
         return psi, which_jump_op      
 
     
-    def trotterized_nonherm_tdvp_step(self, psi: ptn.mp.MPS, conf_tdvp, dt):
-        """_summary_
+    def trotterized_nonherm_tdvp_step(self, psi: ptn.mp.MPS, dt):
+        """Perform one trotterized time-evolution step by doing one real timestep with Hs = 0.5(H_eff + H_eff_dag)
+           and one imeginary timestep with with Hqs = 0.5j(H_eff - H_eff_dag)
         """
         #real time-evolution step
-        # conf_tdvp.dt = dt #unneeded?
-        conf_tdvp.maxt = dt 
+        #self.conf_tdvp.dt = dt #unneeded?
+        self.conf_tdvp.maxt = dt 
         
-        worker = ptn.mp.tdvp.PTDVP( psi.copy(),[self.H_s.copy()], conf_tdvp.copy() )
+        worker = ptn.mp.tdvp.PTDVP( psi.copy(),[self.H_s.copy()], self.conf_tdvp.copy() )
         worker_do_stepList = worker.do_step()
         psi = worker.get_psi(False)
         
         #imaginary time-evolution step
-        conf_tdvp.dt = 1j * dt
-        conf_tdvp.maxt = 1j * dt
+        self.conf_tdvp.dt = 1j * dt
+        self.conf_tdvp.maxt = 1j * dt
         
-        worker = ptn.mp.tdvp.PTDVP( psi.copy(), [self.H_as.copy()], conf_tdvp.copy() )
+        worker = ptn.mp.tdvp.PTDVP( psi.copy(), [self.H_as.copy()], self.conf_tdvp.copy() )
         worker_do_stepList = worker.do_step()
         psi = worker.get_psi(False)
         
         return psi
         
+    def exact_step_with_nonherm_tdvp_solver(self, psi: ptn.mp.MPS):
+        """_add description
+        """
+        self.conf_tdvp.exp_conf.mode = 'N'
+        self.conf_tdvp.exp_conf.submode = 'a'
+        self.conf_tdvp.exp_conf.minIter = 20
+
+        worker = ptn.mp.tdvp.PTDVP( psi.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() )
+        worker_do_stepList = worker.do_step()
+        psi = worker.get_psi(False)
         
+        return psi
         
     def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, t_max: float, dt: float, trajectory: int, obsdict):
         """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
@@ -136,6 +148,9 @@ class MPSQuantumJumps():
         obsdict: 
             instance of the class  'evos.src.observables.observables.Observables()'
         """
+        
+        self.conf_tdvp = conf_tdvp
+        
         os.mkdir( str( trajectory ) ) #create directory in which to run trajectory
         os.chdir( str( trajectory ) ) #change to it
         n_timesteps = int(t_max/dt) #NOTE: read from instance or compute elsewhere
@@ -155,7 +170,8 @@ class MPSQuantumJumps():
         #loop over timesteps
         for i in range( n_timesteps ):
             #print('computing timestep ',i)
-            psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, conf_tdvp, dt)  #psi_1 = np.dot( U, psi_t.copy() )
+            #psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, dt)  #psi_1 = np.dot( U, psi_t.copy() )
+            psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t)
             norm_psi1 = psi_1.norm()
             #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
             r1 = r1_array[i] 
