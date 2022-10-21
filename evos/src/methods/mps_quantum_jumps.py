@@ -64,7 +64,7 @@ class MPSQuantumJumps():
         
         states_after_jump_operator_application_list = []
         for jump_op in self.lindbl_op_list:
-            states_after_jump_operator_application = ptn.mp.apply_op_fit( state.copy(), jumpOp,  ptn.Truncation(1e-8,2000,2000,1e-10), 1e-8, 12, 4)
+            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(1e-8,2000,2000,1e-10), 1e-8, 12, 4)
             states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
         norms_after_jump_operator_application_vector = np.zeros( len( states_after_jump_operator_application_list ) )
@@ -72,7 +72,11 @@ class MPSQuantumJumps():
             norms_after_jump_operator_application_vector[i] = states_after_jump_operator_application_list[i].norm()
 
         tot_norm = sum(norms_after_jump_operator_application_vector)
-
+        #FIXME: check whether this is correct!!
+        if tot_norm == 0:
+            return psi, None #which_jump_op=none
+            return states_after_jump_operator_application[0], None #WORKS ONLY IN THE CASE OF SINGLE LINDBLAD OP!
+        
         #Normalize the probabilities
         norms_after_jump_operator_application_vector /= tot_norm
 
@@ -85,7 +89,7 @@ class MPSQuantumJumps():
         #choose and apply jump operator 
         for i in range( 1,len( intervals ) ):
             if r2 >= intervals[i-1] and r2 <= intervals[i]:
-                #print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
+                print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
                 psi = states_after_jump_operator_application_list[i-1]
                 which_jump_op = i-1
                 break
@@ -101,7 +105,7 @@ class MPSQuantumJumps():
         
         worker = ptn.mp.tdvp.PTDVP( psi.copy(),[self.H_s.copy()], conf_tdvp.copy() )
         worker_do_stepList = worker.do_step()
-        state=worker.get_psi(False)
+        psi = worker.get_psi(False)
         
         #imaginary time-evolution step
         conf_tdvp.dt = 1j * dt
@@ -109,7 +113,7 @@ class MPSQuantumJumps():
         
         worker = ptn.mp.tdvp.PTDVP( psi.copy(), [self.H_as.copy()], conf_tdvp.copy() )
         worker_do_stepList = worker.do_step()
-        state=worker.get_psi(False)
+        psi = worker.get_psi(False)
         
         return psi
         
