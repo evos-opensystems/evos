@@ -122,10 +122,10 @@ class EdQuantumJumps():
         obsdict.compute_all_observables_at_one_timestep(psi_t, 0)        
         #loop over timesteps
         for i in range( n_timesteps ):
-            print('computing timestep ',i)
+            #print('computing timestep ',i)
             psi_1 = np.dot( U, psi_t.copy() )
             norm_psi1 = LA.norm( psi_1 )
-            print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
+            #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
             r1 = r1_array[i] 
             delta_p = 1 - norm_psi1 ** 2
             
@@ -133,7 +133,7 @@ class EdQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
-                print('jump occured at timestep {}'.format(i)) #debugging
+                #print('jump occured at timestep {}'.format(i)) #debugging
                 jump_time_list.append(i) #debugging
                 psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
                 which_jump_op_list.append( which_jump_op ) #debugging
