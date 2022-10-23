@@ -31,12 +31,12 @@ class MPSQuantumJumps():
         
         H_eff = H.copy() #compute effective Hamiltonian H_eff = H - i/2 \sum_m L^\dagger _m * L_m 
         for i in range( len(lindbl_op_list) ):
-            H_eff += - 0.5j * lindbl_op_list[i] * ptn.mp.dot(lat.get("I"), H_eff)
+            H_eff += - 0.5j * lindbl_op_list[i] * ptn.mp.dot( lat.get("I"), lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
             H_eff.truncate()
         
-        H_eff_dag = ptn.mp.dot(lat.get("I"), H_eff)
-        H_s = 0.5 * ( H_eff + H_eff_dag ) #herm part
-        H_a = 0.5 * ( H_eff - H_eff_dag ) #antiherm part
+        H_eff_dag = ptn.mp.dot(lat.get("I"), H_eff.copy())
+        H_s = 0.5 * ( H_eff.copy() + H_eff_dag.copy() ) #herm part
+        H_a = 0.5 * ( H_eff.copy() - H_eff_dag.copy() ) #antiherm part
         H_as = -1j * H_a #make it herm
     
         self.H_eff = H_eff
@@ -64,7 +64,12 @@ class MPSQuantumJumps():
         
         states_after_jump_operator_application_list = []
         for jump_op in self.lindbl_op_list:
-            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(1e-8,2000,2000,1e-10), 1e-8, 12, 4)
+            ###threshold_MPS = tdvp_trunc_threshold * state1.norm()  weight_MPS = tdvp_trunc_weight * state1.norm()**2 FIXME: scale the truncation!
+            #states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(1e-8,2000,2000,1e-10), 1e-8, 12, 4)
+            ####
+            states_after_jump_operator_application = psi.copy()  #FIXME test wheter with exact application mps and ed agree!
+            ptn.mp.apply_op_naive( states_after_jump_operator_application, jump_op)
+            ####
             states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
         norms_after_jump_operator_application_vector = np.zeros( len( states_after_jump_operator_application_list ) )
@@ -73,9 +78,9 @@ class MPSQuantumJumps():
 
         tot_norm = sum(norms_after_jump_operator_application_vector)
         #FIXME: check whether this is correct!!
-        if tot_norm == 0:
-            return psi, None #which_jump_op=none
-            return states_after_jump_operator_application[0], None #WORKS ONLY IN THE CASE OF SINGLE LINDBLAD OP!
+        # if tot_norm == 0:
+        #     return psi, None #which_jump_op=none
+        #     return states_after_jump_operator_application[0], None #WORKS ONLY IN THE CASE OF SINGLE LINDBLAD OP!
         
         #Normalize the probabilities
         norms_after_jump_operator_application_vector /= tot_norm
@@ -97,7 +102,8 @@ class MPSQuantumJumps():
 
     
     def trotterized_nonherm_tdvp_step(self, psi: ptn.mp.MPS, dt):
-        """Perform one trotterized time-evolution step by doing one real timestep with Hs = 0.5(H_eff + H_eff_dag)
+        """ FIXME: not working
+            Perform one trotterized time-evolution step by doing one real timestep with Hs = 0.5(H_eff + H_eff_dag)
            and one imeginary timestep with with Hqs = 0.5j(H_eff - H_eff_dag)
         """
         #real time-evolution step
@@ -119,7 +125,7 @@ class MPSQuantumJumps():
         return psi
         
     def exact_step_with_nonherm_tdvp_solver(self, psi: ptn.mp.MPS):
-        """_add description
+        """_description
         """
         self.conf_tdvp.exp_conf.mode = 'N'
         self.conf_tdvp.exp_conf.submode = 'a'
@@ -161,7 +167,7 @@ class MPSQuantumJumps():
         
         np.random.seed( trajectory + 1 ) #set seed for r1 this trajectory
         r1_array = np.random.uniform( 0, 1, n_timesteps ) #generate random numbers array r1
-        
+        #print('r1_array: ',r1_array)
         np.random.seed( int( ( trajectory + 1 ) / dt ) ) #set seed for r2 this trajectory
         r2_array = np.random.uniform( 0, 1, n_timesteps )  #generate random numbers array r2 to be used by method 'select_jump_operator()'
 
@@ -170,10 +176,13 @@ class MPSQuantumJumps():
         #loop over timesteps
         for i in range( n_timesteps ):
             #print('computing timestep ',i)
-            #psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, dt)  #psi_1 = np.dot( U, psi_t.copy() )
-            psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t)
+            # threshold_MPS *=  state1.norm()
+            # weight_MPS *=  state1.norm()**2
+
+            #psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, dt) #FIXME: not working  #psi_1 = np.dot( U, psi_t.copy() )  
+            psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t) 
             norm_psi1 = psi_1.norm()
-            #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
+            print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
             r1 = r1_array[i] 
             delta_p = 1 - norm_psi1 ** 2
             
@@ -181,13 +190,15 @@ class MPSQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
-                #print('jump occured at timestep {}'.format(i)) #debugging
+                print('jump occured at timestep {}'.format(i)) #debugging
+                #quit()
                 jump_time_list.append(i) #debugging
                 psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
                 which_jump_op_list.append( which_jump_op ) #debugging
                 r2_atjump_list.append( r2_array[i] ) #debugging
                 jump_counter +=1 #debugging
                 #print('state after jump: ',psi_t)
+            
             psi_t.normalise()
 
             #Compute observables
@@ -195,7 +206,7 @@ class MPSQuantumJumps():
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
             #print('process time for observables at timest {}: {}'.format(i, time.process_time() - t_obs_start) )
         os.chdir('..') #exit the trajectory directory
-        #print('jump_counter: ',jump_counter)    
+        print('jump_counter: ',jump_counter)    
             
         
         
