@@ -65,10 +65,10 @@ class MPSQuantumJumps():
         states_after_jump_operator_application_list = []
         for jump_op in self.lindbl_op_list:
             ###threshold_MPS = tdvp_trunc_threshold * state1.norm()  weight_MPS = tdvp_trunc_weight * state1.norm()**2 FIXME: scale the truncation!
-            #states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(1e-8,2000,2000,1e-10), 1e-8, 12, 4)
+            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(1e-8,2000,2000,1e-10), 1e-8, 12, 4)
             ####
-            states_after_jump_operator_application = psi.copy()  #FIXME test wheter with exact application mps and ed agree!
-            ptn.mp.apply_op_naive( states_after_jump_operator_application, jump_op)
+            # states_after_jump_operator_application = psi.copy()  #FIXME test wheter with exact application mps and ed agree!
+            # ptn.mp.apply_op_naive( states_after_jump_operator_application, jump_op)
             ####
             states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
@@ -102,7 +102,7 @@ class MPSQuantumJumps():
 
     
     def trotterized_nonherm_tdvp_step(self, psi: ptn.mp.MPS, dt):
-        """ FIXME: not working
+        """ FIXME: not working!!
             Perform one trotterized time-evolution step by doing one real timestep with Hs = 0.5(H_eff + H_eff_dag)
            and one imeginary timestep with with Hqs = 0.5j(H_eff - H_eff_dag)
         """
@@ -182,7 +182,7 @@ class MPSQuantumJumps():
             #psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, dt) #FIXME: not working  #psi_1 = np.dot( U, psi_t.copy() )  
             psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t) 
             norm_psi1 = psi_1.norm()
-            print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
+            #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
             r1 = r1_array[i] 
             delta_p = 1 - norm_psi1 ** 2
             
@@ -190,7 +190,7 @@ class MPSQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
-                print('jump occured at timestep {}'.format(i)) #debugging
+                #print('jump occured at timestep {}'.format(i)) #debugging
                 #quit()
                 jump_time_list.append(i) #debugging
                 psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
@@ -206,7 +206,7 @@ class MPSQuantumJumps():
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
             #print('process time for observables at timest {}: {}'.format(i, time.process_time() - t_obs_start) )
         os.chdir('..') #exit the trajectory directory
-        print('jump_counter: ',jump_counter)    
+        #print('jump_counter: ',jump_counter)    
             
         
         
