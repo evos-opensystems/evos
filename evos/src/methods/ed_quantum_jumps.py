@@ -114,7 +114,7 @@ class EdQuantumJumps():
         U = expm( -1j * dt * self.H_eff ) #compute the time-evolution operator. needs to be done only once
         np.random.seed( trajectory + 1 ) #set seed for r1 this trajectory
         r1_array = np.random.uniform( 0, 1, n_timesteps ) #generate random numbers array r1
-        
+        # print('r1_array: ',r1_array)
         np.random.seed( int( ( trajectory + 1 ) / dt ) ) #set seed for r2 this trajectory
         r2_array = np.random.uniform( 0, 1, n_timesteps )  #generate random numbers array r2 to be used by method 'select_jump_operator()'
 
@@ -125,7 +125,7 @@ class EdQuantumJumps():
             print('computing timestep ',i)
             psi_1 = np.dot( U, psi_t.copy() )
             norm_psi1 = LA.norm( psi_1 )
-            #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
+            print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
             r1 = r1_array[i] 
             delta_p = 1 - norm_psi1 ** 2
             
@@ -140,6 +140,7 @@ class EdQuantumJumps():
                 r2_atjump_list.append( r2_array[i] ) #debugging
                 jump_counter +=1 #debugging
                 #print('state after jump: ',psi_t)
+                
             psi_t /= LA.norm( psi_t )
 
             #Compute observables
