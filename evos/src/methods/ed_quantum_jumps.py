@@ -140,6 +140,7 @@ class EdQuantumJumps():
                 r2_atjump_list.append( r2_array[i] ) #debugging
                 jump_counter +=1 #debugging
                 #print('state after jump: ',psi_t)
+                
             psi_t /= LA.norm( psi_t )
 
             #Compute observables
