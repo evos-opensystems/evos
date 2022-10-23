@@ -17,9 +17,9 @@ class SpinOneHalfLattice():
             number of spin 1/2 lattice sites
         """
         #operators
-        sx = np.array([[0,1], [1,0]],dtype='complex')
-        sy = np.array([[0,-1j], [1j,0]],dtype='complex')
-        sz = np.array([[1,0], [0,-1]],dtype='complex')
+        sx = 0.5 * np.array([[0,1], [1,0]],dtype='complex')
+        sy = 0.5 * np.array([[0,-1j], [1j,0]],dtype='complex')
+        sz = 0.5 * np.array([[1,0], [0,-1]],dtype='complex')
         sp = 0.5 * (sx +1j*sy)
         sm = 0.5 * (sx -1j*sy)
         I = np.eye(2, dtype='complex')
