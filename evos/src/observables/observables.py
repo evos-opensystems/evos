@@ -103,7 +103,7 @@ class ObservablesDict():
         import collections
         import os
         
-        os.chdir('read_directory') #go to data directory
+        os.chdir(read_directory) #go to data directory
         #initialize averaged observables
         averaged_observables_array_dict = self.observables_array_dict.copy()
         for key in averaged_observables_array_dict.copy():
@@ -140,7 +140,7 @@ class ObservablesDict():
             stat_errors_observables_array_dict[key] = np.sqrt( stat_errors_observables_array_dict[key] )/n_trajectories
         
         #save observables
-        os.chdir('write_directory') #go to results directory
+        os.chdir(write_directory) #go to results directory
         
         for key in averaged_observables_array_dict:
             np.savetxt(key, averaged_observables_array_dict[key])
