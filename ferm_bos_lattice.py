@@ -5,14 +5,7 @@
 @author: reka
 """
 
-import numpy as np
-import matplotlib.pyplot as plt
-from scipy.linalg import expm
-from numpy import linalg as LA
-from numpy import random
-
-
-    
+import numpy as np 
 
 class Operator:
     
