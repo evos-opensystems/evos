@@ -30,6 +30,17 @@ class Operator:
         
     
     def fermion(self, operator_name: str, k:float, N:int, spin:str) -> np.ndarray:
+        """when inputting a 2D creation/annihilation operator: returns a fermionic creation or annihilation operator on site k. 
+        The whole operator is acting on a lattice of N sites.
+
+        Args:
+            operator_name (str): insert creation or annihilation operator, adag = np.array([[ 0,0],[1,0]]) , a = np.array([[ 0,1],[0,0]])  
+            k (float): site operator is acting on
+            N (int): total number of sites in lattice
+            spin (str): can be "up", "down", or "None", depending if system is with spin, or spinless
+        Returns:
+            np.ndarray: _description_
+        """
         P = np.array([[ 1,0],[ 0,-1]]) #parity
         iden = np.array([[ 1,0],[ 0,1]])
         
