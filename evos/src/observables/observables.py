@@ -103,7 +103,9 @@ class ObservablesDict():
         import collections
         import os
         
-        os.chdir(read_directory) #go to data directory
+        os.chdir(read_directory) #go to data directoryp
+        # print("I am in: {}".format(os.getcwd() ) )
+        # print(os.listdir())
         #initialize averaged observables
         averaged_observables_array_dict = self.observables_array_dict.copy()
         for key in averaged_observables_array_dict.copy():
