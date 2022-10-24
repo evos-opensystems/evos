@@ -86,7 +86,7 @@ class ObservablesDict():
             self.save_observables()
 
     
-    def compute_trajectories_averages_and_errors(self, n_trajectories: int, remove_single_trajectories_results: bool = False ):
+    def compute_trajectories_averages_and_errors(self, n_trajectories: int, read_directory:str, write_directory:str, remove_single_trajectories_results: bool = False ):
         """Given the dictionary 'observables_array_dict' saved in the instance, computes the averages and errors for all observables 
         over all trajectories  and saves them. 
         
@@ -102,6 +102,8 @@ class ObservablesDict():
         
         import collections
         import os
+        
+        os.chdir('read_directory') #go to data directory
         #initialize averaged observables
         averaged_observables_array_dict = self.observables_array_dict.copy()
         for key in averaged_observables_array_dict.copy():
@@ -138,6 +140,7 @@ class ObservablesDict():
             stat_errors_observables_array_dict[key] = np.sqrt( stat_errors_observables_array_dict[key] )/n_trajectories
         
         #save observables
+        os.chdir('write_directory') #go to results directory
         
         for key in averaged_observables_array_dict:
             np.savetxt(key, averaged_observables_array_dict[key])
