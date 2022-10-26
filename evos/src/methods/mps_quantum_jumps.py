@@ -187,7 +187,7 @@ class MPSQuantumJumps():
             #psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, dt) #FIXME: not working  #psi_1 = np.dot( U, psi_t.copy() )  
             #psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t) 
             worker_do_stepList = worker.do_step()
-            psi = worker.get_psi(False)
+            psi_1 = worker.get_psi(False)
             
             norm_psi1 = psi_1.norm()
             #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
