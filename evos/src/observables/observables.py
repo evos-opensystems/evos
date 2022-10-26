@@ -37,9 +37,11 @@ class ObservablesDict():
         for key, value in self.observables_array_dict.items():
             #print(key, value)
             if len(value.shape) < 3:
-                np.savetxt(key, value)
+                with open(key, 'wb') as f:
+                    np.savetxt(f, value)
             if len(value.shape) >= 3:
-                np.save(key, value)    
+                with open(key, 'wb') as f:
+                    np.save(f, value)    
 
     def add_observable_computing_function(self,obs_name: str, observable_computing_function):
         """Assigns a function with which to compute the observable 'obs_name' at each timestep to the dictionary 'observables_comp_functions_dict'
@@ -145,10 +147,12 @@ class ObservablesDict():
         os.chdir(write_directory) #go to results directory
         
         for key in averaged_observables_array_dict:
-            np.savetxt(key, averaged_observables_array_dict[key])
+            with open(key, 'wb') as f:
+                np.savetxt(f, averaged_observables_array_dict[key])
         #save errors
         for key in stat_errors_observables_array_dict:
-            np.savetxt(key, stat_errors_observables_array_dict[key])
+            with open(key, 'wb') as f:
+                np.savetxt(f, stat_errors_observables_array_dict[key])
             
         #remove single-trajectories folders
         if remove_single_trajectories_results:
