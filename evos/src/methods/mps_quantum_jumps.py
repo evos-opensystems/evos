@@ -125,7 +125,7 @@ class MPSQuantumJumps():
         return psi
         
     def exact_step_with_nonherm_tdvp_solver(self, psi: ptn.mp.MPS):
-        """FIXME: NOT USED! Rebuilding the tdvp worker at each timestep is not necessary since the Hamiltonian is time-independen!
+        """FIXME: Rebuilding the tdvp worker at each timestep is necessary because the state's norm changes, but it is very costly.
         """
         self.conf_tdvp.exp_conf.mode = 'N'
         self.conf_tdvp.exp_conf.submode = 'a'
@@ -157,10 +157,10 @@ class MPSQuantumJumps():
         
         self.conf_tdvp = conf_tdvp
         #non-hermitian tdvp #FIXME: specify this before
-        self.conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
-        self.conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
-        self.conf_tdvp.exp_conf.minIter = 20 #FIXME: specify this before
-        worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() )
+        # self.conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
+        # self.conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
+        # self.conf_tdvp.exp_conf.minIter = 20 #FIXME: specify this before
+        # worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() )
         
         os.mkdir( str( trajectory ) ) #create directory in which to run trajectory
         os.chdir( str( trajectory ) ) #change to it
@@ -185,10 +185,7 @@ class MPSQuantumJumps():
             # weight_MPS *=  state1.norm()**2
 
             #psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, dt) #FIXME: not working  #psi_1 = np.dot( U, psi_t.copy() )  
-            #psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t) 
-            worker_do_stepList = worker.do_step()
-            psi_1 = worker.get_psi(False)
-            
+            psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t) 
             norm_psi1 = psi_1.norm()
             #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
             r1 = r1_array[i] 
