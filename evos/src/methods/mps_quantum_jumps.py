@@ -179,11 +179,14 @@ class MPSQuantumJumps():
         #Compute observables with initial state
         obsdict.compute_all_observables_at_one_timestep(psi_t, 0)        
         #loop over timesteps
+        memory_usage = []
         for i in range( n_timesteps ):
             #print('computing timestep ',i)
             # threshold_MPS *=  state1.norm()
             # weight_MPS *=  state1.norm()**2
-
+            process = psutil.Process(os.getpid())
+            memory_usage.append( process.memory_info().rss ) # in bytes
+            np.savetxt('memory_usage', memory_usage)
             #psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, dt) #FIXME: not working  #psi_1 = np.dot( U, psi_t.copy() )  
             psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t) 
             norm_psi1 = psi_1.norm()
