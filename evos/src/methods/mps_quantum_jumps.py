@@ -4,7 +4,7 @@ import sys
 import time
 from numpy import linalg as LA
 from scipy.linalg import expm
-
+import psutil
 import pyten as ptn
 ##import evos.src.observables.observables as observables
 
