@@ -6,14 +6,14 @@ from Cython.Build import cythonize
 import Cython.Compiler.Options
 Cython.Compiler.Options.annotate = True
 
-extensions = [
+# extensions = [
 
-    Extension("*",["evos/ext/*.pyx"],
-        include_dirs = [np.get_include()], # generally not needed but typical use case 
-        extra_compile_args=['-O3','-march=native','-fopenmp','-Wno-cpp'], # generally not needed but typical use case
-        #extra_link_args=['-fopenmp', '-lgomp', '-Wl,-rpath,'+str(subprocess.check_output([os.getenv('CC'), "-print-libgcc-file-name"]).strip().decode()).rstrip('/')] # might fix rare openmp bug
-        ),
-]
+#     Extension("*",["evos/ext/*.pyx"],
+#         include_dirs = [np.get_include()], # generally not needed but typical use case 
+#         extra_compile_args=['-O3','-march=native','-fopenmp','-Wno-cpp'], # generally not needed but typical use case
+#         extra_link_args=['-fopenmp', '-lgomp', '-Wl,-rpath,'+str(subprocess.check_output([os.getenv('CC'), "-print-libgcc-file-name"]).strip().decode()).rstrip('/')] # might fix rare openmp bug
+#         ),
+# ]
 
 setup(
 	name = "evos",
@@ -34,5 +34,5 @@ setup(
 		"Operating System :: MacOS :: MacOS X",
 		"Programming Language :: Python :: 3",
 	],
- 	ext_modules = cythonize(extensions, compiler_directives={'language_level' : 3}, annotate = True),
+ 	# ext_modules = cythonize(extensions, compiler_directives={'language_level' : 3}, annotate = True),
 )
