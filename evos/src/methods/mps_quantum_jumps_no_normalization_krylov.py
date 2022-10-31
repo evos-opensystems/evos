@@ -138,6 +138,7 @@ class MPSQuantumJumps():
         return psi
         
     def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_krylov, t_max: float, dt: float, trajectory: int, obsdict):
+        #FIXME: working only up to when a jump occurs
         """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
         first to check if a jump needs to be applied if yes then which operator to use.
 
@@ -180,13 +181,33 @@ class MPSQuantumJumps():
         for i in range( n_timesteps ):
             
             ####KRYLOV
+            #real-time step with H_s
+            conf_krylov.dt = dt
+            conf_krylov.tend = dt
+            evolver = ptn.mp.krylov.Evolver_A(self.H_s.copy(),psi_t,conf_krylov.copy())
             evolver.evolve_in_subspace()
-            times =  round((i+1)*tdvp_dt,4)
+            times =  round(dt,4)
             if (float.is_integer(times)):
                 times = int(times)
             state_name = 'krylov_T-'+str(times)+'.mps'
-            time.sleep(2)
+            time.sleep(0.1)
             psi_1 = ptn.mp.MPS(state_name)
+            psi_1.setMaybeCache(True)
+            
+            #real-time step with  H_as. #NOTE; use psi_1 here and psi_t for the real step
+            conf_krylov.dt = 1j*dt
+            conf_krylov.tend = 1j*dt
+            evolver = ptn.mp.krylov.Evolver_A(self.H_as.copy(),psi_1,conf_krylov.copy())
+            evolver.evolve_in_subspace()
+            times =   round(dt,4)
+            if (float.is_integer(times)):
+                times = int(times)
+            state_name = 'krylov_T-0+'+str(times)+'i.mps'
+            time.sleep(0.1)
+            psi_1 = ptn.mp.MPS(state_name)
+            psi_1.setMaybeCache(True)
+            
+            
             ###
             #print('computing timestep ',i)
             # threshold_MPS *=  state1.norm()
@@ -197,8 +218,8 @@ class MPSQuantumJumps():
             
             #psi_1 = self.trotterized_nonherm_tdvp_step(psi_t, dt) #FIXME: not working  #psi_1 = np.dot( U, psi_t.copy() )  
             #psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t) 
-            worker_do_stepList = worker.do_step()
-            psi_1 = worker.get_psi(False)
+            # worker_do_stepList = worker.do_step()
+            # psi_1 = worker.get_psi(False)
             
             norm_psi1 = psi_1.norm()
             #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
@@ -219,7 +240,7 @@ class MPSQuantumJumps():
                 #print('state after jump: ',psi_t)
                 psi_t.normalise() #NOTE: normalize only if jump occurs
                 r1 = r1_array[i] #NOTE: change random number only if jump occurs
-                worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) #NOTE: reinitialize worker only if jump occurs
+                #worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) #NOTE: reinitialize worker only if jump occurs
 
             #Compute observables
             #t_obs_start = time.process_time()
