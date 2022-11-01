@@ -213,6 +213,7 @@ class MPSQuantumJumps():
                 #print('state after jump: ',psi_t)
                 psi_t.normalise() #NOTE: normalize only if jump occurs
                 r1 = r1_array[i] #NOTE: change random number only if jump occurs
+                #FIXME: do I need to change something else in the worker apart the initial state?
                 worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) #NOTE: reinitialize worker only if jump occurs
 
             #Compute observables
