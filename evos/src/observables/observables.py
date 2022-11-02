@@ -123,6 +123,7 @@ class ObservablesDict():
         #compute averaged observables
         n_trajectories_really_present = n_trajectories
         for trajectory in range(n_trajectories): #loop over trajectories
+            print('in trajectory {}'.format(trajectory) )
             try:
                 os.chdir( str( trajectory ) )
             except:
