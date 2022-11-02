@@ -65,12 +65,12 @@ class MPSQuantumJumps():
         if np.abs(f(m)) < tol: #or n_iterations == max_iterations:
             #print('entered condition 1')
             # stopping condition, report m as root
-            print('Converged up to {} after {} iterations'.format(tol, n_iterations))
+            #print('Converged up to {} after {} iterations'.format(tol, n_iterations))
             return m, n_iterations, 0 #counter for uncoverged times + 0
         
         elif  n_iterations == max_iterations:
             #print('entered condition 2')
-            print('Did not converge up to {} after {} iterations'.format(tol, n_iterations))
+            #print('Did not converge up to {} after {} iterations'.format(tol, n_iterations))
             return m, n_iterations, 1 #counter for uncoverged times + 1
             
         elif np.sign(f(a)) == np.sign(f(m)):
@@ -86,7 +86,7 @@ class MPSQuantumJumps():
             return self.bisection(f, a, m, tol, max_iterations, n_iterations+1)
 
         else:
-            print('mattia: unknown error')
+            #print('mattia: unknown error')
             return m, n_iterations, 1 #counter for uncoverged times + 1
     
         
@@ -147,7 +147,7 @@ class MPSQuantumJumps():
         #choose and apply jump operator 
         for i in range( 1,len( intervals ) ):
             if r2 >= intervals[i-1] and r2 <= intervals[i]:
-                print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
+                #print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
                 psi = states_after_jump_operator_application_list[i-1]
                 which_jump_op = i-1
                 break

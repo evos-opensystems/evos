@@ -121,18 +121,28 @@ class ObservablesDict():
             stat_errors_observables_array_dict['err_' + key] = stat_errors_observables_array_dict.pop(key) #add '_av' to key names 
         
         #compute averaged observables
+        n_trajectories_really_present = n_trajectories
         for trajectory in range(n_trajectories): #loop over trajectories
-            os.chdir( str( trajectory ) )      
+            try:
+                os.chdir( str( trajectory ) )
+            except:
+                n_trajectories_really_present -= 1 #NOTE: decrease the number of trajectories by -1 in order to normalize the averages correctly.
+                continue #go to next iteration        
+            
             for key in self.observables_array_dict: #loop over observables
                 averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) #FIXME np.load for arrays or rank >=3
             os.chdir('..')        
+            
         #normalize
         for key in averaged_observables_array_dict: #loop over observables
-                averaged_observables_array_dict[key] /= n_trajectories        
+                averaged_observables_array_dict[key] /= n_trajectories_really_present        
                 
         #compute errors    
         for trajectory in range(n_trajectories): #loop over trajectories
-            os.chdir( str( trajectory ) )    
+            try:
+                os.chdir( str( trajectory ) )  
+            except:
+                continue   
             for key in self.observables_array_dict: #loop over observables
                 obs = np.loadtxt(key) #FIXME np.load for arrays or rank >=3
                 obs_av = averaged_observables_array_dict[key + '_av']
@@ -141,14 +151,14 @@ class ObservablesDict():
             
         #normalize errors
         for key in stat_errors_observables_array_dict: 
-            stat_errors_observables_array_dict[key] = np.sqrt( stat_errors_observables_array_dict[key] )/n_trajectories
+            stat_errors_observables_array_dict[key] = np.sqrt( stat_errors_observables_array_dict[key] )/n_trajectories_really_present
         
         #save observables
-        os.chdir(write_directory) #go to results directory
         
         for key in averaged_observables_array_dict:
             with open(key, 'wb') as f:
                 np.savetxt(f, averaged_observables_array_dict[key])
+                print('saved data in {}'.format(os.getcwd()))
         #save errors
         for key in stat_errors_observables_array_dict:
             with open(key, 'wb') as f:
@@ -158,7 +168,10 @@ class ObservablesDict():
         if remove_single_trajectories_results:
             import shutil
             for trajectory in range(n_trajectories):
-                shutil.rmtree(str(trajectory))
+                try:
+                    shutil.rmtree(str(trajectory))
+                except:
+                    pass    
                 
                 
                    
