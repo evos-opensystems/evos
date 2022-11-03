@@ -131,7 +131,11 @@ class ObservablesDict():
                 continue #go to next iteration        
             
             for key in self.observables_array_dict: #loop over observables
-                averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) #FIXME np.load for arrays or rank >=3
+                try:
+                    averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) #FIXME np.load for arrays or rank >=3
+                except:
+                    n_trajectories_really_present -= 1 #FIXME:THIS WORKS ONLY FOR A SINGLE OBSERVABLE! IF THERE ARE 2, one could be present and the other not!. #NOTE: This is triggered for instance when target observable is just an empty file decrease the number of trajectories by -1 in order to normalize the averages correctly.
+                    continue #go to next iteration       
             os.chdir('..')        
             
         #normalize
@@ -145,9 +149,12 @@ class ObservablesDict():
             except:
                 continue   
             for key in self.observables_array_dict: #loop over observables
-                obs = np.loadtxt(key) #FIXME np.load for arrays or rank >=3
-                obs_av = averaged_observables_array_dict[key + '_av']
-                stat_errors_observables_array_dict['err_' + key] =  (obs - obs_av ) ** 2
+                try:
+                    obs = np.loadtxt(key) #FIXME np.load for arrays or rank >=3
+                    obs_av = averaged_observables_array_dict[key + '_av']
+                    stat_errors_observables_array_dict['err_' + key] =  (obs - obs_av ) ** 2
+                except:
+                    continue    
             os.chdir('..') 
             
         #normalize errors
