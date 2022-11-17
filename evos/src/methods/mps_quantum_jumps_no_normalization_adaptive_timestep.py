@@ -118,7 +118,7 @@ class MPSQuantumJumps():
         states_after_jump_operator_application_list = []
         for jump_op in self.lindbl_op_list:
             ###threshold_MPS = tdvp_trunc_threshold * state1.norm()  weight_MPS = tdvp_trunc_weight * state1.norm()**2 FIXME: scale the truncation!
-            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(1e-8,2000,2000,1e-10), 1e-8, 12, 4)
+            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(), 1e-8, 12, 4) #ptn.Truncation(1e-8,2000,2000,1e-10)
             ####
             # states_after_jump_operator_application = psi.copy()  #FIXME test wheter with exact application mps and ed agree!
             # ptn.mp.apply_op_naive( states_after_jump_operator_application, jump_op)
