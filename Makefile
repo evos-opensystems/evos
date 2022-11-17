@@ -23,6 +23,21 @@ build:
 	@echo ""
 	${EVOS_PYTHONBIN} -m pip install .
 
+# Cython rules
+#####################################################################
+.PHONY: cython
+
+cython: 
+	@echo ""
+	@echo "------------------------------------ cythonizing PyTemplate modules -------------------------------------"
+	@echo ""
+	${PYTEMPLATE_PYTHONBIN} -W ignore setup.py build_ext --force --inplace && ${PYTEMPLATE_PYTHONBIN} -W ignore setup.py clean --all
+
+cython_html: 
+	@echo ""
+	@echo "------------------------------------ cythonizing PyTemplate modules -------------------------------------"
+	@echo ""
+	cython -a pytemplate/ext/*.pyx
 
 # create documentation
 #############################################################################

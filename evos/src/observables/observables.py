@@ -37,9 +37,11 @@ class ObservablesDict():
         for key, value in self.observables_array_dict.items():
             #print(key, value)
             if len(value.shape) < 3:
-                np.savetxt(key, value)
+                with open(key, 'wb') as f:
+                    np.savetxt(f, value)
             if len(value.shape) >= 3:
-                np.save(key, value)    
+                with open(key, 'wb') as f:
+                    np.save(f, value)    
 
     def add_observable_computing_function(self,obs_name: str, observable_computing_function):
         """Assigns a function with which to compute the observable 'obs_name' at each timestep to the dictionary 'observables_comp_functions_dict'
@@ -119,42 +121,65 @@ class ObservablesDict():
             stat_errors_observables_array_dict['err_' + key] = stat_errors_observables_array_dict.pop(key) #add '_av' to key names 
         
         #compute averaged observables
+        n_trajectories_really_present = n_trajectories
         for trajectory in range(n_trajectories): #loop over trajectories
-            os.chdir( str( trajectory ) )      
+            print('in trajectory {}'.format(trajectory) )
+            try:
+                os.chdir( str( trajectory ) )
+            except:
+                n_trajectories_really_present -= 1 #NOTE: decrease the number of trajectories by -1 in order to normalize the averages correctly.
+                continue #go to next iteration        
+            
             for key in self.observables_array_dict: #loop over observables
-                averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) #FIXME np.load for arrays or rank >=3
+                try:
+                    averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) #FIXME np.load for arrays or rank >=3
+                except:
+                    n_trajectories_really_present -= 1 #FIXME:THIS WORKS ONLY FOR A SINGLE OBSERVABLE! IF THERE ARE 2, one could be present and the other not!. #NOTE: This is triggered for instance when target observable is just an empty file decrease the number of trajectories by -1 in order to normalize the averages correctly.
+                    continue #go to next iteration       
             os.chdir('..')        
+            
         #normalize
         for key in averaged_observables_array_dict: #loop over observables
-                averaged_observables_array_dict[key] /= n_trajectories        
+                averaged_observables_array_dict[key] /= n_trajectories_really_present        
                 
         #compute errors    
         for trajectory in range(n_trajectories): #loop over trajectories
-            os.chdir( str( trajectory ) )    
+            try:
+                os.chdir( str( trajectory ) )  
+            except:
+                continue   
             for key in self.observables_array_dict: #loop over observables
-                obs = np.loadtxt(key) #FIXME np.load for arrays or rank >=3
-                obs_av = averaged_observables_array_dict[key + '_av']
-                stat_errors_observables_array_dict['err_' + key] =  (obs - obs_av ) ** 2
+                try:
+                    obs = np.loadtxt(key) #FIXME np.load for arrays or rank >=3
+                    obs_av = averaged_observables_array_dict[key + '_av']
+                    stat_errors_observables_array_dict['err_' + key] =  (obs - obs_av ) ** 2
+                except:
+                    continue    
             os.chdir('..') 
             
         #normalize errors
         for key in stat_errors_observables_array_dict: 
-            stat_errors_observables_array_dict[key] = np.sqrt( stat_errors_observables_array_dict[key] )/n_trajectories
+            stat_errors_observables_array_dict[key] = np.sqrt( stat_errors_observables_array_dict[key] )/n_trajectories_really_present
         
         #save observables
-        os.chdir(write_directory) #go to results directory
         
         for key in averaged_observables_array_dict:
-            np.savetxt(key, averaged_observables_array_dict[key])
+            with open(key, 'wb') as f:
+                np.savetxt(f, averaged_observables_array_dict[key])
+                print('saved data in {}'.format(os.getcwd()))
         #save errors
         for key in stat_errors_observables_array_dict:
-            np.savetxt(key, stat_errors_observables_array_dict[key])
+            with open(key, 'wb') as f:
+                np.savetxt(f, stat_errors_observables_array_dict[key])
             
         #remove single-trajectories folders
         if remove_single_trajectories_results:
             import shutil
             for trajectory in range(n_trajectories):
-                shutil.rmtree(str(trajectory))
+                try:
+                    shutil.rmtree(str(trajectory))
+                except:
+                    pass    
                 
                 
                    
