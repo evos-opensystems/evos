@@ -38,8 +38,7 @@ class BosonicLattice:
             M (int): number of modes
      
         Returns:
-            np.ndarray: array representing a single site bosonic operator
-            of mode M
+            np.ndarray: 
         """
         
         def delta(k, l):
