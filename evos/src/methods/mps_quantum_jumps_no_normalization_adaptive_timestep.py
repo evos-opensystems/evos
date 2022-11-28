@@ -212,7 +212,7 @@ class MPSQuantumJumps():
         #non-hermitian tdvp #FIXME: specify this before
         self.conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
         self.conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
-        self.conf_tdvp.exp_conf.minIter = 20 #FIXME: specify this before
+        #self.conf_tdvp.exp_conf.minIter = 20 #FIXME: specify this before
         worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() )
         
         os.mkdir( str( trajectory ) ) #create directory in which to run trajectory
@@ -235,7 +235,7 @@ class MPSQuantumJumps():
         memory_usage = []
         r1 = r1_array[0] #NOTE: initialize random number
         for i in range( n_timesteps ):
-            #print('computing timestep ',i)
+            print('computing timestep ',i) #debugging
             # threshold_MPS *=  state1.norm()
             # weight_MPS *=  state1.norm()**2
             process = psutil.Process(os.getpid())
