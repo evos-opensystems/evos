@@ -116,14 +116,14 @@ class MPSQuantumJumps():
         #cast all lindblad operators from numpy matrix to numpy array to be able to use np.dot!
         
         states_after_jump_operator_application_list = []
-        norm = psi.norm() #needed to rescale ptn.Truncation().scaled(norm)  maxStates=10
-        threshold *= norm #NOTE: it's okay to overwrite these 3 parameters since they are reinitialized when the next jump occurs 
-        weight *= norm ** 2
-        maxStates = int(maxStates * norm ** 2 )
+        # norm = psi.norm() #needed to rescale ptn.Truncation().scaled(norm)  maxStates=10
+        # threshold *= norm #NOTE: it's okay to overwrite these 3 parameters since they are reinitialized when the next jump occurs 
+        # weight *= norm ** 2
+        # maxStates = int(maxStates * norm ** 2 )
         for jump_op in self.lindbl_op_list:
             ###threshold_MPS = tdvp_trunc_threshold * state1.norm()  weight_MPS = tdvp_trunc_weight * state1.norm()**2 FIXME: scale the truncation!
             #states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(maxStates=10).scaled(norm), 1e-8, 12, 4) #ptn.Truncation(1e-8,2000,2000,1e-10)
-            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ), 1e-8, 12, 4) #ptn.Truncation(1e-8,2000,2000,1e-10)
+            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op, ptn.Truncation( ), 1e-8, 12, 4) #,  ptn.Truncation( threshold, maxStates, maxStates, weight )
             ####
             # states_after_jump_operator_application = psi.copy()  #FIXME test wheter with exact application mps and ed agree!
             # ptn.mp.apply_op_naive( states_after_jump_operator_application, jump_op)
@@ -156,6 +156,8 @@ class MPSQuantumJumps():
                 psi = states_after_jump_operator_application_list[i-1]
                 which_jump_op = i-1
                 break
+        print('After jump, norm(psi) = {}'.format( psi.norm() ) )    
+        print('finished "select_jump_operator" method')        
         return psi, which_jump_op      
 
     
@@ -243,6 +245,7 @@ class MPSQuantumJumps():
             
             #FIXME: USING ONLY psi_1 (JUST TO STUDY BOND DIM, BUT AFTER A JUMP HAS OCCURRED I ACTUALLY NEED TO USE psi_t !!!!
             print('computing timestep ',i) #debugging
+            print('norm(psi_t) = {}'.format( psi_t.norm() ) )
             self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
             self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
             self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )
@@ -268,6 +271,7 @@ class MPSQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
+                print( 'jumping at timestep {}'.format(i) )
                 dt1, n_iterations, unconverged = self.bisection(self.norm_decrease(psi_t, r1, dt),0,dt,tol,max_iterations,0)
                 #unconverged_counter += unconverged
                 #n_iterations_counter[i] = n_iterations
