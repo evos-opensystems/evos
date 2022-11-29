@@ -97,7 +97,7 @@ class MPSQuantumJumps():
         return lambda dt : 1. - psi.norm() ** 2 -r1
     
     
-    def select_jump_operator(self, psi: ptn.mp.MPS, r2: float) -> tuple[np.ndarray, int] :
+    def select_jump_operator(self, psi: ptn.mp.MPS, r2: float, threshold :float, weight: float, maxStates: int) -> tuple[np.ndarray, int] :
         """Selects which lindblad operator to apply for a jump out of the 'lindbl_op_list', given the state 'psi' and the pseudo-random number 'r2'
 
         Parameters
@@ -116,10 +116,14 @@ class MPSQuantumJumps():
         #cast all lindblad operators from numpy matrix to numpy array to be able to use np.dot!
         
         states_after_jump_operator_application_list = []
-        norm = psi.norm() #needed to rescale ptn.Truncation()
+        norm = psi.norm() #needed to rescale ptn.Truncation().scaled(norm)  maxStates=10
+        threshold *= norm #NOTE: it's okay to overwrite these 3 parameters since they are reinitialized when the next jump occurs 
+        weight *= norm ** 2
+        maxStates = int(maxStates * norm ** 2 )
         for jump_op in self.lindbl_op_list:
             ###threshold_MPS = tdvp_trunc_threshold * state1.norm()  weight_MPS = tdvp_trunc_weight * state1.norm()**2 FIXME: scale the truncation!
-            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation().scaled(norm), 1e-8, 12, 4) #ptn.Truncation(1e-8,2000,2000,1e-10)
+            #states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation(maxStates=10).scaled(norm), 1e-8, 12, 4) #ptn.Truncation(1e-8,2000,2000,1e-10)
+            states_after_jump_operator_application, inutile = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ), 1e-8, 12, 4) #ptn.Truncation(1e-8,2000,2000,1e-10)
             ####
             # states_after_jump_operator_application = psi.copy()  #FIXME test wheter with exact application mps and ed agree!
             # ptn.mp.apply_op_naive( states_after_jump_operator_application, jump_op)
@@ -191,7 +195,7 @@ class MPSQuantumJumps():
         
         return psi
         
-    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, t_max: float, dt: float, tol:int, max_iterations:int, trajectory: int, obsdict):
+    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, t_max: float, dt: float, tol:int, max_iterations:int, trajectory: int, obsdict: dict, threshold: float, weight: float, maxStates: int):
         """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
         first to check if a jump needs to be applied if yes then which operator to use.
 
@@ -236,7 +240,14 @@ class MPSQuantumJumps():
         memory_usage = []
         r1 = r1_array[0] #NOTE: initialize random number
         for i in range( n_timesteps ):
+            
+            #FIXME: USING ONLY psi_1 (JUST TO STUDY BOND DIM, BUT AFTER A JUMP HAS OCCURRED I ACTUALLY NEED TO USE psi_t !!!!
             print('computing timestep ',i) #debugging
+            self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
+            self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
+            self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )
+            
+            worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) #NOTE: REINITIALIZE WORKER TO SCALE TRUNCATION WITH NORM
             # threshold_MPS *=  state1.norm()
             # weight_MPS *=  state1.norm()**2
             process = psutil.Process(os.getpid())
@@ -262,25 +273,37 @@ class MPSQuantumJumps():
                 #n_iterations_counter[i] = n_iterations
                 #evolve up to t + dt1
                 self.conf_tdvp.dt = dt1
+                self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
+                self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
+                self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )
                 worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
                 worker_do_stepList = worker.do_step()
                 psi_before = worker.get_psi(False)
                 #jump at dt1
-                psi_t, which_jump_op  = self.select_jump_operator( psi_before, r2_array[i] )      
+                psi_t, which_jump_op  = self.select_jump_operator( psi_before, r2_array[i], threshold, weight, maxStates )   #FIXME UNCOMMENT   
                 #evolve from dt1 to dt
                 dt2 = dt-dt1
                 self.conf_tdvp.dt = dt2
+                self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
+                self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
+                self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )
                 worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
                 worker_do_stepList = worker.do_step()
                 psi_t = worker.get_psi(False)
                                 
                 jump_counter +=1 #debugging
+                jump_time_list.append(i) #FIXME: return this!
+                np.savetxt('jump_time_list',jump_time_list)
                 #print('state after jump: ',psi_t)
                 psi_t.normalise() #NOTE: normalize only if jump occurs
                 r1 = r1_array[i] #NOTE: change random number only if jump occurs
                 
                 #reset correct timestep and correct, normalized initial state for next step
+
                 self.conf_tdvp.dt = dt
+                self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
+                self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
+                self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )
                 worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) #NOTE: reinitialize worker only if jump occurs
 
             #Compute observables
