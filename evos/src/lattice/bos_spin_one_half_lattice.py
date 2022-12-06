@@ -1,43 +1,57 @@
-"""One-dimensional spin 1/2 lattice. First make this independently, in order to see what methods and attributes it need.
+"""One-dimensional boson - spin 1/2 lattice. First make this independently, in order to see what methods and attributes it need.
+
 Later make it inherit from an ABC class 'Lattice'. """
 import numpy as np
 
-class SpinOneHalfLattice():
-    """Vacuum = |1 0 ... 0 > = |up up .... up >. sigma plus (sp) is the annihilator and sigma minus (sm) is the creator"""
-    
-    def __init__(self, n_sites: int):
-        """Saves sigma_x, sigma_y, sigma_z, sigma_plus, sigma_minus as instance variables and adds them to the operators dictionary.
-        All these operator are saved as instance variables, together with the the identity operator and the vacuum state Vacuum = |1 0 ... 0 > = |up up .... up >.
-        sigma plus (sp) is the annihilator and sigma minus (sm) is the creator
-        
 
+class BosSpinOneHalfLattice():
+    """Vacuum = |1 0 ... 0 >. sigma plus (sp) is the annihilator and sigma minus (sm) is the creator of the spin 1/2 sites, 
+    b (bm) is the annihilator and b^\dagger is the creator of the boson sites"""
+    
+    def __init__(self, sites: list, bos_dim: int):
+        """Saves sigma_x, sigma_y, sigma_z, sigma_plus, sigma_minus, b^\dagger, b, n_bos as instance variables and adds them to the operators dictionary.
+        All these operator are saved as instance variables, together with the the identity operator and the vacuum state Vacuum = |1 0 ... 0 > = |up up .... up >.
+        sigma plus (sp) is the annihilator and sigma minus (sm) is the creator of the spin 1/2 site
+        b (bm) is the annihilatior and b^\dagger (bp) is the creator of the boson site
+    
         Parameters
         ----------
-        n_sites : int
-            number of spin 1/2 lattice sites
+        sites : list
+            add 0 for boson and 1 for spin 1/2 in the correct order
+        bos_dim: int
+            local dimension of the boson sites
         """
         #operators
-        sx = 0.5 * np.array([[0,1], [1,0]],dtype='complex')
-        sy = 0.5 * np.array([[0,-1j], [1j,0]],dtype='complex')
-        sz = 0.5 * np.array([[1,0], [0,-1]],dtype='complex')
-        sp = sx + 1j * sy
-        sm = sx - 1j * sy
-        I = np.eye(2, dtype='complex')
-        self.I = I
-        self.n_sites = n_sites 
+        sx = 0.5 * np.array([[0,1], [1,0]], dtype='complex')
+        sy = 0.5 * np.array([[0,-1j], [1j,0]], dtype='complex')
+        sz = 0.5 * np.array([[1,0], [0,-1]], dtype='complex')
+        sp = sx + 1.j * sy
+        sm = sx - 1.j * sy
+        bp = np.diag(np.array([np.sqrt(i+1) for i in range(bos_dim)], dtype='complex'), k=-1)
+        bm = np.diag(np.array([np.sqrt(i+1) for i in range(bos_dim)], dtype='complex'), k=1)
+        n_bos = np.diag(np.array([i+1 for i in range(bos_dim)], dtype='complex'))
+        I_spin = np.eye(2, dtype='complex')
+        I_bos = np.eye(bos_dim, dtype='complex')
+        self.I_spin = I_spin
+        self.I_bos = I_bos
+        self.n_sites = len(sites) 
         operators = {}
         self.operators = operators
-        operators.update({'sx':sx})
-        operators.update({'sy':sy})
-        operators.update({'sz':sz})
-        operators.update({'sp':sp})
-        operators.update({'sm':sm})
-        #vacuum state
-        vacuum_state = np.zeros(2**n_sites, dtype='complex')
-        vacuum_state[0] = 1
+        operators.update({'sx': sx})
+        operators.update({'sy': sy})
+        operators.update({'sz': sz})
+        operators.update({'sp': sp})
+        operators.update({'sm': sm})
+        operators.update({'bp': bp})
+        operators.update({'bm': bm})
+        operators.update({'n_bos': n_bos})
+        # vacuum state
+        self.dim_ges = 2**sites.count(0) * bos_dim**sites.count(1)
+        vacuum_state = np.zeros(self.dim_ges, dtype='complex')
+        vacuum_state[0] = 1.
         self.vacuum_state = vacuum_state
      
-    def sso(self, operator_name: str, site: int) -> np.ndarray :
+    def sso(self, operator_name: str, site: int) -> np.ndarray:
         """Given an operator name and a site number, it computes the single site operator acting on the whole Hilbert space
         by computing kronecker products with the identity left and right to the site on which the operator is applied.
 
@@ -61,14 +75,8 @@ class SpinOneHalfLattice():
         
         for i in range(1, self.n_sites):
             if i != site:
-                single_site_operator = np.kron(single_site_operator,self.I)
+                single_site_operator = np.kron(single_site_operator, self.I)
             elif i == site:
-                single_site_operator = np.kron(single_site_operator,operator)   
-    
-    #def __mul__(self):
-        
+                single_site_operator = np.kron(single_site_operator, operator)   
             
         return single_site_operator
-    
-                
-        
