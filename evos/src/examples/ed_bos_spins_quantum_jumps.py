@@ -8,7 +8,7 @@ from evos.src.observables.observables import ObservablesDict
 sites = [0, 1, 1, 0]
 # local dimension of the boson sites
 bos_dim = 3
-# inverse temperature 
+# inverse temperature
 beta = 5.
 # energy scale of the boson sites
 omega_b = 5.
@@ -72,13 +72,13 @@ sz_1 = lat.sso('sz', 2)
 def compute_sz_0(state, obs_array_shape, dtype):
     obs_array = np.zeros(obs_array_shape, dtype=dtype)
     # OBS DEPENDENT PART START
-    obs_array[0] = np.real(np.dot(np.dot(np.conjugate(state), sz_0), state))  
+    obs_array[0] = np.real(np.dot(np.dot(np.conjugate(state), sz_0), state))
     # OBS DEPENDENT PART END
     return obs_array
 
 
 def compute_sz_1(state, obs_array_shape, dtype):
-    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    obs_array = np.zeros(obs_array_shape, dtype=dtype)
     # OBS DEPENDENT PART START
     obs_array[0] = np.real(np.dot(np.dot(np.conjugate(state), sz_1), state))
     # OBS DEPENDENT PART END

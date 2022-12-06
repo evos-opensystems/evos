@@ -5,7 +5,7 @@ import numpy as np
 
 
 class BosSpinOneHalfLattice():
-    """Vacuum = |1 0 ... 0 >. sigma plus (sp) is the annihilator and sigma minus (sm) is the creator of the spin 1/2 sites, 
+    """Vacuum = |1 0 ... 0 >. sigma plus (sp) is the annihilator and sigma minus (sm) is the creator of the spin 1/2 sites,
     b (bm) is the annihilator and b^\dagger is the creator of the boson sites"""
     
     def __init__(self, sites: list, bos_dim: int):
@@ -21,7 +21,7 @@ class BosSpinOneHalfLattice():
         bos_dim: int
             local dimension of the boson sites
         """
-        #operators
+        # operators
         sx = 0.5 * np.array([[0,1], [1,0]], dtype='complex')
         sy = 0.5 * np.array([[0,-1j], [1j,0]], dtype='complex')
         sz = 0.5 * np.array([[1,0], [0,-1]], dtype='complex')
@@ -34,7 +34,7 @@ class BosSpinOneHalfLattice():
         I_bos = np.eye(bos_dim, dtype='complex')
         self.I_spin = I_spin
         self.I_bos = I_bos
-        self.n_sites = len(sites) 
+        self.n_sites = len(sites)
         operators = {}
         self.operators = operators
         operators.update({'sx': sx})
@@ -77,6 +77,6 @@ class BosSpinOneHalfLattice():
             if i != site:
                 single_site_operator = np.kron(single_site_operator, self.I)
             elif i == site:
-                single_site_operator = np.kron(single_site_operator, operator)   
+                single_site_operator = np.kron(single_site_operator, operator)
             
         return single_site_operator
