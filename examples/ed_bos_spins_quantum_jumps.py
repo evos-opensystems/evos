@@ -34,19 +34,19 @@ lat = BosSpinOneHalfLattice(sites=sites, bos_dim=bos_dim)
 dim_ges = lat.dim_ges
 H = np.zeros((dim_ges, dim_ges), dtype='complex')
 for i in range(lat.n_sites):
-    if sites[i]:
+    if lat.sites[i]:
         # add local terms for the spin 1/2 sites
         H += omega_s * lat.sso('sz', i)
     else:
         # add local terms for the boson sites
         H += omega_b * lat.sso('n_bos', i)
 for i in range(lat.n_sites-1):
-    if sites[i] and sites[i+1]:
+    if lat.sites[i] and lat.sites[i+1]:
         # add interaction between neighboring spin 1/2 sites
         H += k_x * np.matmul(lat.sso('sx', i), lat.sso('sx', i+1))
         H += k_y * np.matmul(lat.sso('sy', i), lat.sso('sy', i+1))
         H += k_z * np.matmul(lat.sso('sz', i), lat.sso('sz', i+1))
-    elif sites[i+1]:
+    elif lat.sites[i+1]:
         # add interaction between neighboring boson and spin 1/2 site
         H += k2 * (np.matmul(lat.sso('bp', i), lat.sso('sm', i+1))+np.matmul(lat.sso('bm', i), lat.sso('sp', i+1)))
 
@@ -54,7 +54,7 @@ alpha = np.exp(- beta * omega_b)
 # create Lindbladians
 L = []
 for i in range(lat.n_sites):
-    if not sites[i]:
+    if not lat.sites[i]:
         L.append(np.sqrt(alpha*k1) * lat.sso("bp", i))
         L.append(np.sqrt(k1) * lat.sso("bm", i))
 

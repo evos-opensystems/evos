@@ -27,13 +27,14 @@ class BosSpinOneHalfLattice():
         sz = 0.5 * np.array([[1,0], [0,-1]], dtype='complex')
         sp = sx + 1.j * sy
         sm = sx - 1.j * sy
-        bp = np.diag(np.array([np.sqrt(i+1) for i in range(bos_dim)], dtype='complex'), k=-1)
-        bm = np.diag(np.array([np.sqrt(i+1) for i in range(bos_dim)], dtype='complex'), k=1)
+        bp = np.diag(np.array([np.sqrt(i) for i in range(1, bos_dim)], dtype='complex'), k=-1)
+        bm = np.diag(np.array([np.sqrt(i) for i in range(1, bos_dim)], dtype='complex'), k=1)
         n_bos = np.diag(np.array([i+1 for i in range(bos_dim)], dtype='complex'))
         I_spin = np.eye(2, dtype='complex')
         I_bos = np.eye(bos_dim, dtype='complex')
         self.I_spin = I_spin
         self.I_bos = I_bos
+        self.sites = sites
         self.n_sites = len(sites)
         operators = {}
         self.operators = operators
@@ -46,7 +47,7 @@ class BosSpinOneHalfLattice():
         operators.update({'bm': bm})
         operators.update({'n_bos': n_bos})
         # vacuum state
-        self.dim_ges = 2**sites.count(0) * bos_dim**sites.count(1)
+        self.dim_ges = 2**sites.count(1) * bos_dim**sites.count(0)
         vacuum_state = np.zeros(self.dim_ges, dtype='complex')
         vacuum_state[0] = 1.
         self.vacuum_state = vacuum_state
@@ -71,12 +72,19 @@ class BosSpinOneHalfLattice():
         if site == 0:
             single_site_operator = operator.copy()
         elif site != 0:
-            single_site_operator = self.I.copy()
+            if self.sites[0]:
+                single_site_operator = self.I_spin.copy()
+            else:
+                single_site_operator = self.I_bos.copy()
         
         for i in range(1, self.n_sites):
             if i != site:
-                single_site_operator = np.kron(single_site_operator, self.I)
+                if self.sites[i]:
+                    single_site_operator = np.kron(single_site_operator, self.I_spin)
+                else:
+                    single_site_operator = np.kron(single_site_operator, self.I_bos)
             elif i == site:
                 single_site_operator = np.kron(single_site_operator, operator)
-            
+
         return single_site_operator
+
