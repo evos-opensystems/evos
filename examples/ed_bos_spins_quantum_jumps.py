@@ -2,7 +2,7 @@ import numpy as np
 import os
 from evos.src.lattice.bos_spin_one_half_lattice import BosSpinOneHalfLattice
 from evos.src.methods.ed_quantum_jumps import EdQuantumJumps
-from evos.src.observables.observables import ObservablesDict
+from evos.src.observables.observables import ObservablesDict 
 
 # sites of the lattic 0 for bosons, 1 for spin 1/2
 sites = [0, 1, 1, 0]
@@ -99,3 +99,4 @@ write_directory = os.getcwd()
 
 n_trajectories = 1
 obsdict.compute_trajectories_averages_and_errors(n_trajectories, read_directory, write_directory, remove_single_trajectories_results=True)
+

@@ -34,3 +34,7 @@ class Lattice():
             import evos.src.lattice.spin_one_half_lattice as spin_one_half_lattice
             self.spin_one_half_lattice = spin_one_half_lattice
         
+        if lattice_name == 'bos_spin_one_half_lattice':
+            import evos.src.lattoce.bos_spin_one_half_lattice as bos_spin_one_half_lattice
+            self.bos_spin_one_half_lattice = bos_spin_one_half_lattice
+
