@@ -10,7 +10,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 #import spinful_fermions_lattice as spinful_fermions_lattice
 import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
-import evos.src.methods.ed_lindblad_normal_reka as ed_mesoscopic_leads
+import evos.src.methods.lindblad_solver_reka as lindblad_equation
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from scipy.linalg import expm
@@ -85,7 +85,7 @@ for i in range( len(eps_vector_r) ):
 ########################################################################################################################
 
 # paramters (time, ...) for solving differential equation
-T = 20
+T = 10
 dt = 0.1
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
@@ -289,7 +289,7 @@ for k in range(n_tot-n_lead_right +1, n_tot+1):
 #L_list = []
 #for k in range(0, n_sites):
     
-dyn = ed_mesoscopic_leads.MesoscopicLeadsLindblad(dim_tot, H, L_list)
+dyn = lindblad_equation.MesoscopicLeadsLindblad(dim_tot, H, L_list)
 
 
 sol = solve_ivp(dyn.drho_dt, (0,T), rho_vec, t_eval=t)        
