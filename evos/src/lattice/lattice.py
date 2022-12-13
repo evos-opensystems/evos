@@ -33,4 +33,9 @@ class Lattice():
         if lattice_name == 'spin_one_half_lattice':
             import evos.src.lattice.spin_one_half_lattice as spin_one_half_lattice
             self.spin_one_half_lattice = spin_one_half_lattice
+
+        if lattice_name == 'spinful_fermions_lattice':
+            import evos.src.examples.spinful_fermions_lattice as spinful_fermions_lattice
+            self.spinful_fermions_lattice = spinful_fermions_lattice
+ 
         
