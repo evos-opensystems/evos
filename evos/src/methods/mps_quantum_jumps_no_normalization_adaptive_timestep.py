@@ -157,7 +157,9 @@ class MPSQuantumJumps():
                 which_jump_op = i-1
                 break
         print('After jump, norm(psi) = {}'.format( psi.norm() ) )    
-        print('finished "select_jump_operator" method')        
+        print('finished "select_jump_operator" method')    
+        psi.normalise()
+        print('The state after the jump has then be normalised')    
         return psi, which_jump_op      
 
     
