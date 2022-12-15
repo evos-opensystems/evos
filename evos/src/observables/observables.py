@@ -98,20 +98,24 @@ class ObservablesDict():
             if os.path.isdir(str(i))and os.path.isfile(str(i) + '/' + [*self.observables_array_dict][0] ): 
                 traj_list.append(i)
         
-        #check whether the first observable has been computed for every timestep. if not, remove the trajectory from traj_list
-        counter = 0
+        #check whether the first observable has been computed for every timestep. if not, remove the trajectory from traj_list    
+        counter = 0 
+        n_eliminated_traj = 0   
+        traj_list_new = traj_list.copy()
         
-        for i in range( len( traj_list ) ):
-            trajectory = traj_list[i]
+        for trajectory in traj_list:
             os.chdir(str(trajectory))
             obs1 = np.loadtxt( [*self.observables_array_dict][0] )
+            print('obs1[0,-1] in traj {} = {}'.format(trajectory, obs1[0,-1]))
             if  obs1[0,-1] == 0. :
-                traj_list.pop(counter)
+                traj_list_new.pop(counter-n_eliminated_traj)
+                n_eliminated_traj += 1
+                print('eliminated trajectory ', trajectory )
             
             os.chdir('..')    
-            counter += 1    
-        
-        return traj_list             
+            counter += 1
+            
+        return traj_list_new             
     
     def compute_trajectories_averages_and_errors(self, traj_list: list, read_directory:str, write_directory:str, remove_single_trajectories_results: bool = False ):
         """Given the dictionary 'observables_array_dict' saved in the instance, computes the averages and errors for all observables 
