@@ -111,7 +111,7 @@ class ObservablesDict():
         #initialize averaged observables
         averaged_observables_array_dict = self.observables_array_dict.copy()
         for key in averaged_observables_array_dict.copy():
-            averaged_observables_array_dict[ key ] = np.zeros( averaged_observables_array_dict[ key ].shape ) #set arrays to zero
+            averaged_observablesarray_dict[ key ] = np.zeros( averaged_observables_array_dict[ key ].shape ) #set arrays to zero
             averaged_observables_array_dict[ key + '_av' ] = averaged_observables_array_dict.pop(key) #add '_av' to key names 
 
         #initialize errors
@@ -180,7 +180,106 @@ class ObservablesDict():
                     shutil.rmtree(str(trajectory))
                 except:
                     pass    
+    
+    def preprocess_trajectories_before_averaging(self, n_trajectories: list, write_directory: str) -> list :
+        
+        import os
+        os.chdir(write_directory)
+        traj_list = []
+        #check whether trajectory-directory and first observable in array_dict exist
+        for i in range( n_trajectories ):
+            if os.path.isdir(str(i)) and os.path.isfile(str(i) + [*self.observables_array_dict][0] ): 
+                #print(type([*self.observables_array_dict][0])
+                print('directory {} is present and first observable exists'.format(i))
+                traj_list.append(i)
+        
+        #check whether the first observable has been computed for every timestep. if not, remove the trajectory from traj_list
+        # counter = 0
+        # for trajectory in traj_list:
+        #     if  self.observables_array_dict [ list( self.observables_array_dict.keys() )[0] ] [-1] == 0. :
+        #         traj_list.pop(counter)
                 
+            
+        #     counter += 1    
+        
+        return traj_list             
+    
+    def compute_trajectories_averages_and_errors_new(self, traj_list: list, read_directory:str, write_directory:str, remove_single_trajectories_results: bool = False ):
+        """Given the dictionary 'observables_array_dict' saved in the instance, computes the averages and errors for all observables 
+           over all trajectories  and saves them.
+
+        Parameters
+        ----------
+        traj_list : list
+            list of trajectories over which to average
+        read_directory : str
+            directory in which all trajectories are stored. NOTE: trajectories must be copied here by method "preprocess_trajectories_before_averaging"
+        write_directory : str
+            directory in which averaged observables and errors will be saved
+        remove_single_trajectories_results : bool, optional
+            if True,removes all the trajectories in read_directory after having computed the averages, by default False
+        """
+        import os
+        n_trajectories = len(traj_list) #count the number of trajectories which passed the test of "preprocess_trajectories_before_averaging"
+        os.chdir(read_directory) #go to data directoryp
+        # print("I am in: {}".format(os.getcwd() ) )
+        # print(os.listdir())
+        
+        #initialize averaged observables
+        averaged_observables_array_dict = self.observables_array_dict.copy()
+        for key in averaged_observables_array_dict.copy():
+            averaged_observables_array_dict[ key ] = np.zeros( averaged_observables_array_dict[ key ].shape ) #set arrays to zero
+            averaged_observables_array_dict[ key + '_av' ] = averaged_observables_array_dict.pop(key) #add '_av' to key names 
+
+        #initialize errors
+        stat_errors_observables_array_dict = self.observables_array_dict.copy()            
+        for key in stat_errors_observables_array_dict.copy():
+            stat_errors_observables_array_dict[ key ] = np.zeros( stat_errors_observables_array_dict[ key ].shape ) #set arrays to zero
+            stat_errors_observables_array_dict['err_' + key] = stat_errors_observables_array_dict.pop(key) #add '_av' to key names 
+        
+        #compute averaged observables
+        for trajectory in traj_list: #loop over trajectories
+            print('in trajectory {}'.format(trajectory) )
+            os.chdir( str( trajectory ) )
+            for key in self.observables_array_dict: #loop over observables
+                averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) #FIXME np.load for arrays or rank >=3
+            os.chdir('..')        
+            
+        #normalize
+        for key in averaged_observables_array_dict: #loop over observables
+                averaged_observables_array_dict[key] /= n_trajectories 
                 
-                   
+        #compute errors    
+        for trajectory in traj_list: #loop over trajectories
+            os.chdir( str( trajectory ) )  
+            for key in self.observables_array_dict: #loop over observables
+                obs = np.loadtxt(key) #FIXME np.load for arrays or rank >=3
+                obs_av = averaged_observables_array_dict[key + '_av']
+                stat_errors_observables_array_dict['err_' + key] =  (obs - obs_av ) ** 2  
+            os.chdir('..') 
+            
+        #normalize errors
+        for key in stat_errors_observables_array_dict: 
+            stat_errors_observables_array_dict[key] = np.sqrt( stat_errors_observables_array_dict[key] )/n_trajectories
+        
+        #save observables
+        for key in averaged_observables_array_dict:
+            with open(key, 'wb') as f:
+                np.savetxt(f, averaged_observables_array_dict[key]) #FIXME: works only for real-valued, 1 or 2D arrays
+                print('saved data in {}'.format(os.getcwd()))
+        
+        #save errors
+        for key in stat_errors_observables_array_dict:
+            with open(key, 'wb') as f:
+                np.savetxt(f, stat_errors_observables_array_dict[key]) #FIXME: works only for real-valued, 1 or 2D arrays
+            
+        #remove single-trajectories folders
+        if remove_single_trajectories_results:
+            import shutil
+            for trajectory in range(n_trajectories):
+                try:
+                    shutil.rmtree(str(trajectory))
+                except:
+                    pass    
+                               
                 
