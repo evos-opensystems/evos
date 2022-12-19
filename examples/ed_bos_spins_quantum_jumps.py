@@ -3,6 +3,7 @@ import os
 from evos.src.lattice.bos_spin_one_half_lattice import BosSpinOneHalfLattice
 from evos.src.methods.ed_quantum_jumps_parallel import EdQuantumJumps
 from evos.src.observables.observables_parallel import ObservablesDict 
+import sys
 
 # sites of the lattic 0 for bosons, 1 for spin 1/2
 sites = [0, 1, 1, 0]
@@ -31,9 +32,13 @@ k_z = 0.
 
 try:
     os.mkdir('data_qj')
-    os.chdir('data_qj')
 except:
     pass
+
+try:
+    os.chdir('data_qj')
+except:
+	pass
 
 lat = BosSpinOneHalfLattice(sites=sites, bos_dim=bos_dim)
 
@@ -96,11 +101,11 @@ obsdict.add_observable_computing_function('sz_1', compute_sz_1)
 
 # compute qj trajectories sequentially
 # for trajectory in range(n_trajectories): #FIXME: looping over trajectories seems to be problematic!
-trajectory = 0
+trajectory = int(sys.argv[1])
 test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(lat.vacuum_state, time, delta_t, trajectory, obsdict)
 
-trajectory = 1
-test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(lat.vacuum_state, time, delta_t, trajectory, obsdict)
+# trajectory = 1
+# test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(lat.vacuum_state, time, delta_t, trajectory, obsdict)
 # averages and errors
 # read_directory = os.getcwd()
 # write_directory = os.getcwd()
