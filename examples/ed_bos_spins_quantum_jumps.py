@@ -60,7 +60,7 @@ for i in range(lat.n_sites-1):
     elif lat.sites[i+1]:
         # add interaction between neighboring boson and spin 1/2 site
         H += k2 * (np.matmul(lat.sso('bp', i), lat.sso('sm', i+1))+np.matmul(lat.sso('bm', i), lat.sso('sp', i+1)))
-    elif lat.site[i]:
+    elif lat.sites[i]:
         # add interaction between neighboring spin 1/2 and boson site
         H += k2 * (np.matmul(lat.sso('sm', i), lat.sso('bp', i+1))+np.matmul(lat.sso('sp', i), lat.sso('bm', i+1)))
 
