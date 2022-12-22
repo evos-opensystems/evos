@@ -1,5 +1,5 @@
 import evos
-import evos.src.lattice as lat
+import evos.src.lattice.lattice as lat
 #import evos.src.methods.lindblad as lindblad
 import evos.src.methods.ed_quantum_jumps as ed_quantum_jumps
 import evos.src.observables.observables as observables
@@ -15,7 +15,7 @@ time_start = time.process_time()
 n_sites = 2
 dim_H = 2 ** n_sites
 J = 1
-gamma = 1
+gamma = 0
 W = 10
 seed = 1
 np.random.seed(seed)
@@ -23,7 +23,7 @@ eps_vec = np.random.uniform(0, W, n_sites)
 dt = 0.01
 t_max = 10
 n_timesteps = int(t_max/dt)
-n_trajectories = 1
+n_trajectories = 2
 trajectory = 0 
 
 #os.chdir('benchmark')
@@ -108,18 +108,23 @@ L = gamma * spin_lat.sso( 'sm', 0 ) #int( n_sites/2 )
 ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(n_sites, H, [L])
 
 #compute qj trajectories sequentially
-#for trajectory in range(n_trajectories): #FIXME: looping over trajectories seems to be problematic!
-test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(init_state, t_max, dt, trajectory, obsdict )
+for trajectory in range(n_trajectories): 
+    print('computing trajectory {}'.format(trajectory))
+    test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(init_state, t_max, dt, trajectory, obsdict )
 
 #averages and errors
 read_directory = os.getcwd()
 write_directory = os.getcwd()
 
-obsdict.compute_trajectories_averages_and_errors(n_trajectories, read_directory, write_directory, remove_single_trajectories_results=True)
 
+obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
-
-#PLOT
-#time_v = np.linspace(0, t_max, n_timesteps )
 
 print('process time: ', time.process_time() - time_start )
+
+#PLOT
+sz_0 = np.loadtxt('sz_0_av')
+time_v = np.linspace(0, t_max, n_timesteps + 1  )
+plt.plot(time_v,sz_0, label= 'sz_0_av')
+plt.legend()
+plt.show()
