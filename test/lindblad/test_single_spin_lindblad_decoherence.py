@@ -1,5 +1,5 @@
 import evos
-import evos.src.lattice as lat
+import evos.src.lattice.lattice as lat
 import evos.src.methods.lindblad as lindblad
 import numpy as np
 import matplotlib.pyplot as plt
