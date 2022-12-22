@@ -1,9 +1,8 @@
-"""_summary_
-
-    Returns
-    -------
-    _type_
-        _description_
+"""Example of usage of 'evos/src/methods/mps.schroedinger.py'. The method 'schroedinger_time_evolution' allows to concatenate a 
+   global Krylov time-evolution with pyten with an arbitrary number of tdvp configurations in which one can change, for instance,
+   the tdvp mode or the timestep. The krylov time evolution can be skipped by setting krylov=False.
+   The main imput parameter of 'schroedinger_time_evolution' is 'tdvp_config_list', i.e. a list of ptn.tdvp.Conf() objects with the
+   desired parameters.
     """
 import numpy as np
 import time
@@ -33,6 +32,13 @@ rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 spin = 0.5    
 ## 
+
+try:
+    os.system('mkdir data_schroedinger_mps')
+    os.chdir('data_schroedinger')
+except:
+    pass
+
 #lattice 
 lat = ptn.mp.lat.nil.genSpinLattice(n_sites, spin)
 
@@ -87,11 +93,11 @@ obsdict.add_observable_computing_function('bdim_mat',compute_bdim_mat )
 
 
 
-#Time-evolution methods: 
+#Example: Time-evolution methods: 
 # - global krylov from 0 to 1 with dt= 0.05
-# - gse tdvp from 1 to 2 with dt= 0.06
-# - 2 site tdvp from 2 to 4 with dt= 0.07
-# - 1 site tdvp from 4 to 8 with dt= 0.08
+# - gse tdvp from 1 to 2 with dt= 0.05
+# - 2 site tdvp from 2 to 4 with dt= 0.05
+# - 1 site tdvp from 4 to 8 with dt= 0.05
 
 
 #global krylov from 0 to 1 with dt= 0.05
@@ -152,7 +158,6 @@ conf_tdvp3.maxt = 4 # 8-4
 
 #run time evolution
 tdvp_config_list = [conf_tdvp1, conf_tdvp2, conf_tdvp3]
-mps_schroedinger.MPSSchroedinger( n_sites, lat, H ).schroedinger_time_evolution( init_state, obsdict, tdvp_config_list, krylov = True, krylov_config = conf_krylov )
+mps_schroedinger.MPSSchroedinger( n_sites, lat, H ).schroedinger_time_evolution( init_state, obsdict, tdvp_config_list, krylov = True, krylov_config = conf_krylov, save_states = True )
 
-#plot and compare with ed_spins_schroedinger.py
 

@@ -26,7 +26,7 @@ n_timesteps = int(t_max/dt)
 
 #os.chdir('benchmark')
 try:
-    os.system('mkdir data_schroedinger')
+    os.system('mkdir data_schroedinger_ed')
     os.chdir('data_schroedinger')
 except:
     pass

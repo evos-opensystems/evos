@@ -8,7 +8,11 @@ import psutil
 import pyten as ptn
 
 class MPSSchroedinger():
-    """_summary_
+    """The method 'schroedinger_time_evolution' allows to concatenate a 
+   global Krylov time-evolution with pyten with an arbitrary number of tdvp configurations in which one can change, for instance,
+   the tdvp mode or the timestep. The krylov time evolution can be skipped by setting krylov=False.
+   The main imput parameter of 'schroedinger_time_evolution' is 'tdvp_config_list', i.e. a list of ptn.tdvp.Conf() objects with the
+   desired parameters.
     """
     def __init__(self, n_sites: int, lat: ptn.mp.lat, H: ptn.mp.MPO):
         """Set the number of sites and Hamiltonian to instance variable
@@ -25,21 +29,38 @@ class MPSSchroedinger():
         self.H = H
         
 
-    def schroedinger_time_evolution(self, psi_t: ptn.mp.MPS, obsdict: dict, tdvp_config_list: list, krylov = True, krylov_config = ptn.krylov.Conf() ):
-        """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
-        first to check if a jump needs to be applied if yes then which operator to use.
+        # Parameters UPDATE THEM!!!!!!!!!!
+        # ----------
+        # psi_t : ptn.mp.MPS
+        #     initial state to be evolved
+        # t_max : float
+        #     maximal evolution time
+        # dt : float
+        #     timestep
+        # obsdict: 
+        #     instance of the class  'evos.src.observables.observables.Observables()'
+        # """
+    def schroedinger_time_evolution(self, psi_t: ptn.mp.MPS, obsdict: dict, tdvp_config_list: list, krylov = True, krylov_config = ptn.krylov.Conf(), save_states = False ):
+        """Compute unitary, real-time evolution for a time-independent Hamiltonian by concatenating a global Krylov time-evolution 
+        with pyten with an arbitrary number of tdvp configurations in which one can change, for instance,
+        the tdvp mode or the timestep.
 
-        Parameters UPDATE THEM!!!!!!!!!!
+        Parameters
         ----------
         psi_t : ptn.mp.MPS
             initial state to be evolved
-        t_max : float
-            maximal evolution time
-        dt : float
-            timestep
-        obsdict: 
+        obsdict : dict
             instance of the class  'evos.src.observables.observables.Observables()'
-        """
+        tdvp_config_list : list
+            list of ptn.tdvp.Conf() objects
+        krylov : bool, optional
+            if =False, the global Krylov loop is skipped. By default True
+        krylov_config : pyten.cpp_pyten.krylov.Conf, optional
+            krylov configuration object, by default ptn.krylov.Conf()
+        save_states : bool, optional
+            if = True, all the krylov and tdvp states are saved. By default False    
+        """        
+        
         
         #FIXME add option for time-dependent Hamiltonian!
         
@@ -63,7 +84,9 @@ class MPSSchroedinger():
                 time.sleep(0.5) #FIXME small sleep is needed to allow the state to being written. could need to be larger for large systems
                 psi_t = ptn.mp.MPS(state_name)
                 obsdict.compute_all_observables_at_one_timestep(psi_t, krylov_time_index + 1) #compute observables
-            
+                time.sleep(0.1)
+                if not save_states: 
+                    os.remove(state_name) #remove state
         
         #tdvp evolution: loop over the different tdvp configurations in 'tdvp_config_dict'
         total_time_index = 0
@@ -76,7 +99,8 @@ class MPSSchroedinger():
                 worker.do_step()
                 psi_t = worker.get_psi(False)
                 obsdict.compute_all_observables_at_one_timestep(psi_t, krylov_time_index + total_time_index + 1) #compute observables
-        
+                if save_states:
+                    psi_t.save('state_t_' + str( round( (krylov_time_index + total_time_index + 1) *  np.real(tdvp_config.dt), 4 ) ) ) 
                 
             
             
