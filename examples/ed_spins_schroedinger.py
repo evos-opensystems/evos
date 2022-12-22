@@ -13,18 +13,16 @@ import scipy.linalg as la
 time_start = time.process_time()
 
 #parameters
-n_sites = 2
+n_sites = 4
 dim_H = 2 ** n_sites
-J = 1
-gamma = 1
+J = 2
 W = 10
-seed = 1
-np.random.seed(seed)
-eps_vec = np.random.uniform(0, W, n_sites)
-dt = 0.01
-t_max = 10
+seed_W = 7
+rng = np.random.default_rng(seed=seed_W) # random numbers
+eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
+dt = 0.05
+t_max = 8
 n_timesteps = int(t_max/dt)
-
 
 #os.chdir('benchmark')
 try:
@@ -46,8 +44,7 @@ time_H = time.process_time()
 H = np.zeros( (dim_H,dim_H), dtype=complex)
 #spin coupling
 for i in range(n_sites):
-    for j in range(n_sites):
-        if j != i: 
+    for j in range(i):
             H += J/np.abs(i-j)**3 * ( np.matmul( spin_lat.sso('sp',i),spin_lat.sso('sm',j) )   + np.matmul( spin_lat.sso('sp',j),spin_lat.sso('sm',i) ) )
 #disorder
 for i in range(n_sites):
@@ -103,8 +100,12 @@ print('process time: ', time.process_time() - time_start )
 
 
 #PLOT
+#load mps data for benchmark
+sz_mps = np.loadtxt('sz_4_sites_mps')
 sz_0 = np.loadtxt('sz_0')
 time_v = np.linspace(0, t_max, n_timesteps + 1  )
 plt.plot(time_v,sz_0, label= 'sz_0')
+plt.plot(time_v,sz_mps[0,:], label= 'sz_0 mps')
+
 plt.legend()
 plt.show()
