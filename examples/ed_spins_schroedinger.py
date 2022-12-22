@@ -1,5 +1,5 @@
 import evos
-import evos.src.lattice as lat
+import evos.src.lattice.lattice as lat
 #import evos.src.methods.lindblad as lindblad
 import evos.src.methods.ed_schroedinger as ed_schroedinger
 import evos.src.observables.observables as observables
@@ -97,7 +97,15 @@ obsdict.add_observable_computing_function('sz_1',compute_sz_1 )
 
 
 #compute schroedinger time-evolution
-ed_schroedinger = EdSchroedinger(n_sites, H)
-ed_schroedinger.schroedinger_time_evolution(self, init_state, t_max, dt, obsdict)
+ed_schroedinger = ed_schroedinger.EdSchroedinger(n_sites, H)
+ed_schroedinger.schroedinger_time_evolution(init_state, t_max, dt, obsdict)
 
 print('process time: ', time.process_time() - time_start )
+
+
+#PLOT
+sz_0 = np.loadtxt('sz_0')
+time_v = np.linspace(0, t_max, n_timesteps + 1  )
+plt.plot(time_v,sz_0, label= 'sz_0')
+plt.legend()
+plt.show()

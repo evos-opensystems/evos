@@ -38,7 +38,7 @@ class EdSchroedinger():
         """
         
         n_timesteps = int(t_max/dt) #NOTE: read from instance or compute elsewhere
-        U = expm( -1j * dt * self.H_eff ) #compute the time-evolution operator. needs to be done only once
+        U = expm( -1j * dt * self.H ) #compute the time-evolution operator. needs to be done only once
         #compute observables with initiql state
         obsdict.compute_all_observables_at_one_timestep(psi_t, 0)        
         #loop over timesteps
