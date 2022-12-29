@@ -10,7 +10,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 #import spinful_fermions_lattice as spinful_fermions_lattice
 import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
-import evos.src.methods.ed_lindblad_normal_reka as ed_mesoscopic_leads
+import evos.src.methods.lindblad_solver_reka as ed_mesoscopic_leads
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from scipy.linalg import expm
