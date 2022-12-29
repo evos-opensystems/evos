@@ -15,7 +15,7 @@ import matplotlib.pyplot as plt
 import time
 import os
 import scipy.linalg as la
-import spinful_fermions_lattice as spinful_fermions_lattice#
+
 
 #DO BENCHMARK OF TEVO AND OBSERVABLES!
 #parameters
