@@ -1,5 +1,5 @@
 import evos
-import evos.src.lattice as lat
+import evos.src.lattice.spin_one_half_lattice as spin_lat
 import evos.src.methods.lindblad as lindblad
 import numpy as np
 import matplotlib.pyplot as plt
@@ -24,9 +24,9 @@ n_timesteps = int(t_max/dt)
 #os.chdir('benchmark')
 #lattice
 time_lat = time.process_time()
-spin_lat = lat.Lattice('ed')
-spin_lat.specify_lattice('spin_one_half_lattice')
-spin_lat = spin_lat.spin_one_half_lattice.SpinOneHalfLattice(n_sites)
+#spin_lat = lat.Lattice('ed')
+#spin_lat.specify_lattice('spin_one_half_lattice')
+spin_lat = spin_lat.SpinOneHalfLattice(n_sites)
 #np.save( 'time_lat_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lat-time.process_time())
 print('time_lat:{0}'.format( time.process_time() - time_lat ) )
 
@@ -54,7 +54,9 @@ init_state /= la.norm(init_state)
 #Lindbladian: dissipation only on central site
 L = gamma * np.matrix( spin_lat.sso( 'sm', 0 ) )  # int( n_sites/2 ) #Lindblad operators must be cast from arrays to matrices in order to be able to use .H
 time_lind_evo = time.process_time()
-lindblad = evos.src.methods.lindblad.Lindblad([L],H,n_sites)
+
+
+lindblad = lindblad.Lindblad([L],H,n_sites)
 rho_0 = lindblad.ket_to_projector(init_state)        
 rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max)
 #np.save( 'time_lind_evo_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lind_evo-time.process_time())

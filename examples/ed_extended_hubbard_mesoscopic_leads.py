@@ -25,7 +25,7 @@ import math
 
 # Hamiltonian
 J = 1
-U = 1
+U = 3
 V = 1
 eps = 1
 kappa = 1
@@ -49,8 +49,8 @@ dim_tot = dim_H_sys*dim_H_lead_left*dim_H_lead_right
 # temperature and chemical potential on the different leads
 T_L = 1
 T_R = 1
-mu_L = 0.5
-mu_R = 0.5
+mu_L = 2
+mu_R = -2
 
 ####################################################################################################################
 # spectral function
@@ -85,8 +85,8 @@ for i in range( len(eps_vector_r) ):
 ########################################################################################################################
 
 # paramters (time, ...) for solving differential equation
-T = 20
-dt = 0.1
+T = 40
+dt = 1
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
 #print(tsteps)
@@ -146,7 +146,7 @@ def H_leads_left(eps, k_vec, mu_L):
     else: 
         for k in range(1, n_lead_left+1): 
             print('Ekin_lead left terms on sites:', k)
-            kin_leads += (eps[k-1]) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+            kin_leads += (eps[k-1] -mu_L) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
      
     
     
@@ -175,7 +175,7 @@ def H_leads_right(eps,k_vec, mu_R):
     else:       
         for k in range(n_tot - n_lead_right + 1, n_tot+1):    
             print('Ekin_lead right terms on sites:', k)
-            kin_leads += (eps[k - (n_tot - n_lead_right +1)] ) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+            kin_leads += (eps[k - (n_tot - n_lead_right +1)] -mu_R) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
      
     # HOPPING BETWEEN LEADS AND SYSTEM RIGHT SIDE
     hop_sys_lead = np.zeros((dim_tot, dim_tot))
@@ -320,7 +320,6 @@ n_up_4 = np.dot(spin_lat.sso('adag',4, 'down'), spin_lat.sso('a',4, 'down'))
 exp = n_up_1.dot(rho_matrix).trace()
 #print('exp = ', exp)
 
-'''
 #compute expectation value
 exp_n_up_lead_left = []
 t1 = []
@@ -352,14 +351,14 @@ for i in range(0, tsteps):
     exp_n_up_lead_right.append(exp)
     t1.append(i)
     
-'''
+
 
 # expectation value of current of down spins through wire
 
-j_left = np.dot(spin_lat.sso('adag',n_lead_left, 'down'), spin_lat.sso('a',n_lead_left +1, 'down')) #+ np.dot(spin_lat.sso('adag',n_lead_left+1, 'down'), spin_lat.sso('a',n_lead_left, 'down'))
+j_left = np.dot(spin_lat.sso('adag',n_lead_left, 'down'), spin_lat.sso('a',n_lead_left +1, 'down')) + np.dot(spin_lat.sso('adag',n_lead_left+1, 'down'), spin_lat.sso('a',n_lead_left, 'down'))
 j_right = np.dot(spin_lat.sso('adag',n_lead_left + n_sites, 'down'), spin_lat.sso('a',n_lead_left + n_sites + 1, 'down')) + np.dot(spin_lat.sso('adag',n_lead_left + n_sites +1, 'down'), spin_lat.sso('a',n_lead_left + n_sites, 'down'))
 
-j = j_left #+ j_right
+j = j_left + j_right
 
 exp_j = []
 t1 = []
@@ -368,19 +367,34 @@ for i in range(0, tsteps):
     exp_j.append(exp)
     t1.append(i)
     
+beta_L = np.exp(- 1/T_L * (eps_vector_l[0] - mu_L) ) / ( np.exp(- 1/T_L * (eps_vector_l[0]-mu_L) ) + 1)
+
+beta_list_L = []
+for i in range(len(t)):
+    beta_list_L.append(beta_L)
+    
+beta_R = np.exp( - 1/T_R * (eps_vector_r[0] - mu_R) ) / ( np.exp(- 1/T_R * (eps_vector_r[0]-mu_R) ) + 1)
+
+beta_list_R = []
+for i in range(len(t)):
+    beta_list_R.append(beta_R)
+    
+    
+plt.plot(t, beta_list_L, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
+plt.plot(t, beta_list_R, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
  
 #print(N_up(1,N))
-'''   
-plt.plot(t, exp_n_up_lead_left, label='number of down spins on left lead')
-plt.plot(t, exp_n_up_first_sys_site, label='number of down spins on first site')
-plt.plot(t, exp_n_up_second_sys_site, label='number of down spins on second site')
+ 
+plt.plot(t, exp_n_up_lead_left, label='< \hat n > down spins on left lead')
+plt.plot(t, exp_n_up_first_sys_site, label='< \hat n > down spins on first sys site')
+plt.plot(t, exp_n_up_second_sys_site, label='< \hat n > down spins on second sys site')
 plt.plot(t, exp_n_up_lead_right, label='number of down spins on right lead')
-'''
 
-plt.plot(t, exp_j, label='current')
+
+plt.plot(t, exp_j, label='$< \hat j >$')
 
 plt.xlabel('t')
-plt.ylabel('$< \hat j >$')
+plt.ylabel('$< \hat j >, < \hat n >$')
 #plt.title('$L_{1} = 2\hat a_{down, dag,2}, L_{2} =  \hat a_{down,2}$')
 #plt.savefig('FH_2sites_4p_6.pdf')
 
