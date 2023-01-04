@@ -25,7 +25,7 @@ import math
 
 # Hamiltonian
 J = 1
-U = 1
+U = 3
 V = 1
 eps = 1
 kappa = 1
@@ -49,8 +49,8 @@ dim_tot = dim_H_sys*dim_H_lead_left*dim_H_lead_right
 # temperature and chemical potential on the different leads
 T_L = 1
 T_R = 1
-mu_L = 1
-mu_R = -1
+mu_L = 2
+mu_R = -2
 
 ####################################################################################################################
 # spectral function
@@ -86,7 +86,7 @@ for i in range( len(eps_vector_r) ):
 
 # paramters (time, ...) for solving differential equation
 T = 40
-dt = 0.5
+dt = 1
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
 #print(tsteps)
@@ -146,7 +146,7 @@ def H_leads_left(eps, k_vec, mu_L):
     else: 
         for k in range(1, n_lead_left+1): 
             print('Ekin_lead left terms on sites:', k)
-            kin_leads += (eps[k-1]) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+            kin_leads += (eps[k-1] -mu_L) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
      
     
     
@@ -175,7 +175,7 @@ def H_leads_right(eps,k_vec, mu_R):
     else:       
         for k in range(n_tot - n_lead_right + 1, n_tot+1):    
             print('Ekin_lead right terms on sites:', k)
-            kin_leads += (eps[k - (n_tot - n_lead_right +1)] ) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+            kin_leads += (eps[k - (n_tot - n_lead_right +1)] -mu_R) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
      
     # HOPPING BETWEEN LEADS AND SYSTEM RIGHT SIDE
     hop_sys_lead = np.zeros((dim_tot, dim_tot))
@@ -358,7 +358,7 @@ for i in range(0, tsteps):
 j_left = np.dot(spin_lat.sso('adag',n_lead_left, 'down'), spin_lat.sso('a',n_lead_left +1, 'down')) + np.dot(spin_lat.sso('adag',n_lead_left+1, 'down'), spin_lat.sso('a',n_lead_left, 'down'))
 j_right = np.dot(spin_lat.sso('adag',n_lead_left + n_sites, 'down'), spin_lat.sso('a',n_lead_left + n_sites + 1, 'down')) + np.dot(spin_lat.sso('adag',n_lead_left + n_sites +1, 'down'), spin_lat.sso('a',n_lead_left + n_sites, 'down'))
 
-j = j_left#+ j_right
+j = j_left + j_right
 
 exp_j = []
 t1 = []
