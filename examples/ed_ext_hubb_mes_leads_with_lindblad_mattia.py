@@ -25,8 +25,8 @@ plt.rcParams.update({'font.size': 11})
 
 #DO BENCHMARK OF TEVO AND OBSERVABLES!
 #parameters
-J = 1
-U = 1
+J = 1/2
+t = 1
 V = 1
 eps = 1
 kappa = 1
@@ -201,7 +201,7 @@ def H_leads_right(eps,k_vec, mu_R):
     H = kin_leads + hop_sys_lead       
     return H
 
-H = H_sys(U,J, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_right(eps_vector_r, k_vector_r, mu_R)
+H = H_sys(t,J, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_right(eps_vector_r, k_vector_r, mu_R)
 
 #print(H)
 
