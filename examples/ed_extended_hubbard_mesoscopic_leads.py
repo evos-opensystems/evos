@@ -25,7 +25,7 @@ import math
 
 # Hamiltonian
 J = 1
-U = 3
+U = 1
 V = 1
 eps = 1
 kappa = 1
@@ -85,7 +85,7 @@ for i in range( len(eps_vector_r) ):
 ########################################################################################################################
 
 # paramters (time, ...) for solving differential equation
-T = 40
+T = 20
 dt = 1
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
@@ -239,7 +239,7 @@ for i in range(1, n_tot+1):
 
 
 
-tot_init_state_ket_norm = tot_init_state_ket/LA.norm(tot_init_state_ket)
+tot_init_state_ket_norm = np.array(tot_init_state_ket/LA.norm(tot_init_state_ket), dtype = 'complex')
 # total density matrix: 
 
 tot_init_state_bra = np.conjugate(tot_init_state_ket_norm) 
@@ -355,8 +355,8 @@ for i in range(0, tsteps):
 
 # expectation value of current of down spins through wire
 
-j_left = np.dot(spin_lat.sso('adag',n_lead_left, 'down'), spin_lat.sso('a',n_lead_left +1, 'down')) + np.dot(spin_lat.sso('adag',n_lead_left+1, 'down'), spin_lat.sso('a',n_lead_left, 'down'))
-j_right = np.dot(spin_lat.sso('adag',n_lead_left + n_sites, 'down'), spin_lat.sso('a',n_lead_left + n_sites + 1, 'down')) + np.dot(spin_lat.sso('adag',n_lead_left + n_sites +1, 'down'), spin_lat.sso('a',n_lead_left + n_sites, 'down'))
+j_left = -1j*( np.dot(spin_lat.sso('adag',n_lead_left, 'down'), spin_lat.sso('a',n_lead_left +1, 'down')) - np.dot(spin_lat.sso('adag',n_lead_left+1, 'down'), spin_lat.sso('a',n_lead_left, 'down')))
+j_right = -1j*( np.dot(spin_lat.sso('adag',n_lead_left + n_sites, 'down'), spin_lat.sso('a',n_lead_left + n_sites + 1, 'down')) - np.dot(spin_lat.sso('adag',n_lead_left + n_sites +1, 'down'), spin_lat.sso('a',n_lead_left + n_sites, 'down')))
 
 j = j_left + j_right
 
@@ -364,7 +364,7 @@ exp_j = []
 t1 = []
 for i in range(0, tsteps):
     exp = j.dot(rho_sol[:,:,i]).trace()
-    exp_j.append(exp)
+    exp_j.append(exp.imag)
     t1.append(i)
     
 beta_L = np.exp(- 1/T_L * (eps_vector_l[0] - mu_L) ) / ( np.exp(- 1/T_L * (eps_vector_l[0]-mu_L) ) + 1)

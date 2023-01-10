@@ -295,7 +295,7 @@ time_lind_obs = time.process_time()
 
 names_and_operators_list = {} #{'sz_0': spin_lat.sso('sz',0), 'sz_1': spin_lat.sso('sz',1), 'sz_2': , 'sz_3': sz_3 }
 for i in range(1, n_tot+1):
-    names_and_operators_list.update({'a_'+str(i) : np.dot(spin_lat.sso('adag',i, 'up'), spin_lat.sso('a',i, 'up')) })
+    names_and_operators_list.update({'a_'+ str(i) : np.dot(spin_lat.sso('adag',i, 'up'), spin_lat.sso('a',i, 'up')) })
 obs_test_dict =  lindblad.compute_observables(rho_t, names_and_operators_list, dt, t_max )
 #np.save( 'time_lind_obs_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lind_obs-time.process_time())
 print('time_lind_obs:{0}'.format( time.process_time() - time_lind_evo ) )
