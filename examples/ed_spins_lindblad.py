@@ -1,5 +1,9 @@
 import evos
+<<<<<<< HEAD
 import evos.src.lattice.spin_one_half_lattice as spin_lat
+=======
+import evos.src.lattice.lattice as lat
+>>>>>>> 67fb435a2651e38f7304020d7c4869c446416970
 import evos.src.methods.lindblad as lindblad
 import numpy as np
 import matplotlib.pyplot as plt
@@ -14,9 +18,9 @@ dim_H = 2 ** n_sites
 J = 1
 gamma=1
 W = 10
-seed = 1
-np.random.seed(seed)
-eps_vec = np.random.uniform(0, W, n_sites)
+seed_W = 1
+rng = np.random.default_rng(seed=seed_W) # random numbers
+eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01
 t_max = 10
 n_timesteps = int(t_max/dt)
@@ -35,9 +39,8 @@ time_H = time.process_time()
 H = np.zeros( (dim_H,dim_H), dtype=complex)
 #spin coupling
 for i in range(n_sites):
-    for j in range(n_sites):
-        if j != i:
-            H += J/np.abs(i-j)**3 * ( np.matmul( spin_lat.sso('sp',i),spin_lat.sso('sm',j) )   + np.matmul( spin_lat.sso('sp',j),spin_lat.sso('sm',i) ) )
+    for j in range(i):
+        H += J/np.abs(i-j)**3 * ( np.matmul( spin_lat.sso('sp',i),spin_lat.sso('sm',j) )   + np.matmul( spin_lat.sso('sp',j),spin_lat.sso('sm',i) ) )
 #disorder
 for i in range(n_sites):
     H += eps_vec[i] * spin_lat.sso('sz',i)
