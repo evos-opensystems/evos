@@ -1,6 +1,6 @@
-    """Example of quantum jumps with matrix-product states (MPS) using an adaptive-timestep time-dependent variational principle (TDVP)
-    The model is a spin chain and a single trajectory is computed.
-    """
+"""Example of quantum jumps with matrix-product states (MPS) using an adaptive-timestep time-dependent variational principle (TDVP)
+The model is a spin chain and a single trajectory is computed.
+"""
 import numpy as np
 import time
 import os
@@ -111,7 +111,7 @@ obsdict.add_observable_computing_function('bdim_mat',compute_bdim_mat )
 
 ########TDVP CONFIG
 conf_tdvp = ptn.tdvp.Conf()
-conf_tdvp.mode = ptn.tdvp.Mode(tdvp_mode) 
+conf_tdvp.mode = ptn.tdvp.Mode.TwoSite 
 conf_tdvp.dt = tdvp_dt
 conf_tdvp.trunc.threshold = tdvp_trunc_threshold  #NOTE: set to zero for gse
 conf_tdvp.trunc.weight = tdvp_trunc_weight #tdvp_trunc_weight #NOTE: set to zero for gse

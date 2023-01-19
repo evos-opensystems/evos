@@ -97,7 +97,7 @@ class MPSQuantumJumps():
         return lambda dt : 1. - psi.norm() ** 2 -r1
     
     
-    def select_jump_operator(self, psi: ptn.mp.MPS, r2: float, threshold :float, weight: float, maxStates: int) -> tuple[np.ndarray, int] :
+    def select_jump_operator(self, psi: ptn.mp.MPS, r2: float, threshold :float, weight: float, maxStates: int) -> tuple:
         """Selects which lindblad operator to apply for a jump out of the 'lindbl_op_list', given the state 'psi' and the pseudo-random number 'r2'
 
         Parameters
