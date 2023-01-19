@@ -1,23 +1,26 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
+Created on Tue Dec 20 10:36:02 2022
+
 @author: reka
 """
 
 import evos
-#import evos.src.lattice as spin_lat
+import evos.src.lattice.lattice as lat
 import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
-import evos.src.methods.lindblad as lindblad
+#import evos.src.methods.lindblad as lindblad
+import evos.src.methods.ed_quantum_jumps as ed_quantum_jumps
+import evos.src.observables.observables as observables
 import numpy as np
 import matplotlib.pyplot as plt
 import time
 import os
+import shutil
 import scipy.linalg as la
-
 import math
 from numpy import linalg as LA
 
 
+time_start = time.process_time()
 plt.rcParams['mathtext.fontset'] = 'stix'
 plt.rcParams['font.family'] = 'STIXGeneral'
 plt.rcParams.update({'font.size': 11})
@@ -94,23 +97,41 @@ for i in range( len(eps_vector_r) ):
 alpha = 1
 
 
-
+gamma = 0
+W = 10
+seed_W = 1
+rng = np.random.default_rng(seed=seed_W) # random numbers
+#eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01
 t_max = 10
 n_timesteps = int(t_max/dt)
+n_trajectories = 1000
+trajectory = 0 
 
 #os.chdir('benchmark')
+try:
+    os.system('mkdir data_qj')
+    os.chdir('data_qj')
+except:
+    pass
+
+try:
+    shutil.rmtree('0')
+    shutil.rmtree('1')
+except:
+    pass
+
 #lattice
 time_lat = time.process_time()
-#spin_lat = lat.Lattice('ed')
+spin_lat = lat.Lattice('ed')
 #spin_lat.specify_lattice('spin_one_half_lattice')
+#spin_lat = spin_lat.spin_one_half_lattice.SpinOneHalfLattice(n_sites)
 spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(n_tot)
 #np.save( 'time_lat_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lat-time.process_time())
 print('time_lat:{0}'.format( time.process_time() - time_lat ) )
 
 #Hamiltonian
 time_H = time.process_time()
-
 def H_sys(J, U, V): 
     
     # SYSTEM SITES 
@@ -201,17 +222,12 @@ def H_leads_right(eps,k_vec, mu_R):
     H = kin_leads + hop_sys_lead       
     return H
 
-H = H_sys(t,J, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_right(eps_vector_r, k_vector_r, mu_R)
+H = np.array(H_sys(t,J, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_right(eps_vector_r, k_vector_r, mu_R), dtype = 'complex')
 
-#print(H)
-
+print(H)
+#np.save( 'time_H_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_H-time.process_time())
 print('time_H:{0}'.format( time.process_time()- time_H ) )
 
-
-
-# PREPARE SYSTEM SITES IN ANY CONVENIENT STATE
-
-# no occupation of sites:
 def vac():
             
     state_ket = np.zeros((dim_tot, 1))
@@ -244,7 +260,37 @@ for i in range(1, n_tot+1):
 tot_init_state_ket_norm = tot_init_state_ket/LA.norm(tot_init_state_ket)
 
 init_state = tot_init_state_ket_norm
+    
+print(init_state)
 
+
+# print('LA.norm(init_state) :', la.norm(init_state))
+
+#observables
+obsdict = observables.ObservablesDict()
+obsdict.initialize_observable('sz_0',(1,), n_timesteps) #1D
+#obsdict.initialize_observable('sz_1',(1,), n_timesteps) #1D
+
+sz_0 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
+print(sz_0)
+#sz_1 = spin_lat.sso( 'sz', 1 )
+###
+# sz_0_init_state = np.dot( np.conjugate(init_state), np.dot(sz_0,init_state ))
+# print(sz_0_init_state)
+###
+
+def compute_sz_0(state, obs_array_shape,dtype):  #EXAMPLE 1D
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array[0] = np.real( np.dot( np.dot( np.conjugate(state.T), sz_0 ), state )  )  
+    #OBS DEPENDENT PART END
+    return obs_array
+
+obsdict.add_observable_computing_function('sz_0',compute_sz_0 )
+#obsdict.add_observable_computing_function('sz_1',compute_sz_1 )
+
+
+#Lindbladian: dissipation only on central site
 #Lindbladian: 
 def L_op(k, N):
     n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))
@@ -281,56 +327,31 @@ for k in range(n_tot-n_lead_right +1, n_tot+1):
 #L = gamma * np.matrix( spin_lat.sso( 'sm', 0 ) )  # int( n_sites/2 ) #Lindblad operators must be cast from arrays to matrices in order to be able to use .H
 time_lind_evo = time.process_time()
 
-L = L_list 
+L = np.array(L_list, dtype = 'complex')
 
-lindblad = lindblad.Lindblad(L ,H ,n_sites)
+    
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(n_tot, H, L)
+
+#compute qj trajectories sequentially
+for trajectory in range(n_trajectories): 
+    print('computing trajectory {}'.format(trajectory))
+    test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(init_state, t_max, dt, trajectory, obsdict )
+
+#averages and errors
+read_directory = os.getcwd()
+write_directory = os.getcwd()
 
 
-rho_0 = lindblad.ket_to_projector(init_state)        
-rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max)
-#np.save( 'time_lind_evo_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lind_evo-time.process_time())
-print('time_lind_evo:{0}'.format( time.process_time() - time_lind_evo ) )
-#observables
-time_lind_obs = time.process_time()
+obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
-names_and_operators_list = {} #{'sz_0': spin_lat.sso('sz',0), 'sz_1': spin_lat.sso('sz',1), 'sz_2': , 'sz_3': sz_3 }
-for i in range(1, n_tot+1):
-    names_and_operators_list.update({'a_'+ str(i) : np.dot(spin_lat.sso('adag',i, 'up'), spin_lat.sso('a',i, 'up')) })
-obs_test_dict =  lindblad.compute_observables(rho_t, names_and_operators_list, dt, t_max )
-#np.save( 'time_lind_obs_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lind_obs-time.process_time())
-print('time_lind_obs:{0}'.format( time.process_time() - time_lind_evo ) )
+
+print('process time: ', time.process_time() - time_start )
+
 #PLOT
-time_v = np.linspace(0, t_max, n_timesteps )
-
-for i in range(1, n_tot+1):
-    plt.plot(time_v, obs_test_dict['a_'+str(i)], label = '<$\hat n$> on site '+str(i))    
-
+sz_0 = np.loadtxt('sz_0_av')
+time_v = np.linspace(0, t_max, n_timesteps + 1  )
+plt.plot(time_v,sz_0, label= 'sz_0_av')
 plt.legend()
-plt.xlabel('time')
-
-beta_L = np.exp(- 1/T_L * (eps_vector_l[0] - mu_L) ) / ( np.exp(- 1/T_L * (eps_vector_l[0]-mu_L) ) + 1)
-
-beta_list_L = []
-for i in range(len(time_v)):
-    beta_list_L.append(beta_L)
-    
-beta_R = np.exp( - 1/T_R * (eps_vector_r[0] - mu_R) ) / ( np.exp(- 1/T_R * (eps_vector_r[0]-mu_R) ) + 1)
-
-beta_list_R = []
-for i in range(len(time_v)):
-    beta_list_R.append(beta_R)
-    
-    
-plt.plot(time_v, beta_list_L, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
-plt.plot(time_v, beta_list_R, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
 plt.show()
 
 
-# plt.imshow(sz_matrix, aspect='auto', extent=[0,t_max,1,n_sites])
-# plt.yticks(range(1,n_sites+1))
-
-# plt.colorbar()
-# plt.xlabel(r'time $(1/\bar{J})$' )
-# plt.ylabel('sites')
-# plt.title('Lindblad evolution of the magnetization '+r'$\langle \hat{S_z} \rangle $ ' +'starting from the Neel state' +'\n Dissipation on central site c: ' + r'$\hat{L} = \gamma_c \hat{S}^-_c$ with $\gamma_c = 0.2 \bar{J}$. Disorder strength $W= 0.2 \bar{J}$ ')
-# plt.show()    
