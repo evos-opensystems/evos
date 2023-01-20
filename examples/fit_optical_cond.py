@@ -16,6 +16,7 @@ import sys
 U = float(sys.argv[2])
 V = float(sys.argv[3])
 
+
 ydata1 = np.loadtxt('optical_cond')
 xdata1 = np.loadtxt('time')
 
@@ -40,9 +41,8 @@ os.remove("optical_cond.txt")
 os.remove("time.txt")
 '''
 
-
-Path("results").mkdir(parents=True, exist_ok=True)
-os.chdir('results')
+Path("results1").mkdir(parents=True, exist_ok=True)
+os.chdir('results1')
 for i in range(0,len([name for name in os.listdir('.') if os.path.isfile(name)])+1):
     if os.path.exists('my_file'+str(i)) == True: 
         pass

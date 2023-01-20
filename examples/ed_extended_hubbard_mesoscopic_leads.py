@@ -25,9 +25,16 @@ from scipy.optimize import curve_fit
 #np.set_printoptions(threshold = False)
 
 # Hamiltonian
+
 t_hop = float(sys.argv[1])
 U = float(sys.argv[2])
 V = float(sys.argv[3])
+
+'''
+t_hop = 1
+U = 0
+V = 1.5
+'''
 eps = 1
 kappa = 1
 
@@ -48,8 +55,8 @@ dim_tot = dim_H_sys*dim_H_lead_left*dim_H_lead_right
 
 
 # temperature and chemical potential on the different leads
-T_L = 0.001
-T_R = 0.001
+T_L = 1
+T_R = 1
 mu_L = 1
 mu_R = -1
 
@@ -407,8 +414,7 @@ opt_cond = []
 for i in range(0, tsteps):
     opt_conductivity = (exp_j[i]+exp_j1[i])/(mu_L - mu_R)
     opt_cond.append(opt_conductivity)
-    
-        
+''' 
     
 beta_L = np.exp(- 1/T_L * (eps_vector_l[0] - mu_L) ) / ( np.exp(- 1/T_L * (eps_vector_l[0]-mu_L) ) + 1)
 
@@ -430,7 +436,7 @@ limit_2 = []
 for i in range(len(t)):
     limit_2.append(0.0)
     
-
+'''
 '''
     
 plt.plot(t, beta_list_L, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
