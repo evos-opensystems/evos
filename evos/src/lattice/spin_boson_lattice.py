@@ -5,7 +5,7 @@ First make this independently, in order to see what methods and attributes it ne
 Later make it inherit from an ABC class 'Lattice'. """
 import numpy as np
 
-class BosonicLatticeMattia():
+class SpinBosonLattice():
     """Vacuum = |1 0 ... 0 > = zero particles present."""
     
     def __init__(self, n_sites: int, max_bosons: int):
@@ -75,7 +75,9 @@ class BosonicLatticeMattia():
         np.ndarray
             single site operator acting on the whole Hilbert space
         """
-        if operator_name == a or operator_name == ah:
+        if site > self.n_sites:
+            raise IOError('site must be smaller than n_sites')
+        if operator_name == 'a' or operator_name == 'ah':
             spin_or_bos = 'bos'
             site = 2 * site + 1
             
@@ -104,7 +106,7 @@ class BosonicLatticeMattia():
             elif i == site and i % 2 == 1: #Is x op
                 single_site_operator = np.kron( single_site_operator, np.kron( self.Is, operator.copy() ) )   
                 
-            elif != site: #Is x Ib
+            elif i != site: #Is x Ib
                 single_site_operator = np.kron( single_site_operator, np.kron( self.Is.copy(), self.Ib.copy() ) )
                 
         return single_site_operator        
