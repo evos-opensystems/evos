@@ -10,6 +10,14 @@ import numpy as np
 import matplotlib.pyplot as plt 
 from mpl_toolkits.mplot3d import Axes3D 
 import os
+import matplotlib.patches as patches
+
+plt.rcParams['mathtext.fontset'] = 'stix'
+plt.rcParams['font.family'] = 'STIXGeneral'
+plt.rcParams.update({'font.size': 12}) 
+plt.rcParams["figure.figsize"] = (12,8)
+
+
 '''
 xlist = np.linspace(-3.0, 3.0, 100)
 ylist = np.linspace(-3.0, 3.0, 100)
@@ -70,10 +78,19 @@ fig = plt.figure() # creates space for a figure to be drawn
 #axes = fig.gca(projection ='3d')
 #fig.colorbar(axes)
 # Plots the three dimensional data consisting of x, y and z 
-sc = plt.scatter(U,V,c =opt_cond, s = 10,cmap='coolwarm' )
-plt.colorbar(sc)
-plt.xlabel('U')
-plt.ylabel('V')
+sc = plt.scatter(U,V,c =opt_cond, s = 10,cmap='coolwarm')
+plt.colorbar(sc, label = '$\sigma$ (opt. cond.)')
+plt.xlabel('U/t')
+plt.ylabel('V/t')
+'''
+plt.text(0.9, 0.9,'$T_{left}$ = 0.001', fontsize=12, transform=plt.gcf().transFigure)
+plt.text(0.9, 0.85,'$T_{right}$ = 0.001', fontsize=12, transform=plt.gcf().transFigure)
+plt.text(0.9, 0.8,'$N_{tot}$ = 4', fontsize=12, transform=plt.gcf().transFigure)
+plt.text(0.9, 0.75,'$N_{lead,left}$ = 1', fontsize=12, transform=plt.gcf().transFigure)
+plt.text(0.9, 0.7,'$N_{lead, right}$ = 1', fontsize=12, transform=plt.gcf().transFigure)
+plt.text(0.9, 0.65,'$\mu_L$ = 1', fontsize=12, transform=plt.gcf().transFigure)
+plt.text(0.9, 0.6,'$\mu_R$ = -1', fontsize=12, transform=plt.gcf().transFigure)
+'''
 
 
 x1 = []
@@ -86,8 +103,17 @@ for x in np.linspace(0, 2.5):
     y1.append(y)
     y2.append(b)
     
-plt.plot(x1,y1, '--')
+plt.plot(x1,y1, '--', label = '$U = 2V')
+plt.annotate('$U = 2V$', xy = (2,1) , c ='blue', textcoords="offset points", xytext=(0,10), ha='center')
 plt.plot(x1,y2, '--')
+plt.annotate('$U = -2V$', xy = (2,-1) , c ='orange', textcoords="offset points", xytext=(0,10), ha='center')
+
+props = dict(boxstyle='square', facecolor= 'white', alpha=0.5)
+
+textstr = '\n'.join((r'$\mathrm{T_{left}}=%.3f$' % (0.001, ),r'$\mathrm{T_{right}}=%.3f$' % (0.001, ), r'$\mathrm{N_{tot}}=%.0f$' % (4, ),  r'$\mathrm{N_{lead, L}}=%.0f$' % (1, ),  r'$\mathrm{N_{lead, R}}=%.0f$' % (1, ),  r'$\mu_L= %.0f$' % (1, ), r'$\mu_R=%.0f$' % (-1, )))
+
+# place a text box in upper left in axes coords
+plt.text(0.88, 0.8, textstr, fontsize=13, verticalalignment='top', bbox=props, transform=plt.gcf().transFigure)
 #axes.plot_surface(np.array(U), np.array(V), np.array(opt_cond)) 
 
 # show command is used to visualize data plot   
