@@ -17,7 +17,7 @@ class BosSpinOneHalfLattice():
         Parameters
         ----------
         sites : list
-            add 0 for boson and 1 for spin 1/2 in the correct order
+            add 1 for boson and 0 for spin 1/2 in the correct order
         bos_dim: int
             local dimension of the boson sites
         """
@@ -47,7 +47,7 @@ class BosSpinOneHalfLattice():
         operators.update({'bm': bm})
         operators.update({'n_bos': n_bos})
         # vacuum state
-        self.dim_ges = 2**sites.count(1) * bos_dim**sites.count(0)
+        self.dim_ges = 2**sites.count(0) * bos_dim**sites.count(1)
         vacuum_state = np.zeros(self.dim_ges, dtype='complex')
         vacuum_state[0] = 1.
         self.vacuum_state = vacuum_state
@@ -72,14 +72,14 @@ class BosSpinOneHalfLattice():
         if site == 0:
             single_site_operator = operator.copy()
         elif site != 0:
-            if self.sites[0]:
+            if self.sites[0] == 0:
                 single_site_operator = self.I_spin.copy()
             else:
                 single_site_operator = self.I_bos.copy()
         
         for i in range(1, self.n_sites):
             if i != site:
-                if self.sites[i]:
+                if self.sites[i] == 0:
                     single_site_operator = np.kron(single_site_operator, self.I_spin)
                 else:
                     single_site_operator = np.kron(single_site_operator, self.I_bos)

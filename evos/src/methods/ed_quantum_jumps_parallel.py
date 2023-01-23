@@ -5,7 +5,7 @@ from scipy.linalg import expm
 class EdQuantumJumps():
     """_summary_
     """
-    def __init__(self, n_sites: int, H: np.ndarray, lindbl_op_list: list):
+    def __init__(self, n_sites: int, H: np.ndarray, lindbl_op_list: list, save_traj=False: bool):
         """Computes the hermitian conjugate of the lindblad operators. Computes the effective Hamiltonian. Adds lindblad operators,
         effective hamiltonian and n_sites to instance variables.
         Very similar init to that of the Lindblad class.
@@ -20,6 +20,8 @@ class EdQuantumJumps():
             list with the lindblad operators
         """
         
+        self.save_traj = save_traj
+
         self.n_sites = n_sites
         
         lindbl_op_list_conj = []
@@ -112,7 +114,9 @@ class EdQuantumJumps():
         r1_array = np.random.uniform(0, 1, n_timesteps) # generate random numbers array r1
         np.random.seed(int((trajectory + 1) / dt)) # set seed for r2 this trajectory
         r2_array = np.random.uniform(0, 1, n_timesteps) # generate random numbers array r2 to be used by method 'select_jump_operator()'
-
+        
+        if save_traj:
+            os.chdir("") 
         # Compute observables with initiql state
         obsdict.compute_all_observables_at_one_timestep(psi_t, 0, trajectory)        
         # loop over timesteps

@@ -237,7 +237,7 @@ class MPSQuantumJumps():
         r2_array = np.random.uniform( 0, 1, n_timesteps )  #generate random numbers array r2 to be used by method 'select_jump_operator()'
 
         #Compute observables with initial state
-        obsdict.compute_all_observables_at_one_timestep(psi_t, 0)        
+        obsdict.compute_all_observables_at_one_timestep(psi_t, 0, trajectory)
         #loop over timesteps
         memory_usage = []
         r1 = r1_array[0] #NOTE: initialize random number
@@ -327,7 +327,7 @@ class MPSQuantumJumps():
             #Compute observables
             #t_obs_start = time.process_time()
             #FIXME: check wheter syten normalizes automatically when computing observables!
-            obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
+            obsdict.compute_all_observables_at_one_timestep(psi_t, i+1, trajectory) 
             #print('process time for observables at timest {}: {}'.format(i, time.process_time() - t_obs_start) )
         # os.chdir('..') #exit the trajectory directory
         #print('jump_counter: ',jump_counter)    
