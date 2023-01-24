@@ -55,8 +55,8 @@ dim_tot = dim_H_sys*dim_H_lead_left*dim_H_lead_right
 
 
 # temperature and chemical potential on the different leads
-T_L = 1
-T_R = 1
+T_L = 0.001
+T_R = 0.001
 mu_L = 1
 mu_R = -1
 

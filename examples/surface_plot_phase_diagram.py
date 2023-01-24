@@ -11,29 +11,16 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D 
 import os
 import matplotlib.patches as patches
+from mpl_toolkits.axes_grid1 import ImageGrid
+
 
 plt.rcParams['mathtext.fontset'] = 'stix'
 plt.rcParams['font.family'] = 'STIXGeneral'
 plt.rcParams.update({'font.size': 12}) 
-plt.rcParams["figure.figsize"] = (12,8)
-
-
-'''
-xlist = np.linspace(-3.0, 3.0, 100)
-ylist = np.linspace(-3.0, 3.0, 100)
-X, Y = np.meshgrid(xlist, ylist)
-Z = np.sqrt(X**2 + Y**2)
-fig,ax=plt.subplots(1,1)
-cp = ax.contourf(X, Y, Z)
-print(Z)
-fig.colorbar(cp) # Add a colorbar to a plot
-ax.set_title('Filled Contours Plot')
-#ax.set_xlabel('x (cm)')
+plt.rcParams["figure.figsize"] = (20,8)
 
 
 
-
-'''
 opt_cond = []
 U = []
 V = []
@@ -42,79 +29,65 @@ for filename in os.listdir(os.getcwd()):
     opt_cond.append(np.loadtxt(filename)[0])
     U.append(np.loadtxt(filename)[1])
     V.append(np.loadtxt(filename)[2])
+    
+U1 = []
+V1 = []
+opt_cond1 = []
+os.chdir('..') 
+os.chdir('results1') 
+for filename1 in os.listdir(os.getcwd()):
+    opt_cond1.append(np.loadtxt(filename1)[0])
+    U1.append(np.loadtxt(filename1)[1])
+    V1.append(np.loadtxt(filename1)[2])
     #print(np.loadtxt(filename))
     #with open(os.path.join(os.getcwd(results), filename), 'r') as f:
-'''
-opt_cond = np.array(opt_cond).reshape((len(U), len(V)))
-u,v = np.meshgrid(U,V)
-fig, ax = plt.subplots(1,1)
-cp = ax.contourf(u,v,opt_cond)
-ax.set_xlabel('U')
-ax.set_ylabel('V')
-plt.show()
-
-
-
-
-
-# Arrays x, y and z for data plot visualization
-x = np.arange(0, 25, 1)
-y = np.arange(0, 25, 1)
-# meshgrid makes a retangular grid out of two 1-D arrays. 
-x, y = np.meshgrid(x, y)
-z = x**2 + y**2  # x^2+y^2 
-
-'''
-
-
-
-  
-# surface plot for x^2 + y^2 
-fig = plt.figure() # creates space for a figure to be drawn 
-
-
-
-# Uses a 3d prjection as model is supposed to be 3D
-#axes = fig.gca(projection ='3d')
-#fig.colorbar(axes)
-# Plots the three dimensional data consisting of x, y and z 
-sc = plt.scatter(U,V,c =opt_cond, s = 10,cmap='coolwarm')
-plt.colorbar(sc, label = '$\sigma$ (opt. cond.)')
-plt.xlabel('U/t')
-plt.ylabel('V/t')
-'''
-plt.text(0.9, 0.9,'$T_{left}$ = 0.001', fontsize=12, transform=plt.gcf().transFigure)
-plt.text(0.9, 0.85,'$T_{right}$ = 0.001', fontsize=12, transform=plt.gcf().transFigure)
-plt.text(0.9, 0.8,'$N_{tot}$ = 4', fontsize=12, transform=plt.gcf().transFigure)
-plt.text(0.9, 0.75,'$N_{lead,left}$ = 1', fontsize=12, transform=plt.gcf().transFigure)
-plt.text(0.9, 0.7,'$N_{lead, right}$ = 1', fontsize=12, transform=plt.gcf().transFigure)
-plt.text(0.9, 0.65,'$\mu_L$ = 1', fontsize=12, transform=plt.gcf().transFigure)
-plt.text(0.9, 0.6,'$\mu_R$ = -1', fontsize=12, transform=plt.gcf().transFigure)
-'''
 
 
 x1 = []
 y1 = []
 y2 = []
-for x in np.linspace(0, 2.5):
+for x in np.linspace(0, 5):
     y = 0.5*x
     b = -0.5*x
     x1.append(x)
     y1.append(y)
     y2.append(b)
-    
-plt.plot(x1,y1, '--', label = '$U = 2V')
-plt.annotate('$U = 2V$', xy = (2,1) , c ='blue', textcoords="offset points", xytext=(0,10), ha='center')
-plt.plot(x1,y2, '--')
-plt.annotate('$U = -2V$', xy = (2,-1) , c ='orange', textcoords="offset points", xytext=(0,10), ha='center')
 
-props = dict(boxstyle='square', facecolor= 'white', alpha=0.5)
 
+fig, ax = plt.subplots()
+
+ax1 = plt.subplot(121, xlim=[-5.5,5.5], ylim=[-5.5,5.5])
+plt.plot(x1,y2, '--', c ='blue')
+#plt.plot(x1,y1, '--', c = 'blue')
+plt.scatter(U1,V1,c = opt_cond1, s = 20,cmap='RdYlBu_r', vmin=0, vmax=0.11)
+plt.xlabel('U/t')
+plt.ylabel('V/t')
+#plt.plot(x1,y2, '--')
+ax1.annotate('$U = -2V$', xy = (2.3,-1) , c ='blue', textcoords="offset points", xytext=(0,10), ha='center')
+#ax1.annotate('$U = 2V$', xy = (1.8,1) , c ='blue', textcoords="offset points", xytext=(0,10), ha='center')
 textstr = '\n'.join((r'$\mathrm{T_{left}}=%.3f$' % (0.001, ),r'$\mathrm{T_{right}}=%.3f$' % (0.001, ), r'$\mathrm{N_{tot}}=%.0f$' % (4, ),  r'$\mathrm{N_{lead, L}}=%.0f$' % (1, ),  r'$\mathrm{N_{lead, R}}=%.0f$' % (1, ),  r'$\mu_L= %.0f$' % (1, ), r'$\mu_R=%.0f$' % (-1, )))
-
+props = dict(boxstyle='square', facecolor= 'white', alpha=0.5)
 # place a text box in upper left in axes coords
-plt.text(0.88, 0.8, textstr, fontsize=13, verticalalignment='top', bbox=props, transform=plt.gcf().transFigure)
-#axes.plot_surface(np.array(U), np.array(V), np.array(opt_cond)) 
+plt.text(0.9, 0.8, textstr, fontsize=13, verticalalignment='top', bbox=props, transform=plt.gcf().transFigure)
 
-# show command is used to visualize data plot   
-plt.show() 
+
+ax2 = plt.subplot(122, sharey=ax1, xlim=[-5.5,5.5], ylim=[-5.5,5.5])
+im =plt.plot(x1,y2, '--', c = 'blue')
+#plt.plot(x1,y1, '--', c = 'blue')
+ax2.annotate('$U = -2V$', xy = (2.3,-1) , c ='blue', textcoords="offset points", xytext=(0,10), ha='center')
+plt.scatter(U,V,c = opt_cond, s = 20,cmap='RdYlBu_r', vmin=0, vmax=0.11)
+textstr = '\n'.join((r'$\mathrm{T_{left}}=%.3f$' % (1, ),r'$\mathrm{T_{right}}=%.3f$' % (1, ), r'$\mathrm{N_{tot}}=%.0f$' % (4, ),  r'$\mathrm{N_{lead, L}}=%.0f$' % (1, ),  r'$\mathrm{N_{lead, R}}=%.0f$' % (1, ),  r'$\mu_L= %.0f$' % (1, ), r'$\mu_R=%.0f$' % (-1, )))
+props = dict(boxstyle='square', facecolor= 'white', alpha=0.5)
+# place a text box in upper left in axes coords
+plt.text(0.05, 0.8, textstr, fontsize=13, verticalalignment='top', bbox=props, transform=plt.gcf().transFigure)
+
+
+plt.ylabel('V/t')
+plt.xlabel('U/t')
+cbar = plt.colorbar()
+cbar.set_label('$\sigma$ (optical conductivity)')
+#plt.xlim(-5,5)
+fig.suptitle('Open Extended Hubbard Model in Mesoscopic Lead Bath at two different temperatures (T = 1 and T = 0.001)')
+plt.show()
+
+
