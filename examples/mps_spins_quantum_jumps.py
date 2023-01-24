@@ -20,13 +20,14 @@ import pyten as ptn
 # size = comm.size
 
 ##PARAMETERS
-n_sites = 4
+n_sites = 3
 J = 2
 gamma = 1
 W = 10
 seed_W = 7
 first_trajectory = 0
 n_trajectories_average = 200
+n_trajectories = 2
 tdvp_maxt = 10
 tdvp_dt = 0.05
 tdvp_mode = 2
@@ -127,4 +128,9 @@ trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when paralleliz
 print('computing time-evolution for trajectory {}'.format(trajectory) )
 
 #COMPUTE ONE TRAJECTORY WITH TDVP AND ADAPTIVE TIMESTEP
-test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
+#test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
+
+
+for trajectory in range(n_trajectories): 
+    print('computing trajectory {}'.format(trajectory))
+    test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)

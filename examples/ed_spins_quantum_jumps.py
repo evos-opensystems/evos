@@ -1,9 +1,5 @@
 import evos
-<<<<<<< HEAD
-import evos.src.lattice.lattice as lat
-=======
 import evos.src.lattice.spin_one_half_lattice as lat
->>>>>>> reka
 #import evos.src.methods.lindblad as lindblad
 import evos.src.methods.ed_quantum_jumps as ed_quantum_jumps
 import evos.src.observables.observables as observables
