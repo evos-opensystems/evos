@@ -134,3 +134,10 @@ print('computing time-evolution for trajectory {}'.format(trajectory) )
 for trajectory in range(n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
     test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
+
+
+read_directory = os.getcwd()
+write_directory = os.getcwd()
+
+
+obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
