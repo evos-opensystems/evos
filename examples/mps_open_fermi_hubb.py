@@ -34,7 +34,7 @@ first_trajectory = 0
 n_trajectories_average = 200
 n_trajectories = 2
 tdvp_maxt = 10
-tdvp_dt = 0.05
+tdvp_dt = 0.01
 tdvp_mode = 2
 tdvp_trunc_threshold = 1e-8
 tdvp_trunc_weight = 1e-10
@@ -62,7 +62,7 @@ n_timesteps = int(tdvp_maxt/tdvp_dt)
 #lattice 
 lat = ptn.mp.lat.nil.genFermiLattice(n_sites)
 #help(ptn.mp.lat.nil.genFermiLattice)
-print(lat)
+#print(lat)
 
 h = []
 #HOPPING
@@ -81,19 +81,28 @@ H = ptn.mp.addLog(h)
 #print(h)
 
 # Lindbladian
+
 L = []
 for i in range(0, n_sites, 2): 
     print(i, i+1)
-    L.append(lat.get('n', i) + lat.get('n', i+1))
+    L.append(lat.get('c', i) + lat.get('n', i+1) )
 
 init_state =  ptn.mp.generateNearVacuumState(lat)
-for i in range(n_sites):
+for i in range(0,n_sites, 4):
+    print(i)
     init_state *= lat.get( "ch", i)
     init_state.normalise()
     init_state.truncate()
 
     print('exp value of n on ',i, ptn.mp.expectation( init_state, lat.get('n',i) ))
 
+for i in range(3,n_sites, 4):
+    print(i)
+    init_state *= lat.get( "ch", i)
+    init_state.normalise()
+    init_state.truncate()
+    print('exp value of n on ',i, ptn.mp.expectation( init_state, lat.get('n',i) ))
+     
 
 qj = mps_quantum_jumps_no_normalization_adaptive_timestep.MPSQuantumJumps(n_sites, lat, H, L) #ADAPTIVE TIMESTEP, NO NORMALIZATION
 
@@ -135,9 +144,6 @@ conf_tdvp.exp_conf.maxIter =  tdvp_exp_conf_maxIter
 conf_tdvp.cache = tdvp_cache
 conf_tdvp.maxt = tdvp_maxt
 
-#compute time-evolution for one trajectory
-trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
-print('computing time-evolution for trajectory {}'.format(trajectory) )
 
 #COMPUTE ONE TRAJECTORY WITH TDVP AND ADAPTIVE TIMESTEP
 #test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
