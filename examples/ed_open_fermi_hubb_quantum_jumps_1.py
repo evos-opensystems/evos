@@ -35,7 +35,7 @@ W = 10
 seed_W = 1
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
-dt = 0.01
+dt = 0.05
 t_max = 10
 n_timesteps = int(t_max/dt)
 n_trajectories = 2
