@@ -19,7 +19,7 @@ import scipy.linalg as la
 time_start = time.process_time()
 #DO BENCHMARK OF TEVO AND OBSERVABLES!
 #parameters
-n_sites = 3
+n_sites = 2
 dim_H = 4 ** n_sites
 
 #hamiltonian parameters
