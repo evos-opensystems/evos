@@ -19,7 +19,7 @@ import scipy.linalg as la
 time_start = time.process_time()
 #DO BENCHMARK OF TEVO AND OBSERVABLES!
 #parameters
-n_sites = 2
+n_sites = 3
 dim_H = 4 ** n_sites
 
 #hamiltonian parameters
@@ -38,7 +38,7 @@ eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01
 t_max = 10
 n_timesteps = int(t_max/dt)
-n_trajectories = 100
+n_trajectories = 2
 trajectory = 0 
 
 #os.chdir('benchmark')
