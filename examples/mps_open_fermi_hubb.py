@@ -32,7 +32,7 @@ W = 10
 seed_W = 7
 first_trajectory = 0
 n_trajectories_average = 200
-n_trajectories = 20
+n_trajectories = 2
 tdvp_maxt = 10
 tdvp_dt = 0.05
 tdvp_mode = 2
@@ -109,7 +109,7 @@ for i in range(3,n_sites, 4):
     #init_state.truncate()
     print('exp value of n on ',i, ptn.mp.expectation( init_state, lat.get('n',i) ))
      
-'''
+
 qj = mps_quantum_jumps_no_normalization_adaptive_timestep.MPSQuantumJumps(n_sites, lat, H, L) #ADAPTIVE TIMESTEP, NO NORMALIZATION
 
 #observables
@@ -126,6 +126,15 @@ def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     #OBS DEPENDENT PART END
     return obs_array
 
+def compute_norm(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    for site in range(n_sites):
+        obs_array[site] =  state.norm() #NOTE: state is in general not normalized
+    
+    #OBS DEPENDENT PART END
+    return obs_array
+
 def compute_bdim_mat(state, obs_array_shape,dtype):  
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART STAR
@@ -135,7 +144,9 @@ def compute_bdim_mat(state, obs_array_shape,dtype):
     return obs_array
 
 obsdict.add_observable_computing_function('n',compute_n )
+obsdict.add_observable_computing_function('norm',compute_norm )
 obsdict.add_observable_computing_function('bdim_mat',compute_bdim_mat )
+
 
 ########TDVP CONFIG
 conf_tdvp = ptn.tdvp.Conf()
@@ -170,4 +181,3 @@ obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), o
 
 
 
-'''
