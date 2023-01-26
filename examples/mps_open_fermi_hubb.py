@@ -32,7 +32,7 @@ W = 10
 seed_W = 7
 first_trajectory = 0
 n_trajectories_average = 200
-n_trajectories = 10
+n_trajectories = 20
 tdvp_maxt = 10
 tdvp_dt = 0.05
 tdvp_mode = 2
@@ -69,7 +69,7 @@ h = []
 for i in range(0, n_sites-2, 2):
     #print(i, i+2)
     #print(i+1, i+3)
-    h.append(-U*(  lat.get('c', i+2) * lat.get('ch', i) +  lat.get('c', i) * lat.get('ch', i+2) ) )  # even terms = spin up
+    h.append(-U*(  lat.get('c', i+2) * lat.get('ch', i)   +  lat.get('c', i) * lat.get('ch', i+2) ) )  # even terms = spin up
     h.append(-U*(  lat.get('c', i+1) * lat.get('ch', i+3) +  lat.get('c', i+3) * lat.get('ch', i+1) )  ) # odd terms = spin down
 
 #COULOMB
@@ -88,22 +88,28 @@ for i in range(0, n_sites, 2):
     L.append(lat.get('n', i)+lat.get('n', i+1) )
 
 init_state =  ptn.mp.generateNearVacuumState(lat)
+
+for i in range(0, n_sites):
+    init_state *= lat.get( "c", i)
+    init_state.normalise()
+
 for i in range(0,n_sites, 4):
     print(i)
     init_state *= lat.get( "ch", i)
-    init_state.normalise()
-    init_state.truncate()
+    #init_state.normalise()
+    #init_state.truncate()
 
     print('exp value of n on ',i, ptn.mp.expectation( init_state, lat.get('n',i) ))
+    print('exp value of n on ',i+1, ptn.mp.expectation( init_state, lat.get('n',i+1) ))
 
 for i in range(3,n_sites, 4):
     print(i)
     init_state *= lat.get( "ch", i)
-    init_state.normalise()
-    init_state.truncate()
+    #init_state.normalise()
+    #init_state.truncate()
     print('exp value of n on ',i, ptn.mp.expectation( init_state, lat.get('n',i) ))
      
-
+'''
 qj = mps_quantum_jumps_no_normalization_adaptive_timestep.MPSQuantumJumps(n_sites, lat, H, L) #ADAPTIVE TIMESTEP, NO NORMALIZATION
 
 #observables
@@ -164,3 +170,4 @@ obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), o
 
 
 
+'''
