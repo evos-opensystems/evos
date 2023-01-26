@@ -32,7 +32,7 @@ W = 10
 seed_W = 7
 first_trajectory = 0
 n_trajectories_average = 200
-n_trajectories = 2
+n_trajectories = 20
 tdvp_maxt = 10
 tdvp_dt = 0.05
 tdvp_mode = 2
@@ -116,6 +116,7 @@ qj = mps_quantum_jumps_no_normalization_adaptive_timestep.MPSQuantumJumps(n_site
 obsdict = observables.ObservablesDict()
 obsdict.initialize_observable('n',(n_sites,), n_timesteps) #2D
 obsdict.initialize_observable('bdim_mat',(n_sites,), n_timesteps)  #2D
+obsdict.initialize_observable('norm',(1,), n_timesteps)  #2D
 
 def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -129,8 +130,7 @@ def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
 def compute_norm(state, obs_array_shape,dtype):  
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    for site in range(n_sites):
-        obs_array[site] =  state.norm() #NOTE: state is in general not normalized
+    obs_array = state.norm() #NOTE: state is in general not normalized
     
     #OBS DEPENDENT PART END
     return obs_array
