@@ -17,13 +17,13 @@ plt.rcParams['font.family'] = 'STIXGeneral'
 plt.rcParams.update({'font.size': 12}) 
 plt.rcParams["figure.figsize"] = (20,8)
 
-os.chdir('data_qj')
-a = np.loadtxt('sz_0_av')
-#print(a[0])
+
+a = np.loadtxt('n_av')
+print(a)
 
 
 T = []
-for t in range(len(a)):
-    T.append(t)
+for t in range(len(a[0])):
+    T.append(t/20)
     
-plt.plot(T,a)
+plt.plot(T,a[4])
