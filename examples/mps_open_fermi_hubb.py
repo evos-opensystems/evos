@@ -32,7 +32,7 @@ W = 10
 seed_W = 7
 first_trajectory = 0
 n_trajectories_average = 200
-n_trajectories = 20
+n_trajectories = 10
 tdvp_maxt = 10
 tdvp_dt = 0.05
 tdvp_mode = 2
@@ -85,7 +85,7 @@ H = ptn.mp.addLog(h)
 L = []
 for i in range(0, n_sites, 2): 
     print(i, i+1)
-    L.append(lat.get('c', i) + lat.get('n', i+1) )
+    L.append(lat.get('n', i)+lat.get('n', i+1) )
 
 init_state =  ptn.mp.generateNearVacuumState(lat)
 for i in range(0,n_sites, 4):
