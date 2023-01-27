@@ -60,20 +60,20 @@ class EdQuantumJumps():
         for jump_op in self.lindbl_op_list:
             states_after_jump_operator_application_list.append( np.dot( jump_op, psi.copy( ) ) )
 
-        norms_after_jump_operator_application_vector = np.zeros( len( states_after_jump_operator_application_list ) )
+        norms_after_jump_operator_application_vector_squared = np.zeros( len( states_after_jump_operator_application_list ) )
         for i in range( len( states_after_jump_operator_application_list ) ):
-            norms_after_jump_operator_application_vector[i] = LA.norm( states_after_jump_operator_application_list[i] )
+            norms_after_jump_operator_application_vector_squared[i] = LA.norm( states_after_jump_operator_application_list[i] ) ** 2
 
-        tot_norm = sum(norms_after_jump_operator_application_vector)
+        tot_norm = sum(norms_after_jump_operator_application_vector_squared)
 
         #Normalize the probabilities
-        norms_after_jump_operator_application_vector /= tot_norm
+        norms_after_jump_operator_application_vector_squared /= tot_norm
 
         #make array with intervals proportional to probability of one jump occurring
         intervals = np.zeros(len(states_after_jump_operator_application_list)+1)
-        intervals[1] = norms_after_jump_operator_application_vector[0]
+        intervals[1] = norms_after_jump_operator_application_vector_squared[0]
         for i in range( 2, len(intervals ) ):
-            intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector[i-1]
+            intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector_squared[i-1]
     
         #choose and apply jump operator 
         for i in range( 1,len( intervals ) ):
