@@ -130,24 +130,24 @@ class MPSQuantumJumps():
             ####
             states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
-        norms_after_jump_operator_application_vector = np.zeros( len( states_after_jump_operator_application_list ) )
+        norms_after_jump_operator_application_vector_squared = np.zeros( len( states_after_jump_operator_application_list ) )
         for i in range( len( states_after_jump_operator_application_list ) ):
-            norms_after_jump_operator_application_vector[i] = states_after_jump_operator_application_list[i].norm()
+            norms_after_jump_operator_application_vector_squared[i] = states_after_jump_operator_application_list[i].norm() ** 2
 
-        tot_norm = sum(norms_after_jump_operator_application_vector)
+        tot_norm = sum(norms_after_jump_operator_application_vector_squared)
         #FIXME: check whether this is correct!!
         # if tot_norm == 0:
         #     return psi, None #which_jump_op=none
         #     return states_after_jump_operator_application[0], None #WORKS ONLY IN THE CASE OF SINGLE LINDBLAD OP!
         
         #Normalize the probabilities
-        norms_after_jump_operator_application_vector /= tot_norm
+        norms_after_jump_operator_application_vector_squared /= tot_norm
 
         #make array with intervals proportional to probability of one jump occurring
         intervals = np.zeros(len(states_after_jump_operator_application_list)+1)
-        intervals[1] = norms_after_jump_operator_application_vector[0]
+        intervals[1] = norms_after_jump_operator_application_vector_squared[0]
         for i in range( 2, len(intervals ) ):
-            intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector[i-1]
+            intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector_squared[i-1]
     
         #choose and apply jump operator 
         for i in range( 1,len( intervals ) ):
