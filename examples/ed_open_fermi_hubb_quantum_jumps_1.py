@@ -19,7 +19,7 @@ import scipy.linalg as la
 time_start = time.process_time()
 #DO BENCHMARK OF TEVO AND OBSERVABLES!
 #parameters
-n_sites = 2
+n_sites = 3
 dim_H = 4 ** n_sites
 
 #hamiltonian parameters
@@ -35,7 +35,7 @@ W = 10
 seed_W = 1
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
-dt = 0.05
+dt = 0.01
 t_max = 10
 n_timesteps = int(t_max/dt)
 n_trajectories = 2

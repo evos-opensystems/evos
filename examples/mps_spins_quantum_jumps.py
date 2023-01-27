@@ -20,7 +20,7 @@ import pyten as ptn
 # size = comm.size
 
 ##PARAMETERS
-n_sites = 10
+n_sites = 3
 J = 2
 gamma = 1
 W = 10
