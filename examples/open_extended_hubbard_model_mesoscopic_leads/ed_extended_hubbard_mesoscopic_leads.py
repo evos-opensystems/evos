@@ -55,8 +55,8 @@ dim_tot = dim_H_sys*dim_H_lead_left*dim_H_lead_right
 
 
 # temperature and chemical potential on the different leads
-T_L = 0.001
-T_R = 0.001
+T_L = 0.01
+T_R = 0.01
 mu_L = 1
 mu_R = -1
 
@@ -106,6 +106,7 @@ def fermi_dist(beta, e, mu):
 
 spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(n_tot)
 #sys_spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(n_sites)
+
 
 
 def H_sys(t_hop, U, V): 
@@ -204,6 +205,7 @@ H = H_sys(t_hop,U, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_r
 
 ###################################################################################################################################
 # PREPARE LEADS IN THERMAL STATE
+
 '''
 rho_leads_left = np.zeros((dim_H_lead_left) , dtype = 'complex')
 rho_leads_left = expm( 1/T_L* H_leads_left(eps,kappa))/np.trace(expm(1/T_L * H_leads_left(eps, kappa)))
@@ -215,6 +217,7 @@ rho_leads_right = expm( 1/T_L* H_leads_right(eps,kappa))/np.trace(expm(1/T_L * H
 
 print(np.trace(rho_leads_right))
 '''
+
 # PREPARE SYSTEM SITES IN ANY CONVENIENT STATE
 
 # no occupation of sites:
@@ -389,13 +392,28 @@ for i in range(0, tsteps):
     t1.append(i)
     
 
-
+s = np.zeros((dim_tot, dim_tot), dtype = 'complex')
 # expectation value of current of down spins through wire
+for k in range(1,n_tot):
+    print('k=', k)
+    #s += -1j * ( np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) * np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') ) - np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) * np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) )
+    s += ( np.dot(np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) , np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') )) + np.dot( np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) , np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) ))
+print('s', np.where(s!=0))
 
+
+exp_s = []
+t1 = []
+for i in range(0, tsteps):
+    exp = s.dot(rho_sol[:,:,i]).trace()
+    exp_s.append(exp.real)
+    t1.append(i)
+
+'''
 j_left = -1j*( np.dot(spin_lat.sso('adag',n_lead_left, 'down'), spin_lat.sso('a',n_lead_left +1, 'down')) - np.dot(spin_lat.sso('adag',n_lead_left+1, 'down'), spin_lat.sso('a',n_lead_left, 'down')))
 j_right = -1j*( np.dot(spin_lat.sso('adag',n_lead_left + n_sites, 'down'), spin_lat.sso('a',n_lead_left + n_sites + 1, 'down')) - np.dot(spin_lat.sso('adag',n_lead_left + n_sites +1, 'down'), spin_lat.sso('a',n_lead_left + n_sites, 'down')))
 
 j = j_left + j_right
+
 
 exp_j = []
 t1 = []
@@ -403,6 +421,7 @@ for i in range(0, tsteps):
     exp = j.dot(rho_sol[:,:,i]).trace()
     exp_j.append(exp.imag)
     t1.append(i)
+    
     
 exp_j1 = []
 for i in range(0, tsteps):
@@ -414,8 +433,7 @@ opt_cond = []
 for i in range(0, tsteps):
     opt_conductivity = (exp_j[i]+exp_j1[i])/(mu_L - mu_R)
     opt_cond.append(opt_conductivity)
-''' 
-    
+   
 beta_L = np.exp(- 1/T_L * (eps_vector_l[0] - mu_L) ) / ( np.exp(- 1/T_L * (eps_vector_l[0]-mu_L) ) + 1)
 
 beta_list_L = []
@@ -435,10 +453,7 @@ for i in range(len(t)):
 limit_2 = []
 for i in range(len(t)):
     limit_2.append(0.0)
-    
-'''
-'''
-    
+
 plt.plot(t, beta_list_L, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
 plt.plot(t, beta_list_R, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
 #plt.plot(t, limit_1, label = "0.09", linestyle = 'dashed')
@@ -464,12 +479,13 @@ plt.title('thermalization of extended Hubbard chain')
 plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
 plt.show()
-
 '''
+
 ##################################################################################################################################
 # FIT OPTICAL CONDUCTIVITY  
 
-np.savetxt('optical_cond', opt_cond)
+np.savetxt('spin_current', exp_s)
+
 np.savetxt('time', t)
 
 

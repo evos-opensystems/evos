@@ -147,7 +147,7 @@ def L(k, N):
     n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))
     n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
     
-    L = alpha*(n_up + n_down) 
+    L = alpha*(n_up + n_down) *0
     return L
 
 
@@ -159,7 +159,7 @@ for k in range(0, n_sites):
 
 
    
-n_up_1 = np.dot(spin_lat.sso('adag',2, 'down'), spin_lat.sso('a',2, 'down'))
+n_up_1 = np.dot(spin_lat.sso('adag',1, 'down'), spin_lat.sso('a',1, 'down'))
 
 
     
