@@ -41,8 +41,8 @@ os.remove("optical_cond.txt")
 os.remove("time.txt")
 '''
 '''
-Path("results").mkdir(parents=True, exist_ok=True)
-os.chdir('results')
+Path("results2").mkdir(parents=True, exist_ok=True)
+os.chdir('results2')
 for i in range(0,len([name for name in os.listdir('.') if os.path.isfile(name)])+1):
     if os.path.exists('my_file'+str(i)) == True: 
         pass

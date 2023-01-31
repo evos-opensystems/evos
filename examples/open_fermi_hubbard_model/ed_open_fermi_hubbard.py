@@ -70,14 +70,14 @@ spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(n_sites)
 
 def H(J, U): 
         
-    hop = np.zeros((dim_H, dim_H))
+    hop = np.zeros((dim_H, dim_H), dtype = 'complex')
     for k in range(1, n_sites): 
         
         #hop += np.dot(c_up(k,N), c_up_dag(k + 1 ,N)) + np.dot(c_up(k + 1,N), c_up_dag(k,N)) + np.dot(c_down(k,N), c_down_dag(k +1 ,N)) + np.dot(c_down(k+1,N), c_down_dag(k,N))
         hop += np.dot(spin_lat.sso('a',k, 'up'), spin_lat.sso('adag',k+1, 'up')) + np.dot(spin_lat.sso('a',k+1, 'up'), spin_lat.sso('adag',k, 'up')) + np.dot(spin_lat.sso('a',k, 'down'), spin_lat.sso('adag',k+1, 'down')) + np.dot(spin_lat.sso('a',k+1, 'down'), spin_lat.sso('adag',k, 'down'))
      
  
-    coul = np.zeros((dim_H, dim_H))
+    coul = np.zeros((dim_H, dim_H), dtype = 'complex')
     for k in range(1, n_sites+1): 
         n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))
         n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
@@ -99,18 +99,18 @@ H = H(U,J)
 #ground state of Hamiltonian 
 lambd, v = np.linalg.eigh(H)
 lambd_sorted = np.sort(lambd)
-print(lambd)
+#print(lambd)
 lowest_lambda = np.amin(lambd)
-print(lowest_lambda)
+#print(lowest_lambda)
 index_low_lamb = np.where(lambd == np.amin(lambd))[0]
-print(index_low_lamb)
+#print(index_low_lamb)
 
 
 
 # alternate spin up down state: first site: up, second site: down, third site: up and so on... 
 def state00_ket(n_sites):
             
-    state_ket = np.zeros((dim_H, 1))
+    state_ket = np.zeros((dim_H, 1), dtype = 'complex')
     for i in range(0,dim_H+1):
         if i == 0:
             state_ket[i,0] = 1
@@ -119,19 +119,32 @@ def state00_ket(n_sites):
 
 
 updown_ket = state00_ket(n_sites)
+
 for i in np.arange(2,n_sites+1,2):
     #updown_ket = np.dot(c_up_dag(i-1, N), updown_ket)
     updown_ket = np.dot(spin_lat.sso('adag',i-1, 'up'), updown_ket)
     
     #updown_ket = np.dot(c_down_dag(i, N), updown_ket)
     updown_ket = np.dot(spin_lat.sso('adag',i, 'down'), updown_ket)
+'''
+for i in np.arange(1,n_sites+1):
+    print('i up=', i)
+    #updown_ket = np.dot(c_up_dag(i-1, N), updown_ket)
+    updown_ket = np.dot(spin_lat.sso('adag',i, 'up'), updown_ket)
+for i in np.arange(1,n_sites+1):  
+    print('i down=', i)
+    #updown_ket = np.dot(c_down_dag(i, N), updown_ket)
+    updown_ket = np.dot(spin_lat.sso('adag',i, 'down'), updown_ket)
+'''
 
-updown_ket = v[index_low_lamb]
-print(v[index_low_lamb])
-print(v)
+#updown_ket = v[index_low_lamb]
+#print(v[index_low_lamb])
+#print(v)
 updown_bra = np.conjugate(updown_ket) 
    
 rho_updown = np.outer(updown_ket, updown_bra)     
+
+
 
 rho_matrix = rho_updown
 #print(rho_matrix)
@@ -147,7 +160,7 @@ def L(k, N):
     n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))
     n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
     
-    L = alpha*(n_up + n_down) *0
+    L = alpha*(n_up + n_down) 
     return L
 
 
@@ -157,9 +170,10 @@ L_list_left = []
 for k in range(0, n_sites):
     L_list_left.append(L(k+1, n_sites))
 
-
+print('exp =', H.dot(rho_updown).trace())
+print('exp_L =', L_list_left[1].dot(rho_updown).trace())
    
-n_up_1 = np.dot(spin_lat.sso('adag',1, 'down'), spin_lat.sso('a',1, 'down'))
+n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
 
 
     

@@ -396,7 +396,7 @@ s = np.zeros((dim_tot, dim_tot), dtype = 'complex')
 # expectation value of current of down spins through wire
 for k in range(1,n_tot):
     print('k=', k)
-    #s += -1j * ( np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) * np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') ) - np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) * np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) )
+    s += -1j * ( np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) * np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') ) - np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) * np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) )
     s += ( np.dot(np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) , np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') )) + np.dot( np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) , np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) ))
 print('s', np.where(s!=0))
 
