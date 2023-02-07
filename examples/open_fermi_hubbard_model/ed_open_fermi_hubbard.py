@@ -86,7 +86,7 @@ def H(J, U):
         
     
         
-    H = - J* hop + U* coul
+    H = - J* hop #+ U* coul
     return H
 
 

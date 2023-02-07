@@ -109,11 +109,7 @@ class SolveLindbladEquation():
             dyn = LindbladEquation(self.dim_H, self.H1[t1], self.L_list)
             Dyn_rho_dt.append(dyn)
             
-        print(Dyn_rho_dt)
         
-        #dyn = ed_mesoscopic_leads.MesoscopicLeadsLindblad(dim_H, H1[0], L_list_left)
-        
-        #sol = solve_ivp(dyn.drho_dt, (0,T) , rho_vec, t_eval = t)
         
         exp_n = []
         t11 = []
@@ -122,23 +118,18 @@ class SolveLindbladEquation():
         for t1 in self.t:
             if t1 == 0:
                 t_before =0
-                exp = 1#observable.dot(rho_updown).trace()
-                #rho_vec = rho_vec
+                exp = observable.dot(rho_matrix).trace()
+                rho_vec = rho_vec
             else:
+                print('timestep = ', t1)
                 t_before_index = np.where(self.t==t1)[0] -1
                 t_before = float(self.t[t_before_index])
-            #print(int(np.where(t == t_before)[0]))
-            
+                
                 dyn_drho_dt = Dyn_rho_dt[int(np.where(self.t == t_before)[0])]
-                #print(dyn_drho_dt.drho_dt)
-                #print(t1, t1+dt)
                 
                 sol = solve_ivp(dyn_drho_dt.drho_dt, (t_before,t_before+self.dt), rho_vec, t_eval = [t_before+self.dt])
-            #print(np.shape(sol.y))
                 
-        
-                #plot some expectation value at each time step
-                #time dependant rho:
+                #make matrix out of solution array
                 rho_sol = np.zeros((self.dim_H,self.dim_H),dtype='complex')
                 count=0
                 for n in range(self.dim_H):
@@ -150,11 +141,13 @@ class SolveLindbladEquation():
                     for  m in range(0,self.dim_H):
                         rho_sol[n,m] = np.conjugate(rho_sol[m,n])
                         
-                #print(sol.y[:,0])
+                
                 #compute expectation value
-                rho_vec = sol.y[:,0]
-            
                 exp = observable.dot(rho_sol[:,:]).trace()
+                
+                # assign new initial state for next time step
+                rho_vec = sol.y[:,0]
+                
             exp_n.append(exp)
             t11.append(t_before)
             
