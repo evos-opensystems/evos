@@ -34,7 +34,11 @@ first_trajectory = 0
 n_trajectories_average = 200
 n_trajectories = 2
 tdvp_maxt = 10
-tdvp_dt = 0.01
+<<<<<<< HEAD
+tdvp_dt = 0.05
+=======
+tdvp_dt = 0.001
+>>>>>>> f1cb93a8a12cd923666f83f2573b5c8a8dcb23d1
 tdvp_mode = 2
 tdvp_trunc_threshold = 1e-8
 tdvp_trunc_weight = 1e-10

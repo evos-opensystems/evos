@@ -95,7 +95,7 @@ alpha = 1
 
 
 
-dt = 0.01
+dt = 0.1
 t_max = 10
 n_timesteps = int(t_max/dt)
 
