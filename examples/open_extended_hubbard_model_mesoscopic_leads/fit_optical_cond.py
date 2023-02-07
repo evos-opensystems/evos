@@ -40,12 +40,12 @@ plt.plot(xdata, fit_cosine, '-', label='fit')
 os.remove("optical_cond.txt")
 os.remove("time.txt")
 '''
-'''
-Path("results2").mkdir(parents=True, exist_ok=True)
-os.chdir('results2')
+
+Path("results3").mkdir(parents=True, exist_ok=True)
+os.chdir('results3')
 for i in range(0,len([name for name in os.listdir('.') if os.path.isfile(name)])+1):
     if os.path.exists('my_file'+str(i)) == True: 
         pass
     else: np.savetxt('my_file'+str(i), [fit_a, U, V])
-'''    
+  
 #print(len([name for name in os.listdir('.') if os.path.isfile(name)]))

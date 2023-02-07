@@ -37,7 +37,7 @@ V = 1.5
 '''
 eps = 1
 kappa = 1
-
+gamma = 1
 alpha = 1
 
 n_sites = 2 # number of system sites
@@ -55,8 +55,8 @@ dim_tot = dim_H_sys*dim_H_lead_left*dim_H_lead_right
 
 
 # temperature and chemical potential on the different leads
-T_L = 0.01
-T_R = 0.01
+T_L = 1
+T_R = 1
 mu_L = 1
 mu_R = -1
 
@@ -394,10 +394,10 @@ for i in range(0, tsteps):
 
 s = np.zeros((dim_tot, dim_tot), dtype = 'complex')
 # expectation value of current of down spins through wire
-for k in range(1,n_tot):
+for k in range(n_lead_left + 1, n_tot - n_lead_right +1):
     print('k=', k)
-    s += -1j * ( np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) * np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') ) - np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) * np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) )
-    s += ( np.dot(np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) , np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') )) + np.dot( np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) , np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) ))
+    #s += -1j * ( np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) * np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') ) - np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) * np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) )
+    s += -1j* ( np.dot(np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) , np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') )) ) #- np.dot( np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) , np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) ))
 print('s', np.where(s!=0))
 
 
@@ -405,7 +405,7 @@ exp_s = []
 t1 = []
 for i in range(0, tsteps):
     exp = s.dot(rho_sol[:,:,i]).trace()
-    exp_s.append(exp.real)
+    exp_s.append(exp.imag)
     t1.append(i)
 
 '''
