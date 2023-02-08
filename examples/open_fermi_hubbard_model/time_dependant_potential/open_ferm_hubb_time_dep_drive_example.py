@@ -116,13 +116,8 @@ def vac_ket(n_sites):
     
     return vac_ket
 
-<<<<<<< HEAD
 updown_ket = vac_ket(n_sites)
 
-=======
-
-updown_ket = vac_ket(n_sites)
->>>>>>> reka
 for i in np.arange(2,n_sites+1,2):
     
     updown_ket = np.dot(spin_lat.sso('adag',i-1, 'up'), updown_ket)
@@ -137,16 +132,10 @@ def L(k, N):
     L = alpha*(n_up + n_down) 
     return L
 
-<<<<<<< HEAD
-=======
-
-
->>>>>>> reka
 L_list_left = []
 for k in range(0, n_sites):
     L_list_left.append(L(k+1, n_sites))
 
-<<<<<<< HEAD
 
 
 # observable: number of up spins on first site
@@ -157,10 +146,6 @@ n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
 
 # solve lindblad equation
 exp_n , t11  = solver.SolveLindbladEquation(dim_H, H, L_list_left, dt, T).solve(n_up_1, updown_ket)
-=======
-# observable: number of up spin on site 1
-n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
->>>>>>> reka
 
 
 #equation = solve.LindbladEquation(dim_H, H, L_list_left)
