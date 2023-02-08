@@ -11,6 +11,7 @@ import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
 import evos.src.methods.ed_time_dep_hamiltonian_lindblad_solver_new as solver
 import matplotlib.pyplot as plt
 
+<<<<<<< HEAD
 plt.rcParams['mathtext.fontset'] = 'stix'
 plt.rcParams['font.family'] = 'STIXGeneral'
 plt.rcParams.update({'font.size': 12}) 
@@ -27,15 +28,34 @@ omega = 1
 
 # coupling of Lindblad operators
 alpha = 1
+=======
+# Open Fermi Hubbard Model with a time dependant Hamiltonian (sudden quench)
+>>>>>>> reka
 
 #number of sites
 n_sites = 2
 dim_H = 4 ** n_sites
 
+<<<<<<< HEAD
 # time constraints for the Lindblad solver
 T = 10 # total time 
 dt = 0.01 # time step intervals
 tsteps = int(T/dt) #number of timesteps
+=======
+# coupling parameters
+t_hop = 1
+U = 1
+# oscillation frequency
+omega = 0.11
+
+# coupling of lindblad operators
+alpha = 1
+
+# for lindblad solver
+T = 10 # final time
+dt = 0.01 #time step size
+tsteps = int(T/dt)
+>>>>>>> reka
 t = np.linspace(0,T, tsteps)
 #print(t)
 #print(tsteps)
@@ -59,33 +79,53 @@ def H(t):
         n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
           
         coul += np.dot(n_up,n_down)
+<<<<<<< HEAD
         
     if t<5:
         H = + U*coul
     else: 
         H = - 1*hop  + U*coul
         
+=======
+
+    
+    if t>2:
+        H = -np.cos(omega*t)*t_hop*hop +U*coul
+        
+    if t<2:
+        H = U*coul
+>>>>>>> reka
    
     return H
 
 
+<<<<<<< HEAD
 # alternate spin up down initital state: first site: up, second site: down, third site: up and so on... 
 # vacuum state
 def vac_ket(n_sites):          
     state_ket = np.zeros((dim_H, 1), dtype = 'complex')
+=======
+# alternate spin up down state: first site: up, second site: down, third site: up and so on... 
+def vac_ket(n_sites):
+            
+    vac_ket = np.zeros((dim_H, 1), dtype = 'complex')
+>>>>>>> reka
     for i in range(0,dim_H+1):
         if i == 0:
-            state_ket[i,0] = 1
+            vac_ket[i,0] = 1
     
-    return state_ket
+    return vac_ket
 
+<<<<<<< HEAD
 updown_ket = vac_ket(n_sites)
 
+=======
+
+updown_ket = vac_ket(n_sites)
+>>>>>>> reka
 for i in np.arange(2,n_sites+1,2):
-    #updown_ket = np.dot(c_up_dag(i-1, N), updown_ket)
-    updown_ket = np.dot(spin_lat.sso('adag',i-1, 'up'), updown_ket)
     
-    #updown_ket = np.dot(c_down_dag(i, N), updown_ket)
+    updown_ket = np.dot(spin_lat.sso('adag',i-1, 'up'), updown_ket)
     updown_ket = np.dot(spin_lat.sso('adag',i, 'down'), updown_ket)
 
 
@@ -97,10 +137,16 @@ def L(k, N):
     L = alpha*(n_up + n_down) 
     return L
 
+<<<<<<< HEAD
+=======
+
+
+>>>>>>> reka
 L_list_left = []
 for k in range(0, n_sites):
     L_list_left.append(L(k+1, n_sites))
 
+<<<<<<< HEAD
 
 
 # observable: number of up spins on first site
@@ -111,7 +157,15 @@ n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
 
 # solve lindblad equation
 exp_n , t11  = solver.SolveLindbladEquation(dim_H, H, L_list_left, dt, T).solve(n_up_1, updown_ket)
+=======
+# observable: number of up spin on site 1
+n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
+>>>>>>> reka
 
+
+#equation = solve.LindbladEquation(dim_H, H, L_list_left)
+# solve lindblad eqaution and compute observable
+exp_n , t11  = solve.SolveLindbladEquation(dim_H, H, L_list_left, dt, T).solve(n_up_1, updown_ket)
 
 
 plt.plot(t11, exp_n, label='$< \hat n_{up, 1}> $')
@@ -120,3 +174,4 @@ plt.xlabel('t')
 plt.ylabel('$< \hat n >$')
 plt.legend()
 plt.show()
+
