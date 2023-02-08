@@ -13,6 +13,8 @@ import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
 import evos.src.methods.ed_time_dep_hamiltonian_lindblad_solver_new as solve
 import matplotlib.pyplot as plt
 
+# Open Fermi Hubbard Model with a time dependant Hamiltonian (sudden quench)
+
 n_sites = 2
 dim_H = 4 ** n_sites
 
