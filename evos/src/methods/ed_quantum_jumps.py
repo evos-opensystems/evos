@@ -38,7 +38,7 @@ class EdQuantumJumps():
         self.H_eff = H_eff
         
     
-    def select_jump_operator(self, psi: np.ndarray, r2: float) -> tuple[np.ndarray, int] :
+    def select_jump_operator(self, psi: np.ndarray, r2: float) -> tuple([np.ndarray, int]) :
         """Selects which lindblad operator to apply for a jump out of the 'lindbl_op_list', given the state 'psi' and the pseudo-random number 'r2'
 
         Parameters

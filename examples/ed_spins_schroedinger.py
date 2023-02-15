@@ -1,7 +1,7 @@
 import evos
 import evos.src.lattice.lattice as lat
 #import evos.src.methods.lindblad as lindblad
-import evos.src.methods.ed_quantum_jumps as ed_quantum_jumps
+import evos.src.methods.ed_schroedinger as ed_schroedinger
 import evos.src.observables.observables as observables
 import numpy as np
 import matplotlib.pyplot as plt
@@ -9,33 +9,25 @@ import time
 import os
 import shutil
 import scipy.linalg as la
+
 time_start = time.process_time()
-#DO BENCHMARK OF TEVO AND OBSERVABLES!
+
 #parameters
-n_sites = 2
+n_sites = 4
 dim_H = 2 ** n_sites
-J = 1
-gamma = 0
+J = 2
 W = 10
-seed_W = 1
+seed_W = 7
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
-dt = 0.01
-t_max = 10
+dt = 0.05
+t_max = 8
 n_timesteps = int(t_max/dt)
-n_trajectories = 2
-trajectory = 0 
 
 #os.chdir('benchmark')
 try:
-    os.system('mkdir data_qj')
-    os.chdir('data_qj')
-except:
-    pass
-
-try:
-    shutil.rmtree('0')
-    shutil.rmtree('1')
+    os.system('mkdir data_schroedinger_ed')
+    os.chdir('data_schroedinger')
 except:
     pass
 
@@ -53,7 +45,7 @@ H = np.zeros( (dim_H,dim_H), dtype=complex)
 #spin coupling
 for i in range(n_sites):
     for j in range(i):
-        H += J/np.abs(i-j)**3 * ( np.matmul( spin_lat.sso('sp',i),spin_lat.sso('sm',j) )   + np.matmul( spin_lat.sso('sp',j),spin_lat.sso('sm',i) ) )
+            H += J/np.abs(i-j)**3 * ( np.matmul( spin_lat.sso('sp',i),spin_lat.sso('sm',j) )   + np.matmul( spin_lat.sso('sp',j),spin_lat.sso('sm',i) ) )
 #disorder
 for i in range(n_sites):
     H += eps_vec[i] * spin_lat.sso('sz',i)
@@ -100,30 +92,20 @@ obsdict.add_observable_computing_function('sz_0',compute_sz_0 )
 obsdict.add_observable_computing_function('sz_1',compute_sz_1 )
 
 
-
-
-#Lindbladian: dissipation only on central site
-L = gamma * spin_lat.sso( 'sm', 0 ) #int( n_sites/2 )
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(n_sites, H, [L])
-
-#compute qj trajectories sequentially
-for trajectory in range(n_trajectories): 
-    print('computing trajectory {}'.format(trajectory))
-    test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(init_state, t_max, dt, trajectory, obsdict )
-
-#averages and errors
-read_directory = os.getcwd()
-write_directory = os.getcwd()
-
-
-obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
-
+#compute schroedinger time-evolution
+ed_schroedinger = ed_schroedinger.EdSchroedinger(n_sites, H)
+ed_schroedinger.schroedinger_time_evolution(init_state, t_max, dt, obsdict)
 
 print('process time: ', time.process_time() - time_start )
 
+
 #PLOT
-sz_0 = np.loadtxt('sz_0_av')
+#load mps data for benchmark
+sz_mps = np.loadtxt('sz_4_sites_mps')
+sz_0 = np.loadtxt('sz_0')
 time_v = np.linspace(0, t_max, n_timesteps + 1  )
-plt.plot(time_v,sz_0, label= 'sz_0_av')
+plt.plot(time_v,sz_0, label= 'sz_0')
+plt.plot(time_v,sz_mps[0,:], label= 'sz_0 mps')
+
 plt.legend()
 plt.show()
