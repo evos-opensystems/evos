@@ -44,7 +44,7 @@ class MPSQuantumJumps():
         self.H_as = H_as
         
         
-def select_jump_operator(self, psi: ptn.mp.MPS, r2: float) -> tuple:
+    def select_jump_operator(self, psi: ptn.mp.MPS, r2: float) -> tuple:
         """Selects which lindblad operator to apply for a jump out of the 'lindbl_op_list', given the state 'psi' and the pseudo-random number 'r2'
 
         Parameters
@@ -103,7 +103,7 @@ def select_jump_operator(self, psi: ptn.mp.MPS, r2: float) -> tuple:
         return psi, which_jump_op      
 
     
-    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, t_max: float, dt: float, trajectory: int, obsdict: dict):
+    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, trajectory: int, obsdict: dict):
         
         """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
         first to check if a jump needs to be applied if yes then which operator to use.
@@ -123,6 +123,8 @@ def select_jump_operator(self, psi: ptn.mp.MPS, r2: float) -> tuple:
         """
         
         self.conf_tdvp = conf_tdvp
+        t_max = np.real( self.conf_tdvp.maxt )
+        dt = np.real( self.conf_tdvp.dt )
         #non-hermitian tdvp #FIXME: specify this before
         self.conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
         self.conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
