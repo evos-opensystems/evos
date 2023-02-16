@@ -8,12 +8,45 @@ Created on Thu Dec  1 10:03:50 2022
 
 import numpy as np 
 from scipy.integrate import solve_ivp
-import spinful_fermions_lattice as spinful_fermions_lattice
+#import spinful_fermions_lattice as spinful_fermions_lattice
+import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
 #import ed_lindblad_class as ed_mesoscopic_leads
 import evos.src.methods.lindblad_solver_reka as ed_mesoscopic_leads
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
+from qutip import *
+import time
 
+def plot_expectation_values(results, ylabels=[], title=None, show_legend=False,
+                            fig=None, axes=None, figsize=(8, 4)):
+
+    if not isinstance(results, list):
+        results = [results]
+
+    n_e_ops = max([len(result.expect) for result in results])
+
+    if not fig or not axes:
+        if not figsize:
+            figsize = (12, 3 * n_e_ops)
+        fig, axes = plt.subplots(n_e_ops, 1, sharex=True,
+                                 figsize=figsize, squeeze=False)
+
+    for r_idx, result in enumerate(results):
+        for e_idx, e in enumerate(result.expect):
+            axes[e_idx, 0].plot(result.times, e,
+                                label="%s [%d]" % (result.solver, e_idx))
+
+    if title:
+        axes[0, 0].set_title(title)
+
+    axes[n_e_ops - 1, 0].set_xlabel("time", fontsize=12)
+    for n in range(n_e_ops):
+        if show_legend:
+            axes[n, 0].legend()
+        if ylabels:
+            axes[n, 0].set_ylabel(ylabels[n], fontsize=12)
+
+    return fig, axes
 
 J = 1
 U = 1
@@ -56,23 +89,31 @@ def H(J, U):
     H = - J* hop + U* coul
     return H
 
+
+
 H = H(U,J)
 
 
+#INITIAL STATE 
+
+#ground state of Hamiltonian 
+lambd, v = np.linalg.eigh(H)
+lambd_sorted = np.sort(lambd)
+print(lambd)
+lowest_lambda = np.amin(lambd)
+print(lowest_lambda)
+index_low_lamb = np.where(lambd == np.amin(lambd))[0]
+print(index_low_lamb)
+
+
+
+# alternate spin up down state: first site: up, second site: down, third site: up and so on... 
 def state00_ket(n_sites):
-    
-    state_bra = np.zeros((1, dim_H))
-    for i in range(0,dim_H+1):
-        
-        if i == 0:
-            state_bra[0,i] = 1
             
     state_ket = np.zeros((dim_H, 1))
     for i in range(0,dim_H+1):
         if i == 0:
             state_ket[i,0] = 1
-            
-    state_bra = np.conjugate(state_ket)
     
     return state_ket
 
@@ -85,6 +126,9 @@ for i in np.arange(2,n_sites+1,2):
     #updown_ket = np.dot(c_down_dag(i, N), updown_ket)
     updown_ket = np.dot(spin_lat.sso('adag',i, 'down'), updown_ket)
 
+updown_ket = v[index_low_lamb]
+print(v[index_low_lamb])
+print(v)
 updown_bra = np.conjugate(updown_ket) 
    
 rho_updown = np.outer(updown_ket, updown_bra)     
@@ -115,7 +159,7 @@ for k in range(0, n_sites):
 
 
    
-n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
+n_up_1 = np.dot(spin_lat.sso('adag',2, 'down'), spin_lat.sso('a',2, 'down'))
 
 
     
@@ -161,3 +205,13 @@ plt.ylabel('$< \hat n >$')
 
 plt.legend()
 
+#a  = tensor(qeye(2), destroy(10))
+#H2 = 2 * np.pi * a.dag() * a 
+#print(H2)
+#print(H1)
+#updown_ket1 = Qobj(updown_ket)
+#print(updown_ket1)
+#L_list_left1 = Qobj(L(1,n_sites))
+
+#result = mesolve(H1, updown_ket1, t1, L_list_left)
+#t1 = time.time()

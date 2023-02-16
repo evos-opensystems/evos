@@ -1,31 +1,35 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 """
-Created on Thu Dec  1 10:32:13 2022
+Created on Tue Dec 20 10:36:02 2022
 
 @author: reka
 """
 
-import numpy as np 
-from scipy.integrate import solve_ivp
-#import spinful_fermions_lattice as spinful_fermions_lattice
+import evos
+import evos.src.lattice.lattice as lat
 import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
-import evos.src.methods.lindblad_solver_reka as ed_mesoscopic_leads
-from scipy.integrate import solve_ivp
+#import evos.src.methods.lindblad as lindblad
+import evos.src.methods.ed_quantum_jumps as ed_quantum_jumps
+import evos.src.observables.observables as observables
+import numpy as np
 import matplotlib.pyplot as plt
-from scipy.linalg import expm
-from numpy import linalg as LA
-import sys
+import time
+import os
+import shutil
+import scipy.linalg as la
 import math
+from numpy import linalg as LA
 
 
+time_start = time.process_time()
+plt.rcParams['mathtext.fontset'] = 'stix'
+plt.rcParams['font.family'] = 'STIXGeneral'
+plt.rcParams.update({'font.size': 11})
 
-#np.set_printoptions(threshold=sys.maxsize)
-#np.set_printoptions(threshold = False)
 
-# Hamiltonian
-J = 1
-U = 1
+#DO BENCHMARK OF TEVO AND OBSERVABLES!
+#parameters
+J = 1/2
+t = 1
 V = 1
 eps = 1
 kappa = 1
@@ -49,10 +53,15 @@ dim_tot = dim_H_sys*dim_H_lead_left*dim_H_lead_right
 # temperature and chemical potential on the different leads
 T_L = 1
 T_R = 1
-mu_L = 0.5
-mu_R = 0.5
+mu_L = 1
+mu_R = -1
 
 ####################################################################################################################
+#fermi dirac distribution function
+def fermi_dist(beta, e, mu):
+    f = 1 / ( np.exp( beta * (e-mu) ) + 1)
+    return f
+
 # spectral function
 def const_spec_funct(G,W,eps):
     if eps >= -W and eps <= W:
@@ -82,24 +91,47 @@ k_vector_r = np.zeros( len(eps_vector_r) )
 for i in range( len(eps_vector_r) ):
     k_vector_r[i] = np.sqrt( const_spec_funct( G , W, eps_vector_r[i] ) * eps_delta_vector_r[i]/ (2*math.pi) ) 
     
-########################################################################################################################
-
-# paramters (time, ...) for solving differential equation
-T = 20
-dt = 0.1
-tsteps = int(T/dt)
-t = np.linspace(0,T, tsteps)
-#print(tsteps)
 
 
-def fermi_dist(beta, e, mu):
-    f = 1 / ( np.exp( beta * (e-mu) ) + 1)
-    return f
+# Lindbladian parameers
+alpha = 1
 
+
+gamma = 0
+W = 10
+seed_W = 1
+rng = np.random.default_rng(seed=seed_W) # random numbers
+#eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
+dt = 0.01
+t_max = 10
+n_timesteps = int(t_max/dt)
+n_trajectories = 1000
+trajectory = 0 
+
+#os.chdir('benchmark')
+try:
+    os.system('mkdir data_qj')
+    os.chdir('data_qj')
+except:
+    pass
+
+try:
+    shutil.rmtree('0')
+    shutil.rmtree('1')
+except:
+    pass
+
+#lattice
+time_lat = time.process_time()
+spin_lat = lat.Lattice('ed')
+#spin_lat.specify_lattice('spin_one_half_lattice')
+#spin_lat = spin_lat.spin_one_half_lattice.SpinOneHalfLattice(n_sites)
 spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(n_tot)
-#sys_spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(n_sites)
+#np.save( 'time_lat_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lat-time.process_time())
+print('time_lat:{0}'.format( time.process_time() - time_lat ) )
 
-
+#Hamiltonian
+time_H = time.process_time()
 def H_sys(J, U, V): 
     
     # SYSTEM SITES 
@@ -146,7 +178,7 @@ def H_leads_left(eps, k_vec, mu_L):
     else: 
         for k in range(1, n_lead_left+1): 
             print('Ekin_lead left terms on sites:', k)
-            kin_leads += (eps[k-1]) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+            kin_leads += (eps[k-1] - mu_L) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
      
     
     
@@ -175,7 +207,7 @@ def H_leads_right(eps,k_vec, mu_R):
     else:       
         for k in range(n_tot - n_lead_right + 1, n_tot+1):    
             print('Ekin_lead right terms on sites:', k)
-            kin_leads += (eps[k - (n_tot - n_lead_right +1)] ) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+            kin_leads += (eps[k - (n_tot - n_lead_right +1)] - mu_R) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
      
     # HOPPING BETWEEN LEADS AND SYSTEM RIGHT SIDE
     hop_sys_lead = np.zeros((dim_tot, dim_tot))
@@ -190,26 +222,12 @@ def H_leads_right(eps,k_vec, mu_R):
     H = kin_leads + hop_sys_lead       
     return H
 
-H = H_sys(U,J, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_right(eps_vector_r, k_vector_r, mu_R)
+H = np.array(H_sys(t,J, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_right(eps_vector_r, k_vector_r, mu_R), dtype = 'complex')
 
-#print(H)
+print(H)
+#np.save( 'time_H_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_H-time.process_time())
+print('time_H:{0}'.format( time.process_time()- time_H ) )
 
-###################################################################################################################################
-# PREPARE LEADS IN THERMAL STATE
-'''
-rho_leads_left = np.zeros((dim_H_lead_left) , dtype = 'complex')
-rho_leads_left = expm( 1/T_L* H_leads_left(eps,kappa))/np.trace(expm(1/T_L * H_leads_left(eps, kappa)))
-
-print(np.trace(rho_leads_left))
-
-rho_leads_right = np.zeros((dim_H_lead_right) , dtype = 'complex')
-rho_leads_right = expm( 1/T_L* H_leads_right(eps,kappa))/np.trace(expm(1/T_L * H_leads_right(eps, kappa)))
-
-print(np.trace(rho_leads_right))
-'''
-# PREPARE SYSTEM SITES IN ANY CONVENIENT STATE
-
-# no occupation of sites:
 def vac():
             
     state_ket = np.zeros((dim_tot, 1))
@@ -240,24 +258,46 @@ for i in range(1, n_tot+1):
 
 
 tot_init_state_ket_norm = tot_init_state_ket/LA.norm(tot_init_state_ket)
-# total density matrix: 
 
-tot_init_state_bra = np.conjugate(tot_init_state_ket_norm) 
-rho_updown = np.outer(tot_init_state_ket_norm, tot_init_state_bra)   
-#print('sum =', LA.norm(tot_init_state_ket_norm))
- 
+init_state = tot_init_state_ket_norm
+    
+print(init_state)
 
 
-rho_matrix = rho_updown
-#print('trace of total density matrix = ', np.trace(rho_matrix))
-#print(rho_matrix)
-rho_vec = []
-for i in range(0, dim_tot):
-    for  j in range(0 ,dim_tot):
-        rho_vec.append(rho_matrix[i,j])        
-rho_vec = np.array(rho_vec,dtype='complex')
+# print('LA.norm(init_state) :', la.norm(init_state))
+
+#observables
+obsdict = observables.ObservablesDict()
+obsdict.initialize_observable('sz_0',(1,), n_timesteps) #1D
+#obsdict.initialize_observable('sz_1',(1,), n_timesteps) #1D
+
+sz_0 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
+print(sz_0)
+#sz_1 = spin_lat.sso( 'sz', 1 )
+###
+# sz_0_init_state = np.dot( np.conjugate(init_state), np.dot(sz_0,init_state ))
+# print(sz_0_init_state)
+###
+
+def compute_sz_0(state, obs_array_shape,dtype):  #EXAMPLE 1D
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array[0] = np.real( np.dot( np.dot( np.conjugate(state.T), sz_0 ), state )  )  
+    #OBS DEPENDENT PART END
+    return obs_array
+
+obsdict.add_observable_computing_function('sz_0',compute_sz_0 )
+#obsdict.add_observable_computing_function('sz_1',compute_sz_1 )
 
 
+#Lindbladian: dissipation only on central site
+#Lindbladian: 
+def L_op(k, N):
+    n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))
+    n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
+    
+    L = alpha*(n_up + n_down) 
+    return L
 
 
 #print(L(2,3))
@@ -284,128 +324,34 @@ for k in range(n_tot-n_lead_right +1, n_tot+1):
     L_list.append( np.sqrt( eps_delta_vector_r[k-(n_tot-n_lead_right +1)]* fermi_dist(1/T_R, eps_vector_r[k-(n_tot-n_lead_right +1)], mu_R)) * spin_lat.sso('adag',k, 'up'))
     L_list.append( np.sqrt( eps_delta_vector_r[k-(n_tot-n_lead_right +1)]* fermi_dist(1/T_R, eps_vector_r[k-(n_tot-n_lead_right +1)], mu_R)) * spin_lat.sso('adag',k, 'down'))
     
+#L = gamma * np.matrix( spin_lat.sso( 'sm', 0 ) )  # int( n_sites/2 ) #Lindblad operators must be cast from arrays to matrices in order to be able to use .H
+time_lind_evo = time.process_time()
 
+L = np.array(L_list, dtype = 'complex')
 
-#L_list = []
-#for k in range(0, n_sites):
     
-dyn = ed_mesoscopic_leads.MesoscopicLeadsLindblad(dim_tot, H, L_list)
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(n_tot, H, L)
+
+#compute qj trajectories sequentially
+for trajectory in range(n_trajectories): 
+    print('computing trajectory {}'.format(trajectory))
+    test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(init_state, t_max, dt, trajectory, obsdict )
+
+#averages and errors
+read_directory = os.getcwd()
+write_directory = os.getcwd()
 
 
-sol = solve_ivp(dyn.drho_dt, (0,T), rho_vec, t_eval=t)        
-#print(sol.y)
+obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
 
-#plot some expectation value at each time step
-#time dependant rho:
-rho_sol = np.zeros((dim_tot,dim_tot, tsteps),dtype='complex')
-count=0
-for n in range(dim_tot):
-    for  m in range(0,dim_tot):
-        rho_sol[n,m,:] = sol.y[count,:]
-        count+=1
-    
-for n in range(dim_tot):
-    for  m in range(0,dim_tot):
-        rho_sol[n,m,:] = np.conjugate(rho_sol[m,n])
+print('process time: ', time.process_time() - time_start )
 
-#trace preserved
-#print(rho_sol[:,:,19].trace())
-
-n_up_1 = np.dot(spin_lat.sso('adag',1, 'down'), spin_lat.sso('a',1, 'down'))
-n_up_2 = np.dot(spin_lat.sso('adag',2, 'down'), spin_lat.sso('a',2, 'down'))
-n_up_3 = np.dot(spin_lat.sso('adag',3, 'down'), spin_lat.sso('a',3, 'down'))
-n_up_4 = np.dot(spin_lat.sso('adag',4, 'down'), spin_lat.sso('a',4, 'down'))
-
-exp = n_up_1.dot(rho_matrix).trace()
-#print('exp = ', exp)
-
-'''
-#compute expectation value
-exp_n_up_lead_left = []
-t1 = []
-for i in range(0, tsteps):
-    exp = n_up_1.dot(rho_sol[:,:,i]).trace()
-    exp_n_up_lead_left.append(exp)
-    t1.append(i)
-    
-exp_n_up_first_sys_site = []
-t1 = []
-for i in range(0, tsteps):
-    exp = n_up_2.dot(rho_sol[:,:,i]).trace()
-    exp_n_up_first_sys_site.append(exp)
-    t1.append(i)
-    
-    
-exp_n_up_second_sys_site = []
-t1 = []
-for i in range(0, tsteps):
-    exp = n_up_3.dot(rho_sol[:,:,i]).trace()
-    exp_n_up_second_sys_site.append(exp)
-    t1.append(i)
-    
-    
-exp_n_up_lead_right = []
-t1 = []
-for i in range(0, tsteps):
-    exp = n_up_4.dot(rho_sol[:,:,i]).trace()
-    exp_n_up_lead_right.append(exp)
-    t1.append(i)
-    
-'''
-
-# expectation value of current of down spins through wire
-
-j_left = np.dot(spin_lat.sso('adag',n_lead_left, 'down'), spin_lat.sso('a',n_lead_left +1, 'down')) #+ np.dot(spin_lat.sso('adag',n_lead_left+1, 'down'), spin_lat.sso('a',n_lead_left, 'down'))
-j_right = np.dot(spin_lat.sso('adag',n_lead_left + n_sites, 'down'), spin_lat.sso('a',n_lead_left + n_sites + 1, 'down')) + np.dot(spin_lat.sso('adag',n_lead_left + n_sites +1, 'down'), spin_lat.sso('a',n_lead_left + n_sites, 'down'))
-
-j = j_left #+ j_right
-
-exp_j = []
-t1 = []
-for i in range(0, tsteps):
-    exp = j.dot(rho_sol[:,:,i]).trace()
-    exp_j.append(exp)
-    t1.append(i)
-    
- 
-#print(N_up(1,N))
-'''   
-plt.plot(t, exp_n_up_lead_left, label='number of down spins on left lead')
-plt.plot(t, exp_n_up_first_sys_site, label='number of down spins on first site')
-plt.plot(t, exp_n_up_second_sys_site, label='number of down spins on second site')
-plt.plot(t, exp_n_up_lead_right, label='number of down spins on right lead')
-'''
-
-plt.plot(t, exp_j, label='current')
-
-plt.xlabel('t')
-plt.ylabel('$< \hat j >$')
-#plt.title('$L_{1} = 2\hat a_{down, dag,2}, L_{2} =  \hat a_{down,2}$')
-#plt.savefig('FH_2sites_4p_6.pdf')
-
+#PLOT
+sz_0 = np.loadtxt('sz_0_av')
+time_v = np.linspace(0, t_max, n_timesteps + 1  )
+plt.plot(time_v,sz_0, label= 'sz_0_av')
 plt.legend()
-
 plt.show()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
