@@ -9,7 +9,7 @@ import psutil
 import sys
 
 import evos
-import evos.src.methods.mps_quantum_jumps_no_normalization_adaptive_timestep as mps_quantum_jumps_no_normalization_adaptive_timestep
+import evos.src.methods.mps_quantum_jumps as mps_quantum_jumps
 import evos.src.observables.observables as observables
 import pyten as ptn
 
@@ -50,10 +50,18 @@ dim_H = 2 ** n_sites
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 spin = 0.5    
-tol = 1e-4 #for bisection method in adaptive timestep tdvp
-max_iterations = 10 #for bisection method in adaptive timestep tdvp
+
 n_timesteps = int(tdvp_maxt/tdvp_dt)
 ## 
+
+
+try:
+    os.system('mkdir data_qj_mps')
+    os.chdir('data_qj_mps')
+except:
+    pass
+
+
 #lattice 
 lat = ptn.mp.lat.nil.genSpinLattice(n_sites, spin)
 
@@ -83,7 +91,7 @@ for i in range(n_sites):
         init_state.truncate()
     print('exp value of sz on ',i, ptn.mp.expectation( init_state, lat.get('sz',i) ))
 
-qj = mps_quantum_jumps_no_normalization_adaptive_timestep.MPSQuantumJumps(n_sites, lat, H, [L]) #ADAPTIVE TIMESTEP, NO NORMALIZATION
+qj = mps_quantum_jumps.MPSQuantumJumps(n_sites, lat, H, [L]) #ADAPTIVE TIMESTEP, NO NORMALIZATION
 
 #observables
 obsdict = observables.ObservablesDict()
@@ -133,7 +141,7 @@ print('computing time-evolution for trajectory {}'.format(trajectory) )
 
 for trajectory in range(n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
-    test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
+    test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, trajectory, obsdict)
 
 
 read_directory = os.getcwd()
