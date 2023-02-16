@@ -97,7 +97,7 @@ class MPSQuantumJumps():
         return lambda dt : 1. - psi.norm() ** 2 -r1
     
     
-    def select_jump_operator(self, psi: ptn.mp.MPS, r2: float, threshold :float, weight: float, maxStates: int) -> tuple[np.ndarray, int] :
+    def select_jump_operator(self, psi: ptn.mp.MPS, r2: float, threshold :float, weight: float, maxStates: int) -> tuple:
         """Selects which lindblad operator to apply for a jump out of the 'lindbl_op_list', given the state 'psi' and the pseudo-random number 'r2'
 
         Parameters
@@ -130,24 +130,24 @@ class MPSQuantumJumps():
             ####
             states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
-        norms_after_jump_operator_application_vector = np.zeros( len( states_after_jump_operator_application_list ) )
+        norms_after_jump_operator_application_vector_squared = np.zeros( len( states_after_jump_operator_application_list ) )
         for i in range( len( states_after_jump_operator_application_list ) ):
-            norms_after_jump_operator_application_vector[i] = states_after_jump_operator_application_list[i].norm()
+            norms_after_jump_operator_application_vector_squared[i] = states_after_jump_operator_application_list[i].norm() ** 2
 
-        tot_norm = sum(norms_after_jump_operator_application_vector)
+        tot_norm = sum(norms_after_jump_operator_application_vector_squared)
         #FIXME: check whether this is correct!!
         # if tot_norm == 0:
         #     return psi, None #which_jump_op=none
         #     return states_after_jump_operator_application[0], None #WORKS ONLY IN THE CASE OF SINGLE LINDBLAD OP!
         
         #Normalize the probabilities
-        norms_after_jump_operator_application_vector /= tot_norm
+        norms_after_jump_operator_application_vector_squared /= tot_norm
 
         #make array with intervals proportional to probability of one jump occurring
         intervals = np.zeros(len(states_after_jump_operator_application_list)+1)
-        intervals[1] = norms_after_jump_operator_application_vector[0]
+        intervals[1] = norms_after_jump_operator_application_vector_squared[0]
         for i in range( 2, len(intervals ) ):
-            intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector[i-1]
+            intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector_squared[i-1]
     
         #choose and apply jump operator 
         for i in range( 1,len( intervals ) ):
@@ -246,22 +246,22 @@ class MPSQuantumJumps():
         switched_to_1tdvp = False
         for i in range( n_timesteps ):
             
-            # print('computing timestep ',i) #debugging
-            # print('norm(psi_t) = {}'.format( psi_t.norm() ) )
+            print('computing timestep ',i) #debugging
+            print('norm(psi_t) = {}'.format( psi_t.norm() ) )
             #switch to single-site tdvp when maximal bond dim is reached
             if i % 5 == 0 and switched_to_1tdvp == False:
                 try: #NOTE this switching to 1tdvp works only if the bond dimension is saved in an observable 'bdim_mat'
                     bdim_i = np.loadtxt('bdim_mat')[:,i]
                     bdim_i_av = np.sum(bdim_i)/len(bdim_i)
                     #print('bdim_i_av = ',bdim_i_av)
-                    if bdim_i_av / self.conf_tdvp.trunc.maxStates >= 0.95: #FIXME: is this a good threshold?
-                        print('switched to 1tdvp')
-                        self.conf_tdvp.mode = ptn.tdvp.Mode.Single
-                        switched_to_1tdvp = True
+                    # if bdim_i_av / self.conf_tdvp.trunc.maxStates >= 0.95: #FIXME: is this a good threshold?
+                    #     print('switched to 1tdvp')
+                    #     self.conf_tdvp.mode = ptn.tdvp.Mode.Single
+                    #     switched_to_1tdvp = True
                 except:
                     pass    
                     
-                
+            print('max states =  ', int( maxStates * psi_t.norm() **2 ) )   
             self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
             self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
             self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )

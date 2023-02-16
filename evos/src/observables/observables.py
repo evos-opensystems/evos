@@ -192,8 +192,4 @@ class ObservablesDict():
             for trajectory in traj_list:
                 shutil.rmtree(str(trajectory))
                
-<<<<<<< HEAD
                 
-=======
-                
->>>>>>> reka
