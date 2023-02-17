@@ -4,6 +4,7 @@ First make this independently, in order to see what methods and attributes it ne
 Later make it inherit from an ABC class 'Lattice'. """
 import numpy as np
 
+
 class BosonicLatticeMattia():
     """Vacuum = |1 0 ... 0 > = zero particles present."""
     
@@ -27,6 +28,7 @@ class BosonicLatticeMattia():
         a = np.zeros( ( max_bosons+1, max_bosons+1 ) , dtype='complex' )
         for i in range(max_bosons):
             a[i,i+1] = np.sqrt(i+1)
+        
         
         I = np.eye( max_bosons + 1, dtype='complex')
         

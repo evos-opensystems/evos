@@ -11,7 +11,7 @@ import pyten as ptn
 class MPSQuantumJumps():
     """_summary_
     """
-    def __init__(self, n_sites: int, lat: ptn.mp.lat, H: ptn.mp.MPO, lindbl_op_list: list):
+    def __init__(self, n_sites: int, lat: ptn.mp.lat): #, H: ptn.mp.MPO, lindbl_op_list: list
         """Computes the effective Hamiltonian and splits in into a Hermitian and and AntiHermitian part. Adds lindblad operators,
         effective hamiltonian and n_sites to instance variables.
         Similar init to that of the Lindblad class.
@@ -20,28 +20,25 @@ class MPSQuantumJumps():
         ----------
         n_sites : int
             number of lattice sites
-        H : ptn.mp.MPO
-            Hamiltonian (the hermitian, not the effective one)
-        lindbl_op_list : list
-            list with the lindblad operators
+        lat : ptn.mp.lat
+            lattice
         """
         
         self.n_sites = n_sites
-        self.lindbl_op_list = lindbl_op_list
         self.lat = lat
-        H_eff = H.copy() #compute effective Hamiltonian H_eff = H - i/2 \sum_m L^\dagger _m * L_m 
-        for i in range( len(lindbl_op_list) ):
-            H_eff += - 0.5j * lindbl_op_list[i] * ptn.mp.dot( lat.get("I"), lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
-            H_eff.truncate()
+        # H_eff = H.copy() #compute effective Hamiltonian H_eff = H - i/2 \sum_m L^\dagger _m * L_m 
+        # for i in range( len(lindbl_op_list) ):
+        #     H_eff += - 0.5j * lindbl_op_list[i] * ptn.mp.dot( lat.get("I"), lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
+        #     H_eff.truncate()
         
-        H_eff_dag = ptn.mp.dot(lat.get("I"), H_eff.copy())
-        H_s = 0.5 * ( H_eff.copy() + H_eff_dag.copy() ) #herm part
-        H_a = 0.5 * ( H_eff.copy() - H_eff_dag.copy() ) #antiherm part
-        H_as = -1j * H_a #make it herm
+        # H_eff_dag = ptn.mp.dot(lat.get("I"), H_eff.copy())
+        # H_s = 0.5 * ( H_eff.copy() + H_eff_dag.copy() ) #herm part
+        # H_a = 0.5 * ( H_eff.copy() - H_eff_dag.copy() ) #antiherm part
+        # H_as = -1j * H_a #make it herm
     
-        self.H_eff = H_eff
-        self.H_s = H_s
-        self.H_as = H_as
+        # self.H_eff = H_eff
+        # self.H_s = H_s
+        # self.H_as = H_as
         
         
     def select_jump_operator(self, psi: ptn.mp.MPS, r2: float) -> tuple:
@@ -103,9 +100,10 @@ class MPSQuantumJumps():
         return psi, which_jump_op      
 
     
-    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, trajectory: int, obsdict: dict):
+    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, trajectory: int, obsdict: dict, compute_H: list, compute_lindbl_op_list: list):
         
-        """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
+        """Compute the time-evolution via the quantum jumps method for a single trajectory with a possibly time-dependent 
+        hamiltonian and possibly time-dependent Lindblad operators. Two arrays r1 and r2 of random numbers are used 
         first to check if a jump needs to be applied if yes then which operator to use.
 
         Parameters
@@ -118,9 +116,15 @@ class MPSQuantumJumps():
             timestep
         trajectory : int
             integer labelling the trajectory
-        obsdict  :  dict 
+        obsdict  : dict
             instance of the class  'evos.src.observables.observables.Observables()'
+        compute_H  :  function
+            function that computes Hamiltonian as a ptn.mp.MPO for every timestep
+        compute_lindbl_op_list  : function
+            function that computes a list with the Lindblad operators at each timestep  
         """
+        #NOTE: 'compute_H' and 'compute_lindbl_op_list' should have a single input, namely the timestep, and a signle output,
+        # namely H and lindbl_op_list, respectively. All other possibly needed parameters like dt, max_t ... must be set as keyword arguments.
         
         self.conf_tdvp = conf_tdvp
         t_max = np.real( self.conf_tdvp.maxt )
@@ -129,7 +133,7 @@ class MPSQuantumJumps():
         self.conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
         self.conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
         self.conf_tdvp.exp_conf.minIter = 20 #FIXME: specify this before
-        worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() )
+        # worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() )
         
         os.mkdir( str( trajectory ) ) #create directory in which to run trajectory
         os.chdir( str( trajectory ) ) #change to it
@@ -151,8 +155,19 @@ class MPSQuantumJumps():
         memory_usage = []
         #main loop: time-evolution
         for i in range( n_timesteps ):
-            r1 = r1_array[i] 
-            #reinitialize worker with normalized state
+            r1 = r1_array[i]
+            #compute H_eff and lindbl_op_list for timestep i
+            lindbl_op_list = compute_lindbl_op_list(i)
+            self.lindbl_op_list = lindbl_op_list
+            H = compute_H(i)
+            #compute effective Hamiltonian
+            H_eff = H.copy() #compute effective Hamiltonian H_eff = H - i/2 \sum_m L^\dagger _m * L_m 
+            for i in range( len(self.lindbl_op_list) ):
+                H_eff += - 0.5j * self.lindbl_op_list[i] * ptn.mp.dot( self.lat.get("I"), self.lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
+                H_eff.truncate()
+            self.H_eff = H_eff    
+
+            #reinitialize worker with new effective hamiltonian and normalized state
             worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
             
             process = psutil.Process(os.getpid())
@@ -170,7 +185,7 @@ class MPSQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
-                psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
+                psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] ) #self.lindblad_op_list is updated at every timestep
                 which_jump_op_list.append( which_jump_op ) #debugging
                 jump_counter +=1 #debugging
             
