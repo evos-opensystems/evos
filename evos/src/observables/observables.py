@@ -74,7 +74,6 @@ class ObservablesDict():
             class implemented only for rank 1,2,3 arrays
         """
         for observables_array_dict_key, observables_array_dict_value in self.observables_array_dict.items():
-
             if len(observables_array_dict_value.shape) == 1 or len(observables_array_dict_value.shape) == 2:
                 observables_array_dict_value[:,timestep] = self.observables_comp_functions_dict[observables_array_dict_key](state, observables_array_dict_value.shape[:-1], observables_array_dict_value.dtype )
             
