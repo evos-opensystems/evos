@@ -26,15 +26,17 @@ from scipy.optimize import curve_fit
 
 # Hamiltonian
 
+'''
 t_hop = float(sys.argv[1])
 U = float(sys.argv[2])
 V = float(sys.argv[3])
 
 '''
+
 t_hop = 1
-U = 0
-V = 1.5
-'''
+U = 1
+V = 1
+
 eps = 1
 kappa = 1
 gamma = 1
@@ -93,8 +95,8 @@ for i in range( len(eps_vector_r) ):
 ########################################################################################################################
 
 # paramters (time, ...) for solving differential equation
-T = 50
-dt = 1
+T = 1
+dt = 0.01
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
 #print(tsteps)
@@ -203,6 +205,8 @@ H = H_sys(t_hop,U, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_r
 
 #print(H)
 
+
+
 ###################################################################################################################################
 # PREPARE LEADS IN THERMAL STATE
 
@@ -263,20 +267,18 @@ print(index_low_lamb2)
 tot_init_state_ket = vac()
 for i in range(1, n_tot+1): 
     if i <= n_lead_left: 
-        tot_init_state_ket =  tot_init_state_ket #v2[index_low_lamb2].T#1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
+        tot_init_state_ket =   1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))  #v2[index_low_lamb2].T#1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
 
     if i > n_lead_left and i <= n_tot-n_lead_right:
         #INITIAL STATE 
         #ground state of system Hamiltonian 
         #lambd, v = np.linalg.eigh(H_sys(J, U, V))
         #print(v)
-        tot_init_state_ket =tot_init_state_ket # v[index_low_lamb].T# tot_init_state_ket
+        tot_init_state_ket =np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) # v[index_low_lamb].T# tot_init_state_ket
     
     if i > n_tot - n_lead_right:
-        tot_init_state_ket = tot_init_state_ket #v1[index_low_lamb1].T#1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
+        tot_init_state_ket = 1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))#v1[index_low_lamb1].T#1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
 
-
-        
 
 
 tot_init_state_ket_norm = np.array(tot_init_state_ket/LA.norm(tot_init_state_ket), dtype = 'complex')
@@ -323,7 +325,13 @@ for k in range(n_tot-n_lead_right +1, n_tot+1):
     
     L_list.append( np.sqrt( eps_delta_vector_r[k-(n_tot-n_lead_right +1)]* fermi_dist(1/T_R, eps_vector_r[k-(n_tot-n_lead_right +1)], mu_R)) * spin_lat.sso('adag',k, 'up'))
     L_list.append( np.sqrt( eps_delta_vector_r[k-(n_tot-n_lead_right +1)]* fermi_dist(1/T_R, eps_vector_r[k-(n_tot-n_lead_right +1)], mu_R)) * spin_lat.sso('adag',k, 'down'))
-    
+
+
+
+print(L_list)  
+print('length Llist', len(L_list))
+print('exp_val =', L_list[0].dot(rho_matrix).trace()) 
+print('trace', L_list[1].trace())
 
 
 #L_list = []
@@ -399,7 +407,7 @@ for k in range(n_lead_left + 1, n_tot - n_lead_right +1):
     #s += -1j * ( np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) * np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') ) - np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) * np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) )
     s += -1j* ( np.dot(np.dot(spin_lat.sso('adag', k, 'up'), spin_lat.sso('a', k, 'down') ) , np.dot(spin_lat.sso('adag', k+1, 'down'),spin_lat.sso('a', k+1, 'up') )) ) #- np.dot( np.dot(spin_lat.sso('adag', k+1, 'up'),spin_lat.sso('a', k+1, 'down') ) , np.dot(spin_lat.sso('adag', k, 'down'),spin_lat.sso('a', k, 'up') ) ))
 print('s', np.where(s!=0))
-
+'''
 
 exp_s = []
 t1 = []
@@ -408,7 +416,6 @@ for i in range(0, tsteps):
     exp_s.append(exp.imag)
     t1.append(i)
 
-'''
 j_left = -1j*( np.dot(spin_lat.sso('adag',n_lead_left, 'down'), spin_lat.sso('a',n_lead_left +1, 'down')) - np.dot(spin_lat.sso('adag',n_lead_left+1, 'down'), spin_lat.sso('a',n_lead_left, 'down')))
 j_right = -1j*( np.dot(spin_lat.sso('adag',n_lead_left + n_sites, 'down'), spin_lat.sso('a',n_lead_left + n_sites + 1, 'down')) - np.dot(spin_lat.sso('adag',n_lead_left + n_sites +1, 'down'), spin_lat.sso('a',n_lead_left + n_sites, 'down')))
 
@@ -454,31 +461,33 @@ limit_2 = []
 for i in range(len(t)):
     limit_2.append(0.0)
 
-plt.plot(t, beta_list_L, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
-plt.plot(t, beta_list_R, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
+#plt.plot(t, beta_list_L, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
+#plt.plot(t, beta_list_R, label = 'analytic thermalized expect. val', linestyle = 'dashed')    
 #plt.plot(t, limit_1, label = "0.09", linestyle = 'dashed')
 #plt.plot(t, limit_2, label = "0.0", linestyle = 'dashed')
 #print(N_up(1,N))
  
-plt.plot(t, exp_n_up_lead_left, label='$< \hat n > $ down spins on left lead')
+#plt.plot(t, exp_n_up_lead_left, label='$< \hat n > $ down spins on left lead')
 #plt.plot(t, exp_n_up_first_sys_site, label='$< \hat n >$ down spins on first sys site')
 #plt.plot(t, exp_n_up_second_sys_site, label='$< \hat n >$ down spins on second sys site')
-plt.plot(t, exp_n_up_lead_right, label='$< \hat n >$ down spins on right lead')
+#plt.plot(t, exp_n_up_lead_right, label='$< \hat n >$ down spins on right lead')
 
 
-plt.plot(t, exp_j, label='$< \hat j > $ imag' )
-plt.plot(t, exp_j1, label='$< \hat j > $ real')
-plt.plot(t, opt_cond, label = '$\sigma$')
+#plt.plot(t, exp_j, label='$< \hat j > $ imag' )
+#plt.plot(t, exp_j1, label='$< \hat j > $ real')
+#plt.plot(t, opt_cond, label = '$\sigma$')
 
-plt.xlabel('t')
-plt.ylabel('$< \hat j >, < \hat n >$, $\sigma$')
-plt.title('thermalization of extended Hubbard chain')
+#plt.xlabel('t')
+#plt.ylabel('$< \hat j >, < \hat n >$, $\sigma$')
+#plt.title('thermalization of extended Hubbard chain')
 #plt.title('$L_{1} = 2\hat a_{down, dag,2}, L_{2} =  \hat a_{down,2}$')
 #plt.savefig('FH_2sites_4p_6.pdf')
 
-plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-
-plt.show()
+#plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+'''
+np.savetxt('n_vergleich_lead_left', exp_n_up_lead_left)
+np.savetxt('n_vergleich_firstsyssite', exp_n_up_first_sys_site)
+#plt.show()
 '''
 
 ##################################################################################################################################
@@ -488,7 +497,7 @@ np.savetxt('spin_current', exp_s)
 
 np.savetxt('time', t)
 
-
+'''
 
 
 
