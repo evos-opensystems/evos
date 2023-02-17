@@ -118,7 +118,7 @@ class MPSQuantumJumps():
             timestep
         trajectory : int
             integer labelling the trajectory
-        obsdict: 
+        obsdict  :  dict 
             instance of the class  'evos.src.observables.observables.Observables()'
         """
         
@@ -149,7 +149,7 @@ class MPSQuantumJumps():
         obsdict.compute_all_observables_at_one_timestep(psi_t, 0)        
         #loop over timesteps
         memory_usage = []
-        switched_to_1tdvp = False
+        #main loop: time-evolution
         for i in range( n_timesteps ):
             r1 = r1_array[i] 
             #reinitialize worker with normalized state
