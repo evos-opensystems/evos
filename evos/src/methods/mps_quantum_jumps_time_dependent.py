@@ -157,12 +157,13 @@ class MPSQuantumJumps():
         for i in range( n_timesteps ):
             r1 = r1_array[i]
             #compute H_eff and lindbl_op_list for timestep i
-            self.lindbl_op_list = compute_lindbl_op_list(i)
+            lindbl_op_list = compute_lindbl_op_list(i)
+            self.lindbl_op_list = lindbl_op_list
             H = compute_H(i)
             #compute effective Hamiltonian
             H_eff = H.copy() #compute effective Hamiltonian H_eff = H - i/2 \sum_m L^\dagger _m * L_m 
-            for i in range( len(lindbl_op_list) ):
-                H_eff += - 0.5j * lindbl_op_list[i] * ptn.mp.dot( lat.get("I"), lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
+            for i in range( len(self.lindbl_op_list) ):
+                H_eff += - 0.5j * self.lindbl_op_list[i] * ptn.mp.dot( self.lat.get("I"), self.lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
                 H_eff.truncate()
             self.H_eff = H_eff    
 
