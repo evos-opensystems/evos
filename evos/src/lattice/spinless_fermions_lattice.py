@@ -8,11 +8,9 @@ class SpinfulFermionsLattice():
     """Vacuum = |1 0 ... 0 > = zero particles present."""
     
     def __init__(self, n_sites: int):
-        """Saves sigma_x, sigma_y, sigma_z, sigma_plus, sigma_minus as instance variables and adds them to the operators dictionary.
+        """Saves ch, c, parity, I as instance variables and adds them to the operators dictionary.
         All these operator are saved as instance variables, together with the the identity operator and the vacuum state Vacuum = |1 0 ... 0 > = |up up .... up >.
-        sigma plus (sp) is the annihilator and sigma minus (sm) is the creator
         
-
         Parameters
         ----------
         n_sites : int

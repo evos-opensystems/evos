@@ -12,9 +12,9 @@ import scipy.linalg as la
 n_sites = 2
 dim_H = 2 ** n_sites
 J = 1
-gamma=1
+gamma = 1
 W = 10
-seed_W = 1
+seed_W = 7
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01

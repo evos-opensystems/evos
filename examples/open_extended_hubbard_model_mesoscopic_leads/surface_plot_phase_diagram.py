@@ -24,17 +24,17 @@ plt.rcParams["figure.figsize"] = (20,8)
 opt_cond = []
 U = []
 V = []
-os.chdir('results') 
+os.chdir('results2') 
 for filename in os.listdir(os.getcwd()):
     opt_cond.append(np.loadtxt(filename)[0])
     U.append(np.loadtxt(filename)[1])
     V.append(np.loadtxt(filename)[2])
-    
+
 U1 = []
 V1 = []
 opt_cond1 = []
 os.chdir('..') 
-os.chdir('results1') 
+os.chdir('results3') 
 for filename1 in os.listdir(os.getcwd()):
     opt_cond1.append(np.loadtxt(filename1)[0])
     U1.append(np.loadtxt(filename1)[1])
@@ -56,10 +56,10 @@ for x in np.linspace(0, 5):
 
 fig, ax = plt.subplots()
 
-ax1 = plt.subplot(121, xlim=[-5.5,5.5], ylim=[-5.5,5.5])
+ax1 = plt.subplot(121, xlim=[-5.5,8], ylim=[-5.5,6])
 plt.plot(x1,y2, '--', c ='blue')
-#plt.plot(x1,y1, '--', c = 'blue')
-plt.scatter(U1,V1,c = opt_cond1, s = 20,cmap='RdYlBu_r', vmin=0, vmax=0.11)
+plt.plot(x1,y1, '--', c = 'blue')
+plt.scatter(U1,V1,c = opt_cond1, s = 20,cmap='RdYlBu_r', vmin=0, vmax=0.02)
 plt.xlabel('U/t')
 plt.ylabel('V/t')
 #plt.plot(x1,y2, '--')
@@ -71,11 +71,11 @@ props = dict(boxstyle='square', facecolor= 'white', alpha=0.5)
 plt.text(0.9, 0.8, textstr, fontsize=13, verticalalignment='top', bbox=props, transform=plt.gcf().transFigure)
 
 
-ax2 = plt.subplot(122, sharey=ax1, xlim=[-5.5,5.5], ylim=[-5.5,5.5])
+ax2 = plt.subplot(122, sharey=ax1, xlim=[-5.5,8], ylim=[-5.5,6])
 im =plt.plot(x1,y2, '--', c = 'blue')
 #plt.plot(x1,y1, '--', c = 'blue')
 ax2.annotate('$U = -2V$', xy = (2.3,-1) , c ='blue', textcoords="offset points", xytext=(0,10), ha='center')
-plt.scatter(U,V,c = opt_cond, s = 20,cmap='RdYlBu_r', vmin=0, vmax=0.11)
+plt.scatter(U,V,c = opt_cond, s = 20,cmap='RdYlBu_r', vmin=0, vmax=0.02)
 textstr = '\n'.join((r'$\mathrm{T_{left}}=%.3f$' % (1, ),r'$\mathrm{T_{right}}=%.3f$' % (1, ), r'$\mathrm{N_{tot}}=%.0f$' % (4, ),  r'$\mathrm{N_{lead, L}}=%.0f$' % (1, ),  r'$\mathrm{N_{lead, R}}=%.0f$' % (1, ),  r'$\mu_L= %.0f$' % (1, ), r'$\mu_R=%.0f$' % (-1, )))
 props = dict(boxstyle='square', facecolor= 'white', alpha=0.5)
 # place a text box in upper left in axes coords

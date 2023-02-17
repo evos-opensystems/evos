@@ -17,11 +17,11 @@ U = float(sys.argv[2])
 V = float(sys.argv[3])
 
 
-ydata1 = np.loadtxt('optical_cond')
+ydata1 = np.loadtxt('spin_current')
 xdata1 = np.loadtxt('time')
 
-xdata = xdata1[10:]
-ydata = ydata1[10:]
+xdata = xdata1[0:]
+ydata = ydata1[0:]
   
 def func(x, a, b):
     y = a + b*x 
@@ -41,11 +41,11 @@ os.remove("optical_cond.txt")
 os.remove("time.txt")
 '''
 
-Path("results").mkdir(parents=True, exist_ok=True)
-os.chdir('results')
+Path("results3").mkdir(parents=True, exist_ok=True)
+os.chdir('results3')
 for i in range(0,len([name for name in os.listdir('.') if os.path.isfile(name)])+1):
     if os.path.exists('my_file'+str(i)) == True: 
         pass
     else: np.savetxt('my_file'+str(i), [fit_a, U, V])
-    
+  
 #print(len([name for name in os.listdir('.') if os.path.isfile(name)]))
