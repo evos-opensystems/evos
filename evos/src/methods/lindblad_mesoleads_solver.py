@@ -124,6 +124,7 @@ class MesoscopicLeads():
         else: 
             for k in range(self.n_lead_left, self.n_lead_left+1): 
                 print('left sys lead hopping on sites:', k, k+1)
+                print(self.k_vec_L[k-1])
                 hop_sys_lead += self.k_vec_L[k-1]* (np.dot(spin_lat.sso('a',k, 'up'), spin_lat.sso('adag',k+1, 'up')) + np.dot(spin_lat.sso('a',k+1, 'up'), spin_lat.sso('adag',k, 'up')) + np.dot(spin_lat.sso('a',k, 'down'), spin_lat.sso('adag',k+1, 'down')) + np.dot(spin_lat.sso('a',k+1, 'down'), spin_lat.sso('adag',k, 'down')))
         H = kin_leads + hop_sys_lead    
         return H

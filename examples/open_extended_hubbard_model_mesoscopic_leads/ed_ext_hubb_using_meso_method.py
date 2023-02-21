@@ -18,9 +18,9 @@ from numpy import linalg as LA
 
 # Hamiltonian
 
-t_hop = 1
-U = 1
-V = 1
+t_hop = 0
+U = 0
+V = 0
 
 eps = 1
 kappa = 1
@@ -82,8 +82,8 @@ for i in range( len(eps_vector_r) ):
 ########################################################################################################################
 
 # paramters (time, ...) for solving differential equation
-T = 1
-dt = 0.01
+T = 10
+dt = 0.1
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
 
@@ -154,10 +154,10 @@ tot_init_state_ket_norm = np.array(tot_init_state_ket/LA.norm(tot_init_state_ket
 mes_leads = ed_mesoscopic_equation.MesoscopicLeads(n_tot, n_lead_left, n_lead_right, T_L, T_R, mu_L, mu_R, T, dt, eps_vector_l, eps_delta_vector_l, eps_vector_r, eps_delta_vector_r, k_vector_l, k_vector_r)
 
 H_leads = mes_leads.H_leads_left() + mes_leads.H_leads_right()
-H = H_leads + H_sys(t_hop,U, V)
+H =  H_sys(t_hop,U, V) + H_leads
 
-L_list = mes_leads.lindbladlistmesoscopic()
-
+L_list = []#mes_leads.lindbladlistmesoscopic()
+quit()
 lindblad_equation = ed_mesoscopic_equation.LindbladEquation(n_tot, H, L_list).drho_dt
 
 rho_sol = ed_mesoscopic_equation.SolveLindblad(n_tot).solve(tot_init_state_ket_norm, lindblad_equation, dt, T)
