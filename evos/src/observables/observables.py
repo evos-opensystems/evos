@@ -106,7 +106,7 @@ class ObservablesDict():
             os.chdir(str(trajectory))
             obs1 = np.loadtxt( [*self.observables_array_dict][0] )
             print('obs1[0,-1] in traj {} = {}'.format(trajectory, obs1[0,-1]))
-            if  obs1[0,-1] == 0. :
+            if (obs1[...,-1] == 0.).any():
                 traj_list_new.pop(counter-n_eliminated_traj)
                 n_eliminated_traj += 1
                 print('eliminated trajectory ', trajectory )
