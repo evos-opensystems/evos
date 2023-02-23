@@ -94,8 +94,10 @@ class ObservablesDict():
         traj_list = []
         #check whether trajectory-directory and first observable in array_dict exist
         for i in range( n_trajectories ):
-            if os.path.isdir(str(i))and os.path.isfile(str(i) + '/' + [*self.observables_array_dict][0] ): 
+            if os.path.isdir(str(i)) and os.path.isfile(str(i) + '/' + [*self.observables_array_dict][0] ): 
                 traj_list.append(i)
+            else:
+                print('trajectory {} not found'.format(i))
         
         #check whether the first observable has been computed for every timestep. if not, remove the trajectory from traj_list    
         counter = 0 
