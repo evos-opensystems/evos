@@ -103,7 +103,7 @@ class MPSQuantumJumps():
         return psi, which_jump_op      
 
     
-    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, trajectory: int, obsdict: dict):
+    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, trajectory: int, obsdict: dict, time_gse_subspace_switch = 0.1 ):
         
         """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
         first to check if a jump needs to be applied if yes then which operator to use.
@@ -120,6 +120,8 @@ class MPSQuantumJumps():
             integer labelling the trajectory
         obsdict  :  dict 
             instance of the class  'evos.src.observables.observables.Observables()'
+        time_gse_subspace_switch  :  float, default = 0.1
+            time at which tdvp switches from GSE to Subspace method    
         """
         
         self.conf_tdvp = conf_tdvp
@@ -151,6 +153,17 @@ class MPSQuantumJumps():
         memory_usage = []
         #main loop: time-evolution
         for i in range( n_timesteps ):
+            
+            if np.round(i * self.conf_tdvp.dt, 2) == time_gse_subspace_switch: #switch to Subspace method
+                print('switched from GSE to Subspace after {} timesteps'.format(i) )
+                self.conf_tdvp.mode = ptn.tdvp.Mode.Subspace
+                #### worker.set_tdvp_mode( ptn.tdvp.Mode.Subspace )
+                self.conf_tdvp.expandMaxBlocksize = 100
+                self.conf_tdvp.expansion_trunc = ptn.Truncation(1e-6, maxStates=50)
+                # self.conf_tdvp.trunc.threshold = tdvp_trunc_threshold #this is not used by gse
+                # self.conf_tdvp.trunc.weight = tdvp_trunc_weight #this is not used by gse
+                worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[ self.H_eff.copy() ], self.conf_tdvp.copy() )
+                
             r1 = r1_array[i] 
             #reinitialize worker with normalized state
             worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
