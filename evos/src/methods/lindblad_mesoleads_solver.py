@@ -126,7 +126,7 @@ class MesoscopicLeads():
                 print('left sys lead hopping on sites:', k, k+1)
                 print(self.k_vec_L[k-1])
                 hop_sys_lead += self.k_vec_L[k-1]* (np.dot(spin_lat.sso('a',k, 'up'), spin_lat.sso('adag',k+1, 'up')) + np.dot(spin_lat.sso('a',k+1, 'up'), spin_lat.sso('adag',k, 'up')) + np.dot(spin_lat.sso('a',k, 'down'), spin_lat.sso('adag',k+1, 'down')) + np.dot(spin_lat.sso('a',k+1, 'down'), spin_lat.sso('adag',k, 'down')))
-        H = kin_leads + hop_sys_lead    
+        H =  hop_sys_lead + kin_leads 
         return H
             
          
@@ -153,12 +153,13 @@ class MesoscopicLeads():
         else: 
             for k in range(self.n_tot - self.n_lead_right , self.n_tot): 
                 print('right sys lead hopping on sites:', k, k+1)
+                print(self.k_vec_R[k - (self.n_tot - self.n_lead_right)])
                 hop_sys_lead += self.k_vec_R[k - (self.n_tot - self.n_lead_right) ]* (np.dot(spin_lat.sso('a',k, 'up'), spin_lat.sso('adag',k+1, 'up')) + np.dot(spin_lat.sso('a',k+1, 'up'), spin_lat.sso('adag',k, 'up')) + np.dot(spin_lat.sso('a',k, 'down'), spin_lat.sso('adag',k+1, 'down')) + np.dot(spin_lat.sso('a',k+1, 'down'), spin_lat.sso('adag',k, 'down')))
-        H = kin_leads + hop_sys_lead       
+        H =  hop_sys_lead + kin_leads    
         return H
     
-        H = kin_leads + hop_sys_lead    
-        return H
+        #H = kin_leads + hop_sys_lead    
+        #return H
     
     def lindbladlistmesoscopic(self):
         
@@ -170,6 +171,9 @@ class MesoscopicLeads():
         spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(self.n_tot)
         for k in range(1, self.n_lead_left+1):
             print('k_left = ', k)
+            print('epsdeltaL', self.eps_delta_vector_l[k-1])
+            print('eps L', self.eps_vec_l[k-1])
+            print('exponential left = ', np.exp( 1/self.T_L * (self.eps_vec_l[k-1] - self.mu_L) ))
             L_list.append( np.sqrt( self.eps_delta_vector_l[k-1]* np.exp( 1/self.T_L * (self.eps_vec_l[k-1] - self.mu_L) ) * fermi_dist(1/self.T_L, self.eps_vec_l[k-1], self.mu_L))* spin_lat.sso('a',k, 'up'))
             #print(spin_lat.sso('a', k, 'up'))
             L_list.append( np.sqrt( self.eps_delta_vector_l[k-1]* np.exp( 1/self.T_L * (self.eps_vec_l[k-1] - self.mu_L) ) * fermi_dist(1/self.T_L, self.eps_vec_l[k-1], self.mu_L)) * spin_lat.sso('a',k, 'down'))
@@ -182,6 +186,9 @@ class MesoscopicLeads():
             
         for k in range(self.n_tot- self.n_lead_right +1, self.n_tot+1):
             print('k_right = ', k)
+            print('epsdeltaR', self.eps_delta_vector_r[k-(self.n_tot- self.n_lead_right +1)])
+            print('eps R', self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)])
+            print('exponential right = ', np.exp( 1/self.T_R * (self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)] - self.mu_R) ))
             L_list.append( np.sqrt( self.eps_delta_vector_r[k-(self.n_tot- self.n_lead_right +1)]* np.exp( 1/self.T_R * (self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)] - self.mu_R) ) * fermi_dist(1/self.T_R, self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)], self.mu_R))* spin_lat.sso('a',k, 'up'))
             L_list.append( np.sqrt( self.eps_delta_vector_r[k-(self.n_tot- self.n_lead_right +1)]* np.exp( 1/self.T_R * (self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)] - self.mu_R) ) * fermi_dist(1/self.T_R, self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)], self.mu_R))* spin_lat.sso('a',k, 'down'))
             

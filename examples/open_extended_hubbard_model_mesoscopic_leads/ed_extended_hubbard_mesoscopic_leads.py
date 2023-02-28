@@ -207,7 +207,6 @@ H = H_sys(t_hop,U, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_r
 #print(H)
 
 
-quit()
 ###################################################################################################################################
 # PREPARE LEADS IN THERMAL STATE
 

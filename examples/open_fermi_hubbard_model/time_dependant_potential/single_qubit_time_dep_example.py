@@ -7,7 +7,7 @@ Created on Thu Dec  1 10:03:50 2022
 """
 
 import numpy as np 
-import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
+import evos.src.lattice.lattice as lat
 import evos.src.methods.ed_time_dep_hamiltonian_lindblad_solver_new as solver
 import matplotlib.pyplot as plt
 
@@ -35,7 +35,7 @@ t = np.linspace(0,T, tsteps)
 #print(tsteps)
 
 
-spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(n_sites)
+spin_lat = lat.SpinOneHalfLattice(n_sites)
 
 # Hamiltonian (can be time dependant)
 def H(t): 

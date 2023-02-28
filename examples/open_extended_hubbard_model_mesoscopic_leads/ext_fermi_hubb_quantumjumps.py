@@ -26,9 +26,9 @@ plt.rcParams['font.family'] = 'STIXGeneral'
 plt.rcParams.update({'font.size': 11})
 
 
-#DO BENCHMARK OF TEVO AND OBSERVABLES!
+
 #parameters
-J = 1/2
+J = 1
 t = 1
 V = 1
 eps = 1
@@ -102,10 +102,10 @@ W = 10
 seed_W = 1
 rng = np.random.default_rng(seed=seed_W) # random numbers
 #eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
-dt = 0.01
-t_max = 10
+dt = 0.001
+t_max = 5
 n_timesteps = int(t_max/dt)
-n_trajectories = 1000
+n_trajectories = 1
 trajectory = 0 
 
 #os.chdir('benchmark')
@@ -245,13 +245,13 @@ def vac():
 tot_init_state_ket = vac()
 for i in range(1, n_tot+1): 
     if i <= n_lead_left: 
-        tot_init_state_ket = 1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
+        tot_init_state_ket = np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) # + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
 
     if i > n_lead_left and i <= n_tot-n_lead_right:
         tot_init_state_ket = tot_init_state_ket
     
     if i > n_tot - n_lead_right:
-        tot_init_state_ket = 1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
+        tot_init_state_ket = np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) #+ np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
 
         
 
@@ -268,25 +268,25 @@ print(init_state)
 
 #observables
 obsdict = observables.ObservablesDict()
-obsdict.initialize_observable('sz_0',(1,), n_timesteps) #1D
+obsdict.initialize_observable('n_av_qj_ed',(1,), n_timesteps) #1D
 #obsdict.initialize_observable('sz_1',(1,), n_timesteps) #1D
 
-sz_0 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
-print(sz_0)
+n_av_qj_ed = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
+#print(sz_0)
 #sz_1 = spin_lat.sso( 'sz', 1 )
 ###
 # sz_0_init_state = np.dot( np.conjugate(init_state), np.dot(sz_0,init_state ))
 # print(sz_0_init_state)
 ###
 
-def compute_sz_0(state, obs_array_shape,dtype):  #EXAMPLE 1D
+def compute_n_av_qj_ed(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    obs_array[0] = np.real( np.dot( np.dot( np.conjugate(state.T), sz_0 ), state )  )  
+    obs_array[0] = np.real( np.dot( np.dot( np.conjugate(state.T), n_av_qj_ed ), state )  )  
     #OBS DEPENDENT PART END
     return obs_array
 
-obsdict.add_observable_computing_function('sz_0',compute_sz_0 )
+obsdict.add_observable_computing_function('n_av_qj_ed',compute_n_av_qj_ed )
 #obsdict.add_observable_computing_function('sz_1',compute_sz_1 )
 
 
@@ -327,10 +327,10 @@ for k in range(n_tot-n_lead_right +1, n_tot+1):
 #L = gamma * np.matrix( spin_lat.sso( 'sm', 0 ) )  # int( n_sites/2 ) #Lindblad operators must be cast from arrays to matrices in order to be able to use .H
 time_lind_evo = time.process_time()
 
-L = np.array(L_list, dtype = 'complex')
+# L = np.array(L_list, dtype = 'complex')
 
     
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(n_tot, H, L)
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(n_tot, H, L_list)
 
 #compute qj trajectories sequentially
 for trajectory in range(n_trajectories): 
@@ -348,10 +348,9 @@ obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), o
 print('process time: ', time.process_time() - time_start )
 
 #PLOT
-sz_0 = np.loadtxt('sz_0_av')
+n_av_qj_ed = np.loadtxt('n_av_qj_ed_av')
 time_v = np.linspace(0, t_max, n_timesteps + 1  )
-plt.plot(time_v,sz_0, label= 'sz_0_av')
+plt.plot(time_v, n_av_qj_ed, label= 'n_av_qj_ed', color = '#c7e9b4')
 plt.legend()
 plt.show()
-
 

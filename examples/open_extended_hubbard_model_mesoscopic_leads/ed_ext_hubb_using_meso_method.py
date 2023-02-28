@@ -12,15 +12,16 @@ import evos.src.methods.lindblad_mesoleads_solver as ed_mesoscopic_equation
 import matplotlib.pyplot as plt
 import math
 from numpy import linalg as LA
+import os
 
 #np.set_printoptions(threshold=sys.maxsize)
 #np.set_printoptions(threshold = False)
 
 # Hamiltonian
 
-t_hop = 0
-U = 0
-V = 0
+t_hop = 1
+U = 1
+V = 1
 
 eps = 1
 kappa = 1
@@ -79,11 +80,14 @@ k_vector_r = np.zeros( len(eps_vector_r) )
 for i in range( len(eps_vector_r) ):
     k_vector_r[i] = np.sqrt( const_spec_funct( G , W, eps_vector_r[i] ) * eps_delta_vector_r[i]/ (2*math.pi) ) 
     
+
+print(k_vector_l)
+print(k_vector_r)
 ########################################################################################################################
 
 # paramters (time, ...) for solving differential equation
-T = 10
-dt = 0.1
+T = 1
+dt = 0.5
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
 
@@ -137,14 +141,14 @@ def vac():
 tot_init_state_ket = vac()
 for i in range(1, n_tot+1): 
     if i <= n_lead_left: 
-        tot_init_state_ket = 1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket)) #v2[index_low_lamb2].T#1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
+        tot_init_state_ket = np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) #+ np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket)) #v2[index_low_lamb2].T#1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
 
     if i > n_lead_left and i <= n_tot-n_lead_right:
         
         tot_init_state_ket =tot_init_state_ket # v[index_low_lamb].T# tot_init_state_ket
     
     if i > n_tot - n_lead_right:
-        tot_init_state_ket = 1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket)) #v1[index_low_lamb1].T#1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
+        tot_init_state_ket = np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) #+ np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket)) #v1[index_low_lamb1].T#1/(np.sqrt(2))* (np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
         
 tot_init_state_ket_norm = np.array(tot_init_state_ket/LA.norm(tot_init_state_ket), dtype = 'complex')
 
@@ -156,8 +160,8 @@ mes_leads = ed_mesoscopic_equation.MesoscopicLeads(n_tot, n_lead_left, n_lead_ri
 H_leads = mes_leads.H_leads_left() + mes_leads.H_leads_right()
 H =  H_sys(t_hop,U, V) + H_leads
 
-L_list = []#mes_leads.lindbladlistmesoscopic()
-quit()
+L_list = mes_leads.lindbladlistmesoscopic()
+
 lindblad_equation = ed_mesoscopic_equation.LindbladEquation(n_tot, H, L_list).drho_dt
 
 rho_sol = ed_mesoscopic_equation.SolveLindblad(n_tot).solve(tot_init_state_ket_norm, lindblad_equation, dt, T)
@@ -167,12 +171,49 @@ rho_sol = ed_mesoscopic_equation.SolveLindblad(n_tot).solve(tot_init_state_ket_n
 #print(rho_sol[:,:,19].trace())
 
 n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
-n_up_2 = np.dot(spin_lat.sso('adag',2, 'down'), spin_lat.sso('a',2, 'down'))
-n_up_3 = np.dot(spin_lat.sso('adag',3, 'down'), spin_lat.sso('a',3, 'down'))
-n_up_4 = np.dot(spin_lat.sso('adag',4, 'down'), spin_lat.sso('a',4, 'down'))
+n_up_2 = np.dot(spin_lat.sso('adag',2, 'up'), spin_lat.sso('a',2, 'up'))
+n_up_3 = np.dot(spin_lat.sso('adag',3, 'up'), spin_lat.sso('a',3, 'up'))
+n_up_4 = np.dot(spin_lat.sso('adag',4, 'up'), spin_lat.sso('a',4, 'up'))
+
+n_up_5 = np.dot(spin_lat.sso('adag',1, 'down'), spin_lat.sso('a',1, 'down'))
+n_up_6 = np.dot(spin_lat.sso('adag',2, 'down'), spin_lat.sso('a',2, 'down'))
+n_up_7 = np.dot(spin_lat.sso('adag',3, 'down'), spin_lat.sso('a',3, 'down'))
+n_up_8 = np.dot(spin_lat.sso('adag',4, 'down'), spin_lat.sso('a',4, 'down'))
+print(n_up_2)
 
 #exp = n_up_1.dot(rho_matrix).trace()
 #print('exp = ', exp)
+
+exp_n_down_lead_left = []
+t1 = []
+for i in range(0, tsteps):
+    exp = n_up_5.dot(rho_sol[:,:,i]).trace()
+    exp_n_down_lead_left.append(exp)
+    t1.append(i)
+
+    
+exp_n_down_first_sys_site = []
+t1 = []
+for i in range(0, tsteps):
+    exp = n_up_6.dot(rho_sol[:,:,i]).trace()
+    exp_n_down_first_sys_site.append(exp)
+    t1.append(i)
+print(exp_n_down_first_sys_site)    
+
+exp_n_down_second_sys_site = []
+t1 = []
+for i in range(0, tsteps):
+    exp = n_up_7.dot(rho_sol[:,:,i]).trace()
+    exp_n_down_second_sys_site.append(exp)
+    t1.append(i)
+    
+
+exp_n_down_lead_right = []
+t1 = []
+for i in range(0, tsteps):
+    exp = n_up_8.dot(rho_sol[:,:,i]).trace()
+    exp_n_down_lead_right.append(exp)
+    t1.append(i)
 
 #compute expectation value
 exp_n_up_lead_left = []
@@ -181,12 +222,12 @@ for i in range(0, tsteps):
     exp = n_up_1.dot(rho_sol[:,:,i]).trace()
     exp_n_up_lead_left.append(exp)
     t1.append(i)
-    
+ 
 exp_n_up_first_sys_site = []
 t1 = []
 for i in range(0, tsteps):
     exp = n_up_2.dot(rho_sol[:,:,i]).trace()
-    exp_n_up_first_sys_site.append(exp)
+    exp_n_up_first_sys_site.append(exp.real)
     t1.append(i)
     
     
@@ -197,14 +238,14 @@ for i in range(0, tsteps):
     exp_n_up_second_sys_site.append(exp)
     t1.append(i)
     
-    
+ 
 exp_n_up_lead_right = []
 t1 = []
 for i in range(0, tsteps):
     exp = n_up_4.dot(rho_sol[:,:,i]).trace()
     exp_n_up_lead_right.append(exp)
     t1.append(i)
-    
+
 
 s = np.zeros((dim_tot, dim_tot), dtype = 'complex')
 # expectation value of current of down spins through wire
@@ -274,15 +315,27 @@ for i in range(len(t)):
 #plt.plot(t, limit_2, label = "0.0", linestyle = 'dashed')
 #print(N_up(1,N))
  
-plt.plot(t, exp_n_up_lead_left, label='$< \hat n > $ down spins on left lead')
-#plt.plot(t, exp_n_up_first_sys_site, label='$< \hat n >$ down spins on first sys site')
-#plt.plot(t, exp_n_up_second_sys_site, label='$< \hat n >$ down spins on second sys site')
-#plt.plot(t, exp_n_up_lead_right, label='$< \hat n >$ down spins on right lead')
+#plt.plot(t, exp_n_up_lead_left, label='$< \hat n > $ up left lead')
+#plt.plot(t, exp_n_up_first_sys_site, label='$< \hat n >$ up first sys site')
+#plt.plot(t, exp_n_up_second_sys_site, label='$< \hat n >$ up second sys site')
+#plt.plot(t, exp_n_up_lead_right, label='$< \hat n >$ up right lead')
 
-
+#plt.plot(t, exp_n_down_lead_left, label='$< \hat n > $ down left lead')
+#plt.plot(t, exp_n_down_first_sys_site, label='$< \hat n >$ down first sys site')
+#plt.plot(t, exp_n_down_second_sys_site, label='$< \hat n >$ down second sys site')
+#plt.plot(t, exp_n_down_lead_right, label='$< \hat n >$ down right lead')
 #plt.plot(t, exp_j, label='$< \hat j > $ imag' )
 #plt.plot(t, exp_j1, label='$< \hat j > $ real')
 #plt.plot(t, opt_cond, label = '$\sigma$')
+
+os.chdir('mesolead_exthubb_tests')
+
+np.savetxt('exp_n_up_lead_left', exp_n_up_lead_left)
+np.savetxt('exp_n_up_first_sys_site', exp_n_up_first_sys_site)
+np.savetxt('exp_n_down_first_sys_site', exp_n_down_first_sys_site)
+np.savetxt('exp_n_up_second_sys_site', exp_n_up_second_sys_site)
+np.savetxt('exp_n_down_second_sys_site', exp_n_down_second_sys_site)
+#b = np.loadtxt('exp_n_up_lead_left')
 
 plt.xlabel('t')
 plt.ylabel('$< \hat j >, < \hat n >$, $\sigma$')
@@ -294,12 +347,10 @@ plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
 plt.show()
 
-'''
+
 ##################################################################################################################################
 # FIT OPTICAL CONDUCTIVITY  
 
 np.savetxt('spin_current', exp_s)
 
 np.savetxt('time', t)
-
-'''

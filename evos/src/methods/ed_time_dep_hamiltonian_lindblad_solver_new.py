@@ -61,7 +61,7 @@ class LindbladEquation:
 
 
 class SolveLindbladEquation():
-    def __init__(self,dim_H:int, H:float, L_list:float, dt:float, T:float):
+    def __init__(self,dim_H:int, H_timelist:float, L:float, dt:float, T:float):
         """_summary_ method solve: takes an observable and an initial state, solves Lindblad equation containing time 
         dependant Hamiltonian and returns time dependant expectation value of observable as well as a list of the time steps
 
@@ -80,16 +80,26 @@ class SolveLindbladEquation():
         t = np.linspace(0,self.T, tsteps)
         self.tsteps = tsteps
         self.t = t
+        n_sites = int((dim_H)**(1/4))
         
        
-        self.H = H
+        self.H_timelist = H_timelist
         H1 = []
         for t11 in t:
-           H1.append(H(t11))   
+           H1.append(H_timelist(t11))   
         self.H1 = H1
         
-        self.L_list = L_list
-        
+        #self.L_list = L_list
+
+        L_list_time = []
+        for time in t:
+            L_list = []
+            for k in range(0, n_sites):
+                L_list.append(L(k+1, n_sites, time))
+            L_list_time.append(L_list)
+        #print(np.shape(L_list_time))
+        self.L_list_time = L_list_time
+
     def solve(self, observable, rho_ket):
         
         # make list out of matrix
@@ -109,7 +119,7 @@ class SolveLindbladEquation():
         Dyn_rho_dt = []
         for t1 in range(len(self.t)):
             
-            dyn = LindbladEquation(self.dim_H, self.H1[t1], self.L_list)
+            dyn = LindbladEquation(self.dim_H, self.H1[t1], self.L_list_time[t1])
             Dyn_rho_dt.append(dyn)
         
         exp_n = []
