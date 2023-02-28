@@ -24,6 +24,6 @@ print(a)
 
 T = []
 for t in range(len(a[0])):
-    T.append(t/20)
+    T.append(t/100)
     
 plt.plot(T,a[4])
