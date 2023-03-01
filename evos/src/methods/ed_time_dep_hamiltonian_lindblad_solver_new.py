@@ -49,6 +49,7 @@ class LindbladEquation:
             drho = -1j* commutator(self.H, rho) 
                 
             for i in range(0, len(self.L_list)): 
+                    #print(i)
                     drho += - 1/2*anticom(self.L_list[i].conj().T.dot(self.L_list[i]), rho) + self.L_list[i].dot(rho).dot(self.L_list[i].conj().T)
 
             #turn back: make list out of matrix
@@ -93,18 +94,17 @@ class SolveLindbladEquation():
 
         L_list_time = []
         for time in t:
-            L_list = []
-            for k in range(0, n_sites):
-                L_list.append(L(k+1, n_sites, time))
-            L_list_time.append(L_list)
+            L_list_time.append(L(time))
+            
         #print(np.shape(L_list_time))
         self.L_list_time = L_list_time
 
-    def solve(self, observable, rho_ket):
+    def solve(self, observable, rho_matrix):
         
         # make list out of matrix
-        rho_bra = np.conjugate(rho_ket) 
-        rho_matrix = np.outer(rho_ket, rho_bra)     
+        #rho_bra = np.conjugate(rho_ket) 
+        #rho_matrix = np.outer(rho_ket, rho_bra)   
+        print(rho_matrix)  
     
         rho_vec = []
         for i in range(0, self.dim_H):
@@ -129,16 +129,16 @@ class SolveLindbladEquation():
         for t1 in self.t:
             if t1 == 0:
                 t_before =0
-                exp = 1 
-                print(t1)
+                exp = observable.dot(rho_matrix).trace()
+                #print(t1)
 
             else:
-                print('timestep = ', t1)
+                #print('timestep = ', t1)
                 t_before_index = np.where(self.t==t1)[0] -1
                 t_before = float(self.t[t_before_index])
             
                 dyn_drho_dt = Dyn_rho_dt[int(np.where(self.t == t_before)[0])]
-                print(t1)
+                #print(t1)
                 
                 sol = solve_ivp(dyn_drho_dt.drho_dt, (t_before,t_before+self.dt), rho_vec, t_eval = [t_before+self.dt])
             
@@ -162,8 +162,9 @@ class SolveLindbladEquation():
                 
                 # assign new initial state for next time step
                 rho_vec = sol.y[:,0]
-                
+                #print('exp', exp)
             exp_n.append(exp)
+            
             t11.append(t_before)
             
         return exp_n, t11

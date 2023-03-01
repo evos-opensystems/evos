@@ -27,8 +27,8 @@ omega = 0.11
 alpha = 1
 
 # for lindblad solver
-T = 10 # final time
-dt = 2 #time step size
+T = 5 # final time
+dt = 0.05 #time step size
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
 #print(t)
@@ -55,11 +55,11 @@ def H(t):
         coul += np.dot(n_up,n_down)
 
     
-    if t>2:
-        H = -np.cos(omega*t)*t_hop*hop +U*coul
+   
+       
         
-    if t<2:
-        H = U*coul
+    
+    H = -t_hop*hop +U*coul
    
     return H
 
@@ -84,8 +84,8 @@ for i in np.arange(2,n_sites+1,2):
 
 # Lindblad operators
 def L(k, N, t):
-    n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))*np.sin(t)
-    n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
+    n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))#*np.exp(t)
+    n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))#*np.exp(t)
     
     L = alpha*(n_up + n_down) 
     return L

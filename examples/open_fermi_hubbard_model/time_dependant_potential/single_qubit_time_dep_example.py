@@ -6,118 +6,72 @@ Created on Thu Dec  1 10:03:50 2022
 @author: reka
 """
 
+
+"""
+reproducing results section III (Fig.1) of following article: https://arxiv.org/abs/1811.05490
+"""
+
+
 import numpy as np 
-import evos.src.lattice.lattice as lat
+import evos.src.lattice.spin_one_half_lattice as lat
 import evos.src.methods.ed_time_dep_hamiltonian_lindblad_solver_new as solver
 import matplotlib.pyplot as plt
-
-# Open Fermi Hubbard Model with a time dependant Hamiltonian (sudden quench)
+from numpy import linalg as LA
+from matplotlib.ticker import FormatStrFormatter, MultipleLocator
 
 #number of sites
-n_sites = 2
-dim_H = 4 ** n_sites
-
-# coupling parameters
-t_hop = 1
-U = 1
-# oscillation frequency
-omega = 0.11
-
-# coupling of lindblad operators
-alpha = 1
+n_sites = 1
+dim_H = 2 ** n_sites
 
 # for lindblad solver
-T = 10 # final time
-dt = 2 #time step size
+T = 30 # final time
+dt = 0.01 #time step size
 tsteps = int(T/dt)
 t = np.linspace(0,T, tsteps)
-#print(t)
-#print(tsteps)
 
 
 spin_lat = lat.SpinOneHalfLattice(n_sites)
 
-# Hamiltonian (can be time dependant)
-def H(t): 
-        
-    hop = np.zeros((dim_H, dim_H), dtype = 'complex')
-    for k in range(1, n_sites): 
-        
-        #hop += np.dot(c_up(k,N), c_up_dag(k + 1 ,N)) + np.dot(c_up(k + 1,N), c_up_dag(k,N)) + np.dot(c_down(k,N), c_down_dag(k +1 ,N)) + np.dot(c_down(k+1,N), c_down_dag(k,N))
-        hop += np.dot(spin_lat.sso('a',k, 'up'), spin_lat.sso('adag',k+1, 'up')) + np.dot(spin_lat.sso('a',k+1, 'up'), spin_lat.sso('adag',k, 'up')) + np.dot(spin_lat.sso('a',k, 'down'), spin_lat.sso('adag',k+1, 'down')) + np.dot(spin_lat.sso('a',k+1, 'down'), spin_lat.sso('adag',k, 'down'))
-     
- 
-    coul = np.zeros((dim_H, dim_H), dtype = 'complex')
-    for k in range(1, n_sites+1): 
-        n_up =  np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))
-        n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
-          
-        coul += np.dot(n_up,n_down)
 
+def H(t):   
+    #omega_t = np.sqrt(2)*(1-np.cos(t))
+
+    h = np.zeros((dim_H, dim_H), dtype = 'complex')
+    h += -(1-np.cos(t))* spin_lat.sso('sz',0)
+
+    return h
+
+
+
+init_state = spin_lat.vacuum_state #vacuum state = all up
+for i in np.arange(0,n_sites): #flip every second spin down
+    init_state = np.dot( spin_lat.sso('sx',i), init_state.copy() )
     
-    if t>2:
-        H = -np.cos(omega*t)*t_hop*hop +U*coul
-        
-    if t<2:
-        H = U*coul
-   
-    return H
+init_state =1/2* np.array([[1,0], [0,1]], dtype = 'complex')
+
+#init_state = np.array(init_state/LA.norm(init_state), dtype = 'complex')
+print(init_state)
 
 
-# alternate spin up down state: first site: up, second site: down, third site: up and so on... 
-def vac_ket(n_sites):
-            
-    vac_ket = np.zeros((dim_H, 1), dtype = 'complex')
-    for i in range(0,dim_H+1):
-        if i == 0:
-            vac_ket[i,0] = 1
-    
-    return vac_ket
 
-updown_ket = vac_ket(n_sites)
-
-for i in np.arange(2,n_sites+1,2):
-    
-    updown_ket = np.dot(spin_lat.sso('adag',i-1, 'up'), updown_ket)
-    updown_ket = np.dot(spin_lat.sso('adag',i, 'down'), updown_ket)
-
-
-# Lindblad operators
-def L(k, N, t):
-    n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))*np.sin(t)
-    n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
-    
-    L = alpha*(n_up + n_down) 
+def L(t):  
+    L = [0*spin_lat.sso('sz', 0), np.sqrt(3-0.5*np.sin(t))* spin_lat.sso('sm', 0) ,np.sqrt(2+ 0.5*np.sin(t))* spin_lat.sso('sp',0)]
     return L
 
-L_list_time = []
-for time in t:
-    L_list = []
-    for k in range(0, n_sites):
-        L_list.append(L(k+1, n_sites, time))
-    L_list_time.append(L_list)
-print(np.shape(L_list_time))
+def alpha(t):
+    alpha = [0, 3-0.5*np.sin(t), 2+ 0.5*np.sin(t)]
+    return(alpha)
+
+# lindblad equation and solve
+exp_sz , t11  = solver.SolveLindbladEquation(dim_H, H, L, dt, T).solve(spin_lat.sso('sz',0), init_state)
 
 
-# observable: number of up spins on first site
-n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
-
-# right side of lindblad equation
-#equation = solver.LindbladEquation(dim_H, H, L_list_left)
-
-# solve lindblad equation
-exp_n , t11  = solver.SolveLindbladEquation(dim_H, H, L, dt, T).solve(n_up_1, updown_ket)
+f,ax=plt.subplots(1)
+#x=linspace(0,3*pi,1001)
+#y=sin(x)
+ax.plot(t/np.pi, exp_sz)
+ax.xaxis.set_major_formatter(FormatStrFormatter('%g $\pi$'))
+ax.xaxis.set_major_locator(plt.MultipleLocator(base=1.0))
 
 
-#equation = solve.LindbladEquation(dim_H, H, L_list_left)
-# solve lindblad eqaution and compute observable
-#exp_n , t11  = solver.SolveLindbladEquation(dim_H, H, L_list, dt, T).solve(n_up_1, updown_ket)
-
-
-plt.plot(t11, exp_n, label='$< \hat n_{up, 1}> $')
-plt.title('Open Fermi-Hubbard Model with time dependant Hamiltonian')
-plt.xlabel('t')
-plt.ylabel('$< \hat n >$')
-plt.legend()
-plt.show()
 
