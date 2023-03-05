@@ -4,7 +4,7 @@ First make this independently, in order to see what methods and attributes it ne
 Later make it inherit from an ABC class 'Lattice'. """
 import numpy as np
 
-class SpinfulFermionsLattice():
+class SpinlessFermionsLattice():
     """Vacuum = |1 0 ... 0 > = zero particles present."""
     
     def __init__(self, n_sites: int):
