@@ -119,7 +119,7 @@ class MPSQuantumJumps():
         obsdict  : dict
             instance of the class  'evos.src.observables.observables.Observables()'
         compute_H  :  function
-            function that computes Hamiltonian as a ptn.mp.MPO for every timestep
+            function that computes Hamiltonian as a ptn.mp.MPO at each timestep
         compute_lindbl_op_list  : function
             function that computes a list with the Lindblad operators at each timestep  
         """
@@ -156,13 +156,15 @@ class MPSQuantumJumps():
         #main loop: time-evolution
         for i in range( n_timesteps ):
             r1 = r1_array[i]
+            # print('r1 at timestep {} = {}'.format(i,r1))
             #compute H_eff and lindbl_op_list for timestep i
-            self.lindbl_op_list = compute_lindbl_op_list(i)
+            lindbl_op_list = compute_lindbl_op_list(i)
+            self.lindbl_op_list = lindbl_op_list
             H = compute_H(i)
             #compute effective Hamiltonian
             H_eff = H.copy() #compute effective Hamiltonian H_eff = H - i/2 \sum_m L^\dagger _m * L_m 
-            for i in range( len(lindbl_op_list) ):
-                H_eff += - 0.5j * lindbl_op_list[i] * ptn.mp.dot( lat.get("I"), lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
+            for i in range( len(self.lindbl_op_list) ):
+                H_eff += - 0.5j * self.lindbl_op_list[i] * ptn.mp.dot( self.lat.get("I"), self.lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
                 H_eff.truncate()
             self.H_eff = H_eff    
 
@@ -193,4 +195,5 @@ class MPSQuantumJumps():
                 
             #compute observables
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
+            
         os.chdir('..') #exit the trajectory directory
