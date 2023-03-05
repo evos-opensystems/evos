@@ -37,8 +37,11 @@ which_timestep = 0  #FIXME : UPDATE THIS IN TEVO LOOP !!!
 #system Hamiltonian parameters
 A = 1
 om = 0.25
-
+# spectral density parameters
+G = 1 
+W = 8 
 ####################################################################################################################
+#Fit
 
 def lorentzian(k,g,eps, om_vector):
     return k**2 * g / ( ( om_vector - eps )**2 + (g/2)**2 )
@@ -48,11 +51,6 @@ def const_spec_funct(G,W,eps):
         return G
     else:
         return 0
-
-#Fit
-#parameters
-G = 1 #NOTE: input
-W = 8 #NOTE: input
 
 #LEFT LEAD
 eps_step_l = 2 * W / ( n_lead_left + 1 )
@@ -67,7 +65,6 @@ for i in range( len(eps_vector_l) ):
 eps_delta_vector_l = eps_delta_vector_l[1:]
 eps_vector_l = eps_vector_l[1:]
 k_vector_l = k_vector_l[1:]
-
     
 #RIGHT LEAD
 eps_step_r = 2 * W / ( n_lead_right + 1 )
@@ -109,7 +106,6 @@ def fermi_dist(beta, e, mu):
 spin_lat = spinless_fermions_lattice.SpinlessFermionsLattice(n_tot)
 
 #LEADS HAMILTONIAN
-
 def H_leads_left( eps_vector_l, k_vector_l, mu_L ):
     # onsite energy of left leads
     # print(eps_vector_l)
@@ -149,7 +145,7 @@ def H_leads_right( eps_vector_r, k_vector_r, mu_R ):
     h_left_lead = h_onsite_r + h_sys_lead    
     return h_left_lead
 
-
+#LEINDBLAD OPERATORS LISTS FOR LEADS
 def lindblad_op_list_left_lead( eps_delta_vector_l, eps_vector_l, mu_L, T_L ):
     l_list_left = []
     for site in range(n_lead_left):
@@ -183,3 +179,8 @@ l_list_right = lindblad_op_list_right_lead( eps_delta_vector_r, eps_vector_r, mu
 
 # H_sistem_t = H_sistem_t(A, om, dt, t_max, which_timestep) #FIXME: build it at every timestep!
 ######
+
+#INITAL STATE: vacuum for leads and 1/sqrt(2) (|0> + |1>) for the system (single dot)
+init_state = spin_lat.vacuum_state #vacuum state = all up
+
+##SOLVE LINDBLAD EQUATION
