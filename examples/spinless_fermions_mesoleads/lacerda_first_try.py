@@ -6,7 +6,7 @@ import numpy as np
 from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from scipy.linalg import expm
-from numpy import linalg as LA
+from numpy import linalg as la
 import sys
 import math
 import os
@@ -32,6 +32,7 @@ mu_R = -1
 #time-evolution parameters
 dt = 0.1
 t_max = 10
+n_timesteps = int(t_max/dt)
 which_timestep = 0  #FIXME : UPDATE THIS IN TEVO LOOP !!!
 
 #system Hamiltonian parameters
@@ -128,17 +129,17 @@ def H_leads_left( eps_vector_l, k_vector_l, mu_L ):
 
 def H_leads_right( eps_vector_r, k_vector_r, mu_R ):
     # onsite energy of left leads
-    print(eps_vector_r)
+    # print(eps_vector_r)
     h_onsite_r = np.zeros( (dim_tot, dim_tot), dtype = 'complex' )
     for site in range( n_lead_left + n_system , n_tot ): 
-        print( 'on site ', site)
+        # print( 'on site ', site)
         h_onsite_r += ( eps_vector_r[ site - n_lead_left - n_system ] - mu_R ) * ( ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', site ) )
     
     # system-lead coupling
     #every lead site is coupled to the rightmost system site
     h_sys_lead = np.zeros( (dim_tot, dim_tot), dtype = 'complex' )
     for site in range( n_lead_left + n_system , n_tot ):
-        print( 'coupling {} and {}'.format( site, n_system + n_lead_left -1 ) )
+        # print( 'coupling {} and {}'.format( site, n_system + n_lead_left -1 ) )
         h_sys_lead += k_vector_r[ site - n_lead_left - n_system ] *  ( ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', n_system + n_lead_left -1 ) + ferm_lat.sso('ch',n_system + n_lead_left -1 ) @ ferm_lat.sso('c', site ) )
     
         
@@ -174,13 +175,35 @@ H_leads_left =  H_leads_left(eps_vector_l, k_vector_l, mu_L)
 H_leads_right = H_leads_right(eps_vector_r, k_vector_r, mu_R)
 l_list_left = lindblad_op_list_left_lead( eps_delta_vector_l, eps_vector_l, mu_L, T_L )
 l_list_right = lindblad_op_list_right_lead( eps_delta_vector_r, eps_vector_r, mu_R, T_R )
-
+l_list_tot = l_list_left.copy() #FIXME: find a better way to do this!
+for i in range( len( l_list_right) ):
+    l_list_tot.append( l_list_right[i] )
 
 
 # H_sistem_t = H_sistem_t(A, om, dt, t_max, which_timestep) #FIXME: build it at every timestep!
 ######
 
 #INITAL STATE: vacuum for leads and 1/sqrt(2) (|0> + |1>) for the system (single dot)
-init_state = ferm_lat.vacuum_state #vacuum state = all up
+vac = ferm_lat.vacuum_state #vacuum state = all up
+sys_up_state = ferm_lat.sso('ch',n_lead_left) @ vac.copy() 
+init_state = (vac + sys_up_state)
+init_state /= la.norm(init_state)
 
-##SOLVE LINDBLAD EQUATION
+
+#SOLVE LINDBLAD EQUATION
+lindblad = lindblad.Lindblad(n_tot)
+rho_0 = lindblad.ket_to_projector(init_state)  
+rho_t = rho_0.copy()
+which_timestep = 0 
+
+for timestep in range(n_timesteps): 
+    
+    H_tot = H_leads_left + H_leads_right + H_sistem_t(A, om, dt, t_max, which_timestep) #update hamiltonian
+    rho_t = lindblad.solve_lindblad_equation(rho_t, dt, dt, l_list_tot, H_tot ) #NOTE: H is updated while l_list_tot is fixed
+    
+    # #compute observables
+    # names_and_operators_list = {} 
+    # names_and_operators_list.update({'nf_sys' : ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left)  } )
+    # obs_test_dict =  lindblad.compute_observables(rho_t, names_and_operators_list, dt, t_max)
+    
+    which_timestep += 1
