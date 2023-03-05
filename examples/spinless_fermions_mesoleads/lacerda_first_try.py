@@ -58,6 +58,12 @@ eps_delta_vector_l = eps_step_l * np.ones( len(eps_vector_l) )
 k_vector_l = np.zeros( len(eps_vector_l) )
 for i in range( len(eps_vector_l) ):
     k_vector_l[i] = np.sqrt( const_spec_funct( G ,W, eps_vector_l[i] ) * eps_delta_vector_l[i]/ (2*math.pi) )  
+  
+
+eps_delta_vector_l = eps_delta_vector_l[1,:]
+eps_vector_l = eps_vector_l[1,:]
+k_vector_l = k_vector_l[1,:]
+
     
 #RIGHT LEAD
 eps_step_r = W / n_lead_right
@@ -70,19 +76,19 @@ for i in range( len(eps_vector_r ) ):
     k_vector_r[i] = np.sqrt( const_spec_funct( G ,W, eps_vector_r[i] ) * eps_delta_vector_r[i]/ (2*math.pi) )  
   
 
-
 #PLOT FITTED LEFT SPECTRAL FUNCTION 
+#NOTE: first entry of k_vector_l,eps_delta_vector_l,eps_vector_l is left out !
 N_points_om = 100 #NOTE: input
 om_vector = np.linspace(-W,W,N_points_om)
 
 fitted_spectral_function = np.zeros(N_points_om)
-for i in range( 1, len(eps_vector_l)):
+for i in range(len(eps_vector_l)):
     print(i)
     fitted_spectral_function += lorentzian(k_vector_l[i],eps_delta_vector_l[i],eps_vector_l[i], om_vector)
 
 
 plt.plot(om_vector, G * np.ones(N_points_om), label = 'exact')
-plt.plot(om_vector,fitted_spectral_function, label = 'discretized with '+str( len( eps_vector_l ) - 1 ) + ' sites')
+plt.plot(om_vector,fitted_spectral_function, label = 'discretized with '+str( len( eps_vector_l )) + ' sites')
 plt.legend()
 plt.show()
 ########################################################################################################################
