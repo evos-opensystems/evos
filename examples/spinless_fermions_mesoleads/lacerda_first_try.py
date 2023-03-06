@@ -26,7 +26,7 @@ dim_tot = 2 ** n_tot
 T_L = 1
 T_R = 1
 mu_L = 1
-mu_R = -1
+mu_R = -1 
 
 #time-evolution parameters
 dt = 0.1
@@ -155,9 +155,9 @@ def lindblad_op_list_left_lead( eps_delta_vector_l, eps_vector_l, mu_L, T_L ):
 
 def lindblad_op_list_right_lead( eps_delta_vector_r, eps_vector_r, mu_R, T_R ):
     l_list_right = []
-    for site in range(n_lead_left):
-        l_list_right.append( np.sqrt( eps_delta_vector_r[site] * np.exp( 1./T_R * ( eps_vector_r[site] - mu_R ) ) * fermi_dist( 1./T_R, eps_vector_r[site], mu_R ) ) * ferm_lat.sso( 'c',site ) )
-        l_list_right.append( np.sqrt( eps_delta_vector_r[site]* fermi_dist( 1./T_R, eps_vector_r[site], mu_R) ) * ferm_lat.sso('ch',site) )
+    for site in range( n_lead_left + n_system , n_tot ):
+        l_list_right.append( np.sqrt( eps_delta_vector_r[site - n_lead_left - n_system] * np.exp( 1./T_R * ( eps_vector_r[site - n_lead_left - n_system] - mu_R ) ) * fermi_dist( 1./T_R, eps_vector_r[site - n_lead_left - n_system], mu_R ) ) * ferm_lat.sso( 'c',site ) )
+        l_list_right.append( np.sqrt( eps_delta_vector_r[site - n_lead_left - n_system]* fermi_dist( 1./T_R, eps_vector_r[site - n_lead_left - n_system], mu_R) ) * ferm_lat.sso('ch',site) )
     return l_list_right     
 
 
@@ -199,15 +199,15 @@ init_state /= la.norm(init_state)
 lindblad = lindblad.SolveLindbladEquation(dim_tot, H_tot_t, l_list_tot, dt, t_max)
 # nf_sys, time_v = lindblad.solve( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left), init_state ) #UPDATE [L], H at each timestep
 #FIXME:works only for n_leads_left = 2!
-nf_0, time_v = lindblad.solve( ferm_lat.sso('ch',0) @ ferm_lat.sso('c',0), init_state ) #UPDATE [L], H at each timestep
+# nf_0, time_v = lindblad.solve( ferm_lat.sso('ch',0) @ ferm_lat.sso('c',0), init_state ) #UPDATE [L], H at each timestep
 # nf_1, time_v = lindblad.solve( ferm_lat.sso('ch',1) @ ferm_lat.sso('c',1), init_state ) #UPDATE [L], H at each timestep
-# nf_2, time_v = lindblad.solve( ferm_lat.sso('ch',2) @ ferm_lat.sso('c',2), init_state ) #UPDATE [L], H at each timestep
-nf_3, time_v = lindblad.solve( ferm_lat.sso('ch',3) @ ferm_lat.sso('c',3), init_state ) #UPDATE [L], H at each timestep
-nf_4, time_v = lindblad.solve( ferm_lat.sso('ch',4) @ ferm_lat.sso('c',4), init_state ) #UPDATE [L], H at each timestep
+nf_2, time_v = lindblad.solve( ferm_lat.sso('ch',2) @ ferm_lat.sso('c',2), init_state ) #UPDATE [L], H at each timestep
+# nf_3, time_v = lindblad.solve( ferm_lat.sso('ch',3) @ ferm_lat.sso('c',3), init_state ) #UPDATE [L], H at each timestep
+# nf_4, time_v = lindblad.solve( ferm_lat.sso('ch',4) @ ferm_lat.sso('c',4), init_state ) #UPDATE [L], H at each timestep
 
 # curr_L , time_v = lindblad.solve( 0.5j*( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left-1) - ferm_lat.sso('ch',n_lead_left-1) @ ferm_lat.sso('c',n_lead_left) ), init_state ) #UPDATE [L], H at each timestep
 
-# N_L = np.array(nf_0[1:]) + np.array(nf_1[1:]) + np.array(nf_2[1:] ) 
+# N_L = np.array(nf_0[1:]) + np.array(nf_1[1:])  
 # N_L_der = np.zeros(len(N_L))
 # for i in range(1,len(N_L)):
 #     N_L_der[i] = (N_L[i] - N_L[i-1])/dt
@@ -219,8 +219,12 @@ nf_4, time_v = lindblad.solve( ferm_lat.sso('ch',4) @ ferm_lat.sso('c',4), init_
 #PLOT
 # plt.plot( time_v[2:], N_L_der[1:] )
 # plt.plot( time_v[1:], curr_L[1:] )
-plt.plot( time_v[1:], nf_0[1:] )
-plt.plot( time_v[1:], nf_3[1:] )
-plt.plot( time_v[1:], nf_4[1:] )
+# plt.plot( time_v[1:], nf_0[1:], label='0' )
+# plt.plot( time_v[1:], nf_1[1:], label='1' )
+# plt.plot( time_v[1:], nf_3[1:] , label='3')
+# plt.plot( time_v[1:], nf_4[1:] , label='4')
 
+plt.plot( time_v[1:], nf_2[1:], label='2' )
+
+plt.legend()
 plt.show()
