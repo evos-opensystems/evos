@@ -106,7 +106,7 @@ n_up_1 = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
 #equation = solver.LindbladEquation(dim_H, H, L_list_left)
 
 # solve lindblad equation
-exp_n , t11  = solver.SolveLindbladEquation(dim_H, H, L, dt, T).solve(n_up_1, updown_ket)
+exp_n , t11  = solver.SolveLindbladEquation(dim_H, H , L, dt, T).solve(n_up_1, updown_ket)
 
 
 #equation = solve.LindbladEquation(dim_H, H, L_list_left)
