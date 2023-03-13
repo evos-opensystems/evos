@@ -11,7 +11,7 @@ import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
 import evos.src.methods.ed_quantum_jumps as ed_quantum_jumps
 import evos.src.observables.observables as observables
 import numpy as np
-import matplotlib.pyplot as plt
+#import matplotlib.pyplot as plt
 import time
 import os
 import shutil
@@ -21,14 +21,14 @@ from numpy import linalg as LA
 
 
 time_start = time.process_time()
-plt.rcParams['mathtext.fontset'] = 'stix'
-plt.rcParams['font.family'] = 'STIXGeneral'
-plt.rcParams.update({'font.size': 11})
+#plt.rcParams['mathtext.fontset'] = 'stix'
+#plt.rcParams['font.family'] = 'STIXGeneral'
+#plt.rcParams.update({'font.size': 11})
 
 
 #DO BENCHMARK OF TEVO AND OBSERVABLES!
 #parameters
-J = 1/2
+J = 1
 t = 1
 V = 1
 eps = 1
@@ -102,16 +102,16 @@ W = 10
 seed_W = 1
 rng = np.random.default_rng(seed=seed_W) # random numbers
 #eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
-dt = 0.01
+dt = 0.001
 t_max = 10
 n_timesteps = int(t_max/dt)
-n_trajectories = 1000
+n_trajectories = 1
 trajectory = 0 
 
 #os.chdir('benchmark')
 try:
-    os.system('mkdir data_qj')
-    os.chdir('data_qj')
+    os.system('mkdir data_qj_seed1')
+    os.chdir('data_qj_seed1')
 except:
     pass
 
@@ -345,13 +345,6 @@ write_directory = os.getcwd()
 obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
 
-print('process time: ', time.process_time() - time_start )
-
-#PLOT
-sz_0 = np.loadtxt('sz_0_av')
-time_v = np.linspace(0, t_max, n_timesteps + 1  )
-plt.plot(time_v,sz_0, label= 'sz_0_av')
-plt.legend()
-plt.show()
+#print('process time: ', time.process_time() - time_start )
 
 

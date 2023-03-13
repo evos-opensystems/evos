@@ -1,0 +1,4 @@
+Traceback (most recent call last):
+  File "/scratch/r/Reka.Schwengelbeck/evos/examples/open_extended_hubbard_model_mesoscopic_leads/ext_fermi_hubb_quantumjumps.py", line 24, in <module>
+    plt.rcParams['mathtext.fontset'] = 'stix'
+NameError: name 'plt' is not defined
