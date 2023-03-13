@@ -91,7 +91,7 @@ eps_delta_vector_r = eps_step_r * np.ones( len(eps_vector_r) )
 k_vector_r = np.zeros( len(eps_vector_r) )
 for i in range( len(eps_vector_r) ):
     k_vector_r[i] = np.sqrt( const_spec_funct( G , W, eps_vector_r[i] ) * eps_delta_vector_r[i]/ (2*math.pi) ) 
-    
+print(k_vector_l)
 ########################################################################################################################
 
 # paramters (time, ...) for solving differential equation
@@ -170,6 +170,7 @@ def H_leads_left(eps, k_vec, mu_L):
     else: 
         for k in range(n_lead_left, n_lead_left+1): 
             print('left sys lead hopping on sites:', k, k+1)
+            print('kvec = ', k_vec[k-1])
             hop_sys_lead += k_vec[k-1]* (np.dot(spin_lat.sso('a',k, 'up'), spin_lat.sso('adag',k+1, 'up')) + np.dot(spin_lat.sso('a',k+1, 'up'), spin_lat.sso('adag',k, 'up')) + np.dot(spin_lat.sso('a',k, 'down'), spin_lat.sso('adag',k+1, 'down')) + np.dot(spin_lat.sso('a',k+1, 'down'), spin_lat.sso('adag',k, 'down')))
      
         
@@ -204,7 +205,6 @@ def H_leads_right(eps,k_vec, mu_R):
 H = H_sys(t_hop,U, V) + H_leads_left(eps_vector_l, k_vector_l, mu_L) + H_leads_right(eps_vector_r, k_vector_r, mu_R)
 
 #print(H)
-
 
 
 ###################################################################################################################################
