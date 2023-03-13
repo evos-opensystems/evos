@@ -345,16 +345,5 @@ write_directory = os.getcwd()
 obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
 
-<<<<<<< HEAD
 #print('process time: ', time.process_time() - time_start )
-=======
-print('process time: ', time.process_time() - time_start )
-
-#PLOT
-n_av_qj_ed = np.loadtxt('n_av_qj_ed_av')
-time_v = np.linspace(0, t_max, n_timesteps + 1  )
-plt.plot(time_v, n_av_qj_ed, label= 'n_av_qj_ed', color = '#c7e9b4')
-plt.legend()
-plt.show()
->>>>>>> 499a689d1b96233f42a2cddfa71b58159f244f0e
 
