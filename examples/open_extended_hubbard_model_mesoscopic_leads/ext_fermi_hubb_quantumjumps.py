@@ -243,6 +243,7 @@ def vac():
 
 
 tot_init_state_ket = vac()
+'''
 for i in range(1, n_tot+1): 
     if i <= n_lead_left: 
         tot_init_state_ket = np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) # + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
@@ -252,8 +253,9 @@ for i in range(1, n_tot+1):
     
     if i > n_tot - n_lead_right:
         tot_init_state_ket = np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) #+ np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
-
-        
+'''
+tot_init_state_ket = np.dot(spin_lat.sso('adag',1, 'up'), tot_init_state_ket)
+tot_init_state_ket = np.dot(spin_lat.sso('adag',4, 'up'), tot_init_state_ket)        
 
 
 
@@ -345,16 +347,5 @@ write_directory = os.getcwd()
 obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
 
-<<<<<<< HEAD
 #print('process time: ', time.process_time() - time_start )
-=======
-print('process time: ', time.process_time() - time_start )
-
-#PLOT
-n_av_qj_ed = np.loadtxt('n_av_qj_ed_av')
-time_v = np.linspace(0, t_max, n_timesteps + 1  )
-plt.plot(time_v, n_av_qj_ed, label= 'n_av_qj_ed', color = '#c7e9b4')
-plt.legend()
-plt.show()
->>>>>>> 499a689d1b96233f42a2cddfa71b58159f244f0e
 

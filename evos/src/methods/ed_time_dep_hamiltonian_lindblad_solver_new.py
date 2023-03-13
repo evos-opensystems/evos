@@ -77,11 +77,12 @@ class SolveLindbladEquation():
         self.dim_H = dim_H
         self.dt = dt
         self.T = T
-        tsteps = int(self.T/self.dt)
-        t = np.linspace(0,self.T, tsteps)
+        #self.t_0 = t_0
+        tsteps = int(T/self.dt)
+        t = np.linspace(0, T, tsteps)
         self.tsteps = tsteps
         self.t = t
-        n_sites = int((dim_H)**(1/4))
+        #n_sites = int((dim_H)**(1/4))
         
        
         self.H_timelist = H_timelist
@@ -143,7 +144,7 @@ class SolveLindbladEquation():
                 sol = solve_ivp(dyn_drho_dt.drho_dt, (t_before,t_before+self.dt), rho_vec, t_eval = [t_before+self.dt])
             
                 # solution into matrix
-                rho_sol = np.zeros((self.dim_H,self.dim_H),dtype='complex')
+                rho_sol = np.zeros((self.dim_H,self.dim_H), dtype='complex')
                 count=0
                 for n in range(self.dim_H):
                     for  m in range(0,self.dim_H):
@@ -154,8 +155,6 @@ class SolveLindbladEquation():
                     for  m in range(0,self.dim_H):
                         rho_sol[n,m] = np.conjugate(rho_sol[m,n])
                         
-                #assign new initial state for next time step
-                rho_vec = sol.y[:,0]
                 
                 # expectation value of observable
                 exp = observable.dot(rho_sol[:,:]).trace()

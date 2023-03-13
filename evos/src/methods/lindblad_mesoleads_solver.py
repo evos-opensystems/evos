@@ -106,25 +106,25 @@ class MesoscopicLeads():
         # LEAD SITES - kinetic energy of left leads
         kin_leads = np.zeros((self.dim_tot, self.dim_tot))
         if self.n_lead_left == 0: 
-            print('Ekin_lead left terms on sites:', 0)
+            #print('Ekin_lead left terms on sites:', 0)
             for k in range(0, self.dim_tot):
                 kin_leads = np.zeros((self.dim_tot, self.dim_tot))
         else: 
             for k in range(1, self.n_lead_left+1): 
-                print('Ekin_lead left terms on sites:', k)
+                #print('Ekin_lead left terms on sites:', k)
                 kin_leads += (self.eps_vec_l[k-1] - self.mu_L) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
          
    
         # HOPPING BETWEEN LEADS AND SYSTEM LEFT SIDE
         hop_sys_lead = np.zeros((self.dim_tot, self.dim_tot))
         if self.n_lead_left == 0: 
-            print('left sys lead hopping on sites:', 0)
+            #print('left sys lead hopping on sites:', 0)
             for k in range(0, self.dim_tot): 
                 hop_sys_lead = np.zeros((self.dim_tot, self.dim_tot))
         else: 
             for k in range(self.n_lead_left, self.n_lead_left+1): 
-                print('left sys lead hopping on sites:', k, k+1)
-                print(self.k_vec_L[k-1])
+                #print('left sys lead hopping on sites:', k, k+1)
+                #print(self.k_vec_L[k-1])
                 hop_sys_lead += self.k_vec_L[k-1]* (np.dot(spin_lat.sso('a',k, 'up'), spin_lat.sso('adag',k+1, 'up')) + np.dot(spin_lat.sso('a',k+1, 'up'), spin_lat.sso('adag',k, 'up')) + np.dot(spin_lat.sso('a',k, 'down'), spin_lat.sso('adag',k+1, 'down')) + np.dot(spin_lat.sso('a',k+1, 'down'), spin_lat.sso('adag',k, 'down')))
         H =  hop_sys_lead + kin_leads 
         return H
@@ -136,24 +136,24 @@ class MesoscopicLeads():
         # LEAD SITES - kinetic energy of left leads
         kin_leads = np.zeros((self.dim_tot, self.dim_tot))
         if self.n_lead_right == 0: 
-            print('Ekin_lead right terms on sites:', 0)
+            #print('Ekin_lead right terms on sites:', 0)
             for k in range(0, self.dim_tot): 
                 kin_leads = np.zeros((self.dim_tot, self.dim_tot))
         else:       
             for k in range(self.n_tot - self.n_lead_right + 1, self.n_tot+1):    
-                print('Ekin_lead right terms on sites:', k)
+                #print('Ekin_lead right terms on sites:', k)
                 kin_leads += (self.eps_vec_r[k - (self.n_tot - self.n_lead_right +1)] -self.mu_R) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
          
         # HOPPING BETWEEN LEADS AND SYSTEM RIGHT SIDE
         hop_sys_lead = np.zeros((self.dim_tot, self.dim_tot))
         if self.n_lead_right == 0: 
-            print('right sys lead hopping on sites:', 0)
+            #print('right sys lead hopping on sites:', 0)
             for k in range(0, self.dim_tot):
                 hop_sys_lead = np.zeros((self.dim_tot, self.dim_tot))
         else: 
             for k in range(self.n_tot - self.n_lead_right , self.n_tot): 
-                print('right sys lead hopping on sites:', k, k+1)
-                print(self.k_vec_R[k - (self.n_tot - self.n_lead_right)])
+                #print('right sys lead hopping on sites:', k, k+1)
+                #print(self.k_vec_R[k - (self.n_tot - self.n_lead_right)])
                 hop_sys_lead += self.k_vec_R[k - (self.n_tot - self.n_lead_right) ]* (np.dot(spin_lat.sso('a',k, 'up'), spin_lat.sso('adag',k+1, 'up')) + np.dot(spin_lat.sso('a',k+1, 'up'), spin_lat.sso('adag',k, 'up')) + np.dot(spin_lat.sso('a',k, 'down'), spin_lat.sso('adag',k+1, 'down')) + np.dot(spin_lat.sso('a',k+1, 'down'), spin_lat.sso('adag',k, 'down')))
         H =  hop_sys_lead + kin_leads    
         return H
@@ -170,10 +170,10 @@ class MesoscopicLeads():
         L_list = []
         spin_lat = spinful_fermions_lattice.SpinfulFermionsLattice(self.n_tot)
         for k in range(1, self.n_lead_left+1):
-            print('k_left = ', k)
-            print('epsdeltaL', self.eps_delta_vector_l[k-1])
-            print('eps L', self.eps_vec_l[k-1])
-            print('exponential left = ', np.exp( 1/self.T_L * (self.eps_vec_l[k-1] - self.mu_L) ))
+            #print('k_left = ', k)
+            #print('epsdeltaL', self.eps_delta_vector_l[k-1])
+            #print('eps L', self.eps_vec_l[k-1])
+            #print('exponential left = ', np.exp( 1/self.T_L * (self.eps_vec_l[k-1] - self.mu_L) ))
             L_list.append( np.sqrt( self.eps_delta_vector_l[k-1]* np.exp( 1/self.T_L * (self.eps_vec_l[k-1] - self.mu_L) ) * fermi_dist(1/self.T_L, self.eps_vec_l[k-1], self.mu_L))* spin_lat.sso('a',k, 'up'))
             #print(spin_lat.sso('a', k, 'up'))
             L_list.append( np.sqrt( self.eps_delta_vector_l[k-1]* np.exp( 1/self.T_L * (self.eps_vec_l[k-1] - self.mu_L) ) * fermi_dist(1/self.T_L, self.eps_vec_l[k-1], self.mu_L)) * spin_lat.sso('a',k, 'down'))
@@ -185,10 +185,10 @@ class MesoscopicLeads():
           
             
         for k in range(self.n_tot- self.n_lead_right +1, self.n_tot+1):
-            print('k_right = ', k)
-            print('epsdeltaR', self.eps_delta_vector_r[k-(self.n_tot- self.n_lead_right +1)])
-            print('eps R', self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)])
-            print('exponential right = ', np.exp( 1/self.T_R * (self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)] - self.mu_R) ))
+            #print('k_right = ', k)
+            #print('epsdeltaR', self.eps_delta_vector_r[k-(self.n_tot- self.n_lead_right +1)])
+            #print('eps R', self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)])
+            #print('exponential right = ', np.exp( 1/self.T_R * (self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)] - self.mu_R) ))
             L_list.append( np.sqrt( self.eps_delta_vector_r[k-(self.n_tot- self.n_lead_right +1)]* np.exp( 1/self.T_R * (self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)] - self.mu_R) ) * fermi_dist(1/self.T_R, self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)], self.mu_R))* spin_lat.sso('a',k, 'up'))
             L_list.append( np.sqrt( self.eps_delta_vector_r[k-(self.n_tot- self.n_lead_right +1)]* np.exp( 1/self.T_R * (self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)] - self.mu_R) ) * fermi_dist(1/self.T_R, self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)], self.mu_R))* spin_lat.sso('a',k, 'down'))
             
@@ -196,8 +196,7 @@ class MesoscopicLeads():
             L_list.append( np.sqrt( self.eps_delta_vector_r[k-(self.n_tot- self.n_lead_right +1)]* fermi_dist(1/self.T_R, self.eps_vec_r[k-(self.n_tot- self.n_lead_right +1)], self.mu_R)) * spin_lat.sso('adag',k, 'down'))
             
         return L_list
-    
-    
+ 
 class SolveLindblad():
     
     def __init__(self, n_tot:int):
@@ -205,27 +204,35 @@ class SolveLindblad():
         dim_tot = 4**n_tot 
         self.dim_tot = dim_tot
         
-    def solve(self, init_state_ket:float, lindblad_equation:float, dt:float, T:float):
+    def solve(self, init_state_density_matrix:float, lindblad_equation:float, dt, t_0, T, tsteps):
         
-        tsteps = int(T/dt)
-        t = np.linspace(0,T, tsteps)
+        #tsteps = int(T/dt)
+        t = np.linspace(t_0 , T, tsteps)
+        #print('T  =', T )
+        #print('time = ', t_0)
+        #print('tsteps', tsteps)
+        
+        #print('t = ', t)
         
         # make list out of matrix
-        rho_bra = np.conjugate(init_state_ket) 
-        rho_matrix = np.outer(init_state_ket, rho_bra)     
+        # rho_bra = np.conjugate(init_state_ket) 
+        # rho_matrix = np.outer(init_state_ket, rho_bra)  
+        rho_matrix = init_state_density_matrix   
     
         rho_vec = []
         for i in range(0, self.dim_tot):
             for  j in range(0 , self.dim_tot):
                 rho_vec.append(rho_matrix[i,j])        
         rho_vec = np.array(rho_vec,dtype='complex')
-        
+        #print(rho_vec)
         #initital state
-        init_state = rho_vec
-        
-        sol = solve_ivp(lindblad_equation, (0,T), rho_vec, t_eval=t)        
+        #init_state = rho_vec
+        print(' t_0 = ', t_0)
+        print(' T = ', T)
+        print('t = ', t)
+        sol = solve_ivp(lindblad_equation, (t_0,T), rho_vec, t_eval=[T])        
         #print(sol.y)
-        
+        #new_init_state = sol.y[:,0]
         
         #plot some expectation value at each time step
         #time dependant rho:

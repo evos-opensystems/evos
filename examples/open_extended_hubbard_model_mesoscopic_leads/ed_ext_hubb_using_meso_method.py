@@ -152,7 +152,8 @@ for i in range(1, n_tot+1):
         
 tot_init_state_ket_norm = np.array(tot_init_state_ket/LA.norm(tot_init_state_ket), dtype = 'complex')
 
-
+rho_bra = np.conjugate(tot_init_state_ket_norm) 
+rho_init = np.outer(tot_init_state_ket_norm, rho_bra)  
 
 
 mes_leads = ed_mesoscopic_equation.MesoscopicLeads(n_tot, n_lead_left, n_lead_right, T_L, T_R, mu_L, mu_R, T, dt, eps_vector_l, eps_delta_vector_l, eps_vector_r, eps_delta_vector_r, k_vector_l, k_vector_r)
@@ -164,7 +165,7 @@ L_list = mes_leads.lindbladlistmesoscopic()
 
 lindblad_equation = ed_mesoscopic_equation.LindbladEquation(n_tot, H, L_list).drho_dt
 
-rho_sol = ed_mesoscopic_equation.SolveLindblad(n_tot).solve(tot_init_state_ket_norm, lindblad_equation, dt, T)
+rho_sol = ed_mesoscopic_equation.SolveLindblad(n_tot).solve(rho_init, lindblad_equation, dt, T)
 
 
 #trace preserved
@@ -327,7 +328,7 @@ for i in range(len(t)):
 #plt.plot(t, exp_j, label='$< \hat j > $ imag' )
 #plt.plot(t, exp_j1, label='$< \hat j > $ real')
 #plt.plot(t, opt_cond, label = '$\sigma$')
-
+'''
 os.chdir('mesolead_exthubb_tests')
 
 np.savetxt('exp_n_up_lead_left', exp_n_up_lead_left)
@@ -347,10 +348,11 @@ plt.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 
 plt.show()
 
-
+'''
 ##################################################################################################################################
 # FIT OPTICAL CONDUCTIVITY  
-
+'''
 np.savetxt('spin_current', exp_s)
 
 np.savetxt('time', t)
+'''
