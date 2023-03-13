@@ -110,8 +110,8 @@ trajectory = 0
 
 #os.chdir('benchmark')
 try:
-    os.system('mkdir data_qj_seed1')
-    os.chdir('data_qj_seed1')
+    os.system('mkdir data_qj_seed1_1')
+    os.chdir('data_qj_seed1_1')
 except:
     pass
 
@@ -243,6 +243,7 @@ def vac():
 
 
 tot_init_state_ket = vac()
+'''
 for i in range(1, n_tot+1): 
     if i <= n_lead_left: 
         tot_init_state_ket = np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) # + np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
@@ -252,6 +253,9 @@ for i in range(1, n_tot+1):
     
     if i > n_tot - n_lead_right:
         tot_init_state_ket = np.dot(spin_lat.sso('adag',i, 'up'), tot_init_state_ket) #+ np.dot(spin_lat.sso('adag',i, 'down'), tot_init_state_ket))
+'''
+tot_init_state_ket = np.dot(spin_lat.sso('adag',1, 'up'), tot_init_state_ket)
+tot_init_state_ket = np.dot(spin_lat.sso('adag',4, 'up'), tot_init_state_ket)        
 
         
 
