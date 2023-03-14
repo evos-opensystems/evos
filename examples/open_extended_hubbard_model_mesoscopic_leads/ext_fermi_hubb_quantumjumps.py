@@ -271,27 +271,56 @@ print(init_state)
 # print('LA.norm(init_state) :', la.norm(init_state))
 
 #observables
-obsdict = observables.ObservablesDict()
-obsdict.initialize_observable('n_av_qj_ed',(1,), n_timesteps) #1D
+#obsdict = observables.ObservablesDict()
+#obsdict.initialize_observable('n_av_qj_ed',(1,), n_timesteps) #1D
 #obsdict.initialize_observable('sz_1',(1,), n_timesteps) #1D
 
-n_av_qj_ed = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
-#print(sz_0)
-#sz_1 = spin_lat.sso( 'sz', 1 )
-###
-# sz_0_init_state = np.dot( np.conjugate(init_state), np.dot(sz_0,init_state ))
-# print(sz_0_init_state)
-###
+#n_av_qj_ed = np.dot(spin_lat.sso('adag',1, 'up'), spin_lat.sso('a',1, 'up'))
 
-def compute_n_av_qj_ed(state, obs_array_shape,dtype):  #EXAMPLE 1D
+
+#def compute_n_av_qj_ed(state, obs_array_shape,dtype):  #EXAMPLE 1D
+    #obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    #obs_array[0] = np.real( np.dot( np.dot( np.conjugate(state.T), n_av_qj_ed ), state )  )  
+    #OBS DEPENDENT PART END
+    #return obs_array
+
+#obsdict.add_observable_computing_function('n_av_qj_ed',compute_n_av_qj_ed )
+#obsdict.add_observable_computing_function('sz_1',compute_sz_1 )
+
+obsdict = observables.ObservablesDict()
+obsdict.initialize_observable('n',(n_tot,), n_timesteps) #2D
+obsdict.initialize_observable('bdim_mat',(n_tot,), n_timesteps)  #2D
+obsdict.initialize_observable('norm',(1,), n_timesteps)  #2D
+
+def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    obs_array[0] = np.real( np.dot( np.dot( np.conjugate(state.T), n_av_qj_ed ), state )  )  
+    for site in range(n_tot):
+        obs_array[site] = np.real( ptn.mp.expectation(state, np.dot(spin_lat.sso('adag',site, 'up'), spin_lat.sso('a',site, 'up')) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
+    
     #OBS DEPENDENT PART END
     return obs_array
 
-obsdict.add_observable_computing_function('n_av_qj_ed',compute_n_av_qj_ed )
-#obsdict.add_observable_computing_function('sz_1',compute_sz_1 )
+def compute_norm(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array = state.norm() #NOTE: state is in general not normalized
+    
+    #OBS DEPENDENT PART END
+    return obs_array
+
+def compute_bdim_mat(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART STAR
+    for site in range(len(obs_array)):
+        obs_array[site] = state[site].getTotalDims()[1] / state.norm() ** 2 #NOTE: state is in general not normalized
+    #OBS DEPENDENT PART END
+    return obs_array
+
+obsdict.add_observable_computing_function('n',compute_n )
+obsdict.add_observable_computing_function('norm',compute_norm )
+obsdict.add_observable_computing_function('bdim_mat',compute_bdim_mat )
 
 
 #Lindbladian: dissipation only on central site
