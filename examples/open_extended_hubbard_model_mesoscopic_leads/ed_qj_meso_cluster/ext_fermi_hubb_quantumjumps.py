@@ -14,6 +14,7 @@ import numpy as np
 #import matplotlib.pyplot as plt
 import time
 import os
+import sys
 import shutil
 import scipy.linalg as la
 import math
@@ -103,23 +104,13 @@ seed_W = 2
 rng = np.random.default_rng(seed=seed_W) # random numbers
 #eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.001
-t_max = 10
+t_max = 1
 n_timesteps = int(t_max/dt)
-n_trajectories = 1
-trajectory = 0 
-
+n_trajectories = 100
+first_trajectory = int(sys.argv[1])
+print('first trajectory = ', first_trajectory)
 #os.chdir('benchmark')
-try:
-    os.system('mkdir data_qj_seed1_6')
-    os.chdir('data_qj_seed1_6')
-except:
-    pass
 
-try:
-    shutil.rmtree('0')
-    shutil.rmtree('1')
-except:
-    pass
 
 #lattice
 time_lat = time.process_time()
@@ -349,17 +340,19 @@ time_lind_evo = time.process_time()
     
 ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(n_tot, H, L_list)
 
+#trajectory = first_trajectory 
+
 #compute qj trajectories sequentially
-for trajectory in range(n_trajectories): 
+for trajectory in range(first_trajectory, first_trajectory + n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
     test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(init_state, t_max, dt, trajectory, obsdict )
 
 #averages and errors
-read_directory = os.getcwd()
-write_directory = os.getcwd()
+#read_directory = os.getcwd()
+#write_directory = os.getcwd()
 
 
-obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
+#obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
 
 #print('process time: ', time.process_time() - time_start )
