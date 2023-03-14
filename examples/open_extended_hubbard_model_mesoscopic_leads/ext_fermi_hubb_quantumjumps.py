@@ -110,8 +110,8 @@ trajectory = 0
 
 #os.chdir('benchmark')
 try:
-    os.system('mkdir data_qj_seed1_1')
-    os.chdir('data_qj_seed1_1')
+    os.system('mkdir data_qj_seed1_3')
+    os.chdir('data_qj_seed1_3')
 except:
     pass
 
@@ -290,42 +290,26 @@ print(init_state)
 
 obsdict = observables.ObservablesDict()
 obsdict.initialize_observable('n',(n_tot,), n_timesteps) #2D
-obsdict.initialize_observable('bdim_mat',(n_tot,), n_timesteps)  #2D
-obsdict.initialize_observable('norm',(1,), n_timesteps)  #2D
 
 def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
     for site in range(n_tot):
-        obs_array[site] = np.real( ptn.mp.expectation(state, np.dot(spin_lat.sso('adag',site, 'up'), spin_lat.sso('a',site, 'up')) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
+        obs_array[site] = np.real( np.dot( np.dot( np.conjugate(state.T), np.dot(spin_lat.sso('adag',site+1, 'up'), spin_lat.sso('a',site+1, 'up'))  ), state )  ) 
+        #obs_array[site] = np.real( ptn.mp.expectation(state, np.dot(spin_lat.sso('adag',site, 'up'), spin_lat.sso('a',site, 'up')) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
     
     #OBS DEPENDENT PART END
     return obs_array
 
-def compute_norm(state, obs_array_shape,dtype):  
-    obs_array = np.zeros( obs_array_shape, dtype=dtype)
-    #OBS DEPENDENT PART START
-    obs_array = state.norm() #NOTE: state is in general not normalized
-    
-    #OBS DEPENDENT PART END
-    return obs_array
 
-def compute_bdim_mat(state, obs_array_shape,dtype):  
-    obs_array = np.zeros( obs_array_shape, dtype=dtype)
-    #OBS DEPENDENT PART STAR
-    for site in range(len(obs_array)):
-        obs_array[site] = state[site].getTotalDims()[1] / state.norm() ** 2 #NOTE: state is in general not normalized
-    #OBS DEPENDENT PART END
-    return obs_array
 
 obsdict.add_observable_computing_function('n',compute_n )
-obsdict.add_observable_computing_function('norm',compute_norm )
-obsdict.add_observable_computing_function('bdim_mat',compute_bdim_mat )
 
 
 #Lindbladian: dissipation only on central site
 #Lindbladian: 
 def L_op(k, N):
+
     n_up = np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up'))
     n_down = np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down'))
     

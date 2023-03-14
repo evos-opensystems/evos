@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name=singletraj
+#SBATCH --job-name=singletraj_5
 
 #SBATCH --nodes=1 #8-8
 #SBATCH --ntasks-per-node=10
@@ -14,7 +14,7 @@
 #SBATCH --exclude=th-cl-naples27
 
 
-#SBATCH --time=00:20:00     #3-00:00:00                    
+#SBATCH --time=1-00:00:00     #3-00:00:00                    
 #SBATCH --mem=10GB   #180GB
 #SBATCH --output=/project/th-scratch/r/Reka.Schwengelbeck/evos/examples/open_extended_hubbard_model_mesoscopic_leads/slurm/output_%j.sout
 #SBATCH --error=/project/th-scratch/r/Reka.Schwengelbeck/evos/examples/open_extended_hubbard_model_mesoscopic_leads/slurm/output_%j.serr
