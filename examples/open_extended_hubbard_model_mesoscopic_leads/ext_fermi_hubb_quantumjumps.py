@@ -99,7 +99,7 @@ alpha = 1
 
 gamma = 0
 W = 10
-seed_W = 1
+seed_W = 2
 rng = np.random.default_rng(seed=seed_W) # random numbers
 #eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.001
@@ -110,8 +110,8 @@ trajectory = 0
 
 #os.chdir('benchmark')
 try:
-    os.system('mkdir data_qj_seed1_3')
-    os.chdir('data_qj_seed1_3')
+    os.system('mkdir data_qj_seed1_6')
+    os.chdir('data_qj_seed1_6')
 except:
     pass
 
