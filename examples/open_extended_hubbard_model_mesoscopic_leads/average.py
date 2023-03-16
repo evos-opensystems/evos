@@ -25,7 +25,7 @@ n_leads_right = 1
 
 n_tot = n_sites + n_leads_left + n_leads_right
 
-tdvp_maxt = 1
+tdvp_maxt = 10
 tdvp_dt = 0.001
 
 n_timesteps = int(tdvp_maxt/tdvp_dt)

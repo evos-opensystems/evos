@@ -10,15 +10,15 @@
 #SBATCH --mail-type=ALL
 #SBATCH --mail-user=Reka.schwengelbeck@physik.uni-muenchen.de
 #SBATCH --partition=th-cl,cluster,large  
-##SBATCH --chdir=/project/th-scratch/r/Reka.Schwengelbeck/mesoleads_topological_superconductivity/open_extend_hubb_mesoleads/cluster_qj
+##SBATCH --chdir=/project/th-scratch/r/Reka.Schwengelbeck/evos/examples/open_extended_hubbard_model_mesoscopic_leads/ed_qj_meso_cluster
 
 #SBATCH --exclude=th-cl-naples27
 
 
-#SBATCH --time=3-00:00:00     #3-00:00:00                    
+#SBATCH --time=1-00:00:00     #3-00:00:00                    
 #SBATCH --mem=600GB   #180GB
-#SBATCH --output=/project/th-scratch/r/Reka.Schwengelbeck/mesoleads_topological_superconductivity/open_extend_hubb_mesoleads/cluster_qj/slurm/output_%j.sout
-#SBATCH --error=/project/th-scratch/r/Reka.Schwengelbeck/mesoleads_topological_superconductivity/open_extend_hubb_mesoleads/cluster_qj/slurm/output_%j.serr
+#SBATCH --output=/project/th-scratch/r/Reka.Schwengelbeck/evos/examples/open_extended_hubbard_model_mesoscopic_leads/slurm/output_%j.sout
+#SBATCH --error=/project/th-scratch/r/Reka.Schwengelbeck/evos/examples/open_extended_hubbard_model_mesoscopic_leads/slurm/output_%j.serr
 #SBATCH --constraint=avx2  #needed for using more than 1 cpu per task!
 ##SBATCH --get-user-env
 

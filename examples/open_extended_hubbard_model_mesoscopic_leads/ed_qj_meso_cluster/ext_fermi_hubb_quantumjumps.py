@@ -104,9 +104,9 @@ seed_W = 2
 rng = np.random.default_rng(seed=seed_W) # random numbers
 #eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.001
-t_max = 1
+t_max = 10
 n_timesteps = int(t_max/dt)
-n_trajectories = 100
+n_trajectories = 50
 first_trajectory = int(sys.argv[1])
 print('first trajectory = ', first_trajectory)
 #os.chdir('benchmark')
