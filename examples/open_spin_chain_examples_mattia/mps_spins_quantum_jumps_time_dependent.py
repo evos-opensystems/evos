@@ -9,7 +9,7 @@ import psutil
 import sys
 
 import evos
-import evos.src.methods.mps_quantum_jumps as mps_quantum_jumps
+import evos.src.methods.mps_quantum_jumps_time_dependent as mps_quantum_jumps_time_dependent
 import evos.src.observables.observables as observables
 import pyten as ptn
 
@@ -58,8 +58,8 @@ n_timesteps = int(tdvp_maxt/tdvp_dt)
 
 
 try:
-    os.system('mkdir data_qj_mps')
-    os.chdir('data_qj_mps')
+    os.system('mkdir data_qj_mps_time_dependent')
+    os.chdir('data_qj_mps_time_dependent')
 except:
     pass
 
@@ -93,7 +93,7 @@ for i in range(n_sites):
         init_state.truncate()
     print('exp value of sz on ',i, ptn.mp.expectation( init_state, lat.get('sz',i) ))
 
-qj = mps_quantum_jumps.MPSQuantumJumps(n_sites, lat, H, [L]) #ADAPTIVE TIMESTEP, NO NORMALIZATION
+qj = mps_quantum_jumps_time_dependent.MPSQuantumJumps(n_sites, lat) 
 
 #observables
 obsdict = observables.ObservablesDict()
@@ -137,13 +137,25 @@ conf_tdvp.maxt = tdvp_maxt
 trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 print('computing time-evolution for trajectory {}'.format(trajectory) )
 
-#COMPUTE ONE TRAJECTORY WITH TDVP AND ADAPTIVE TIMESTEP
-#test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
+#DUMMY FUNCTIONS FOR TIME-DEPENDENT HAMILTONIAN AND LINBLAD OPERATORS
 
+def compute_H(timestep, H = H ):
+    """Dummy function for computing time-dependent H at each timestep. 
+    Needs to have ONLY the timestep as parameter and ONLY H as return."""
+    print('computing hamiltonian at timestep ', timestep)
+    return H
 
+def compute_lindbl_op_list( timestep, lindbl_op_list = [L] ):
+    """Dummy function for computing time-dependent lindbl_op_list at each timestep. 
+    Needs to have ONLY the timestep as parameter and ONLY lindbl_op_list as return."""
+    print('computing lindblad operators list at timestep ',timestep)
+    return lindbl_op_list
+    
+
+#COMPUTE ONE TRAJECTORY WITH TDVP
 for trajectory in range(n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
-    test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, trajectory, obsdict)
+    test_single_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, trajectory, obsdict, compute_H, compute_lindbl_op_list )
 
 
 read_directory = os.getcwd()

@@ -15,21 +15,22 @@ time_start = time.process_time()
 n_sites = 2
 dim_H = 2 ** n_sites
 J = 1
-gamma = 0
+gamma = 1
 W = 10
-seed_W = 1
+seed_W = 7
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01
 t_max = 10
 n_timesteps = int(t_max/dt)
-n_trajectories = 2
+n_trajectories = 1
 trajectory = 0 
+
 
 #os.chdir('benchmark')
 try:
-    os.system('mkdir data_qj')
-    os.chdir('data_qj')
+    os.system('mkdir data_qj_ed')
+    os.chdir('data_qj_ed')
 except:
     pass
 
@@ -128,22 +129,3 @@ obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), o
 
 print('process time: ', time.process_time() - time_start )
 
-#PLOT
-<<<<<<< HEAD
-sz_0 = np.loadtxt('sz_0_av')
-time_v = np.linspace(0, t_max, n_timesteps + 1  )
-plt.plot(time_v,sz_0, label= 'sz_0_av')
-plt.legend()
-plt.show()
-=======
-time_v = np.linspace(0, t_max , n_timesteps +1)
-
-os.chdir('../data_qj')
-
-#data = np.loadtxt('n_up_av')
-data1 = np.loadtxt('sz_1_av')
-#print(data)
-#plt.plot(time_v, data)
-plt.plot(time_v, data1)
-#print('process time: ', time.process_time() - time_start )
->>>>>>> reka

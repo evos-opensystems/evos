@@ -74,7 +74,6 @@ class ObservablesDict():
             class implemented only for rank 1,2,3 arrays
         """
         for observables_array_dict_key, observables_array_dict_value in self.observables_array_dict.items():
-
             if len(observables_array_dict_value.shape) == 1 or len(observables_array_dict_value.shape) == 2:
                 observables_array_dict_value[:,timestep] = self.observables_comp_functions_dict[observables_array_dict_key](state, observables_array_dict_value.shape[:-1], observables_array_dict_value.dtype )
             
@@ -95,8 +94,10 @@ class ObservablesDict():
         traj_list = []
         #check whether trajectory-directory and first observable in array_dict exist
         for i in range( n_trajectories ):
-            if os.path.isdir(str(i))and os.path.isfile(str(i) + '/' + [*self.observables_array_dict][0] ): 
+            if os.path.isdir(str(i)) and os.path.isfile(str(i) + '/' + [*self.observables_array_dict][0] ): 
                 traj_list.append(i)
+            else:
+                print('trajectory {} not found'.format(i))
         
         #check whether the first observable has been computed for every timestep. if not, remove the trajectory from traj_list    
         counter = 0 
@@ -106,8 +107,7 @@ class ObservablesDict():
         for trajectory in traj_list:
             os.chdir(str(trajectory))
             obs1 = np.loadtxt( [*self.observables_array_dict][0] )
-            print('obs1[0,-1] in traj {} = {}'.format(trajectory, obs1[0,-1]))
-            if  obs1[0,-1] == 0. :
+            if (obs1[...,-1] == 0.).any():
                 traj_list_new.pop(counter-n_eliminated_traj)
                 n_eliminated_traj += 1
                 print('eliminated trajectory ', trajectory )
