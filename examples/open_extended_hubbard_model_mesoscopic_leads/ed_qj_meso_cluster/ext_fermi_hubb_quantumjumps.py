@@ -281,6 +281,7 @@ print(init_state)
 
 obsdict = observables.ObservablesDict()
 obsdict.initialize_observable('n',(n_tot,), n_timesteps) #2D
+obsdict.initialize_observable('n_down',(n_tot,), n_timesteps) #2D
 
 def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -292,9 +293,20 @@ def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     #OBS DEPENDENT PART END
     return obs_array
 
+def compute_n_down(state, obs_array_shape,dtype):  #EXAMPLE 1D
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    for site in range(n_tot):
+        obs_array[site] = np.real( np.dot( np.dot( np.conjugate(state.T), np.dot(spin_lat.sso('adag',site+1, 'down'), spin_lat.sso('a',site+1, 'down'))  ), state )  ) 
+        #obs_array[site] = np.real( ptn.mp.expectation(state, np.dot(spin_lat.sso('adag',site, 'up'), spin_lat.sso('a',site, 'up')) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
+    
+    #OBS DEPENDENT PART END
+    return obs_array
+
 
 
 obsdict.add_observable_computing_function('n',compute_n )
+obsdict.add_observable_computing_function('n_down',compute_n_down )
 
 
 #Lindbladian: dissipation only on central site
