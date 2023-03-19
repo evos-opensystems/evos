@@ -203,7 +203,7 @@ lindblad = lindblad.SolveLindbladEquation(dim_tot, H_tot_t, l_list_tot, dt, t_ma
 # nf_sys, time_v = lindblad.solve( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left), init_state ) #UPDATE [L], H at each timestep
 #FIXME:works only for n_leads_left = 2!
 nf_0, time_v = lindblad.solve( ferm_lat.sso('ch',0) @ ferm_lat.sso('c',0), init_state ) #UPDATE [L], H at each timestep
-# nf_1, time_v = lindblad.solve( ferm_lat.sso('ch',1) @ ferm_lat.sso('c',1), init_state ) #UPDATE [L], H at each timestep
+nf_1, time_v = lindblad.solve( ferm_lat.sso('ch',1) @ ferm_lat.sso('c',1), init_state ) #UPDATE [L], H at each timestep
 # nf_2, time_v = lindblad.solve( ferm_lat.sso('ch',2) @ ferm_lat.sso('c',2), init_state ) #UPDATE [L], H at each timestep
 # nf_3, time_v = lindblad.solve( ferm_lat.sso('ch',3) @ ferm_lat.sso('c',3), init_state ) #UPDATE [L], H at each timestep
 # nf_4, time_v = lindblad.solve( ferm_lat.sso('ch',4) @ ferm_lat.sso('c',4), init_state ) #UPDATE [L], H at each timestep
@@ -211,7 +211,7 @@ nf_0, time_v = lindblad.solve( ferm_lat.sso('ch',0) @ ferm_lat.sso('c',0), init_
 # curr_L , time_v = lindblad.solve( 0.5j*( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left-1) - ferm_lat.sso('ch',n_lead_left-1) @ ferm_lat.sso('c',n_lead_left) ), init_state ) #UPDATE [L], H at each timestep
 
 # derivative of number of particles on left lead
-# N_L = np.array(nf_0[1:]) + np.array(nf_1[1:])
+N_L = np.array(nf_0[1:]) + np.array(nf_1[1:])
 # N_L_der = np.zeros(len(N_L))
 # for i in range(1,len(N_L)):
 #     N_L_der[i] = (N_L[i] - N_L[i-1])/dt
@@ -233,10 +233,11 @@ def thermal_occupation(beta, energy, mu):
 fig = plt.figure()
 
 # plt.plot( time_v[2:], N_L_der[1:] )
+plt.plot( time_v[2:], N_L[1:] )
 # plt.plot( time_v[1:], curr_L[1:] )
 #LEADS
 #left
-plt.plot( time_v[1:], nf_0[1:], label='site 0' )
+# plt.plot( time_v[1:], nf_0[1:], label='site 0' )
 # plt.plot( time_v[1:], nf_1[1:], label='site 1' )
 # #system
 # plt.plot( time_v[1:], nf_2[1:], label='site 2' ) 
