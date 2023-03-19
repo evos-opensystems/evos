@@ -25,12 +25,12 @@ dim_tot = 2 ** n_tot
 # temperature and chemical potential on the different leads
 T_L = 1
 T_R = 1
-mu_L = 1
-mu_R = -1 
+mu_L = 0.5
+mu_R = - 0.5
 
 #time-evolution parameters
-dt = 0.1
-t_max = 10
+dt = 0.2
+t_max = 5
 n_timesteps = int(t_max/dt)
 which_timestep = 0  #FIXME : UPDATE THIS IN TEVO LOOP !!!
 
@@ -199,11 +199,11 @@ init_state /= la.norm(init_state)
 lindblad = lindblad.SolveLindbladEquation(dim_tot, H_tot_t, l_list_tot, dt, t_max)
 # nf_sys, time_v = lindblad.solve( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left), init_state ) #UPDATE [L], H at each timestep
 #FIXME:works only for n_leads_left = 2!
-# nf_0, time_v = lindblad.solve( ferm_lat.sso('ch',0) @ ferm_lat.sso('c',0), init_state ) #UPDATE [L], H at each timestep
-# nf_1, time_v = lindblad.solve( ferm_lat.sso('ch',1) @ ferm_lat.sso('c',1), init_state ) #UPDATE [L], H at each timestep
-nf_2, time_v = lindblad.solve( ferm_lat.sso('ch',2) @ ferm_lat.sso('c',2), init_state ) #UPDATE [L], H at each timestep
-# nf_3, time_v = lindblad.solve( ferm_lat.sso('ch',3) @ ferm_lat.sso('c',3), init_state ) #UPDATE [L], H at each timestep
-# nf_4, time_v = lindblad.solve( ferm_lat.sso('ch',4) @ ferm_lat.sso('c',4), init_state ) #UPDATE [L], H at each timestep
+nf_0, time_v = lindblad.solve( ferm_lat.sso('ch',0) @ ferm_lat.sso('c',0), init_state ) #UPDATE [L], H at each timestep
+nf_1, time_v = lindblad.solve( ferm_lat.sso('ch',1) @ ferm_lat.sso('c',1), init_state ) #UPDATE [L], H at each timestep
+# nf_2, time_v = lindblad.solve( ferm_lat.sso('ch',2) @ ferm_lat.sso('c',2), init_state ) #UPDATE [L], H at each timestep
+nf_3, time_v = lindblad.solve( ferm_lat.sso('ch',3) @ ferm_lat.sso('c',3), init_state ) #UPDATE [L], H at each timestep
+nf_4, time_v = lindblad.solve( ferm_lat.sso('ch',4) @ ferm_lat.sso('c',4), init_state ) #UPDATE [L], H at each timestep
 
 # curr_L , time_v = lindblad.solve( 0.5j*( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left-1) - ferm_lat.sso('ch',n_lead_left-1) @ ferm_lat.sso('c',n_lead_left) ), init_state ) #UPDATE [L], H at each timestep
 
@@ -219,12 +219,12 @@ nf_2, time_v = lindblad.solve( ferm_lat.sso('ch',2) @ ferm_lat.sso('c',2), init_
 #PLOT
 # plt.plot( time_v[2:], N_L_der[1:] )
 # plt.plot( time_v[1:], curr_L[1:] )
-# plt.plot( time_v[1:], nf_0[1:], label='0' )
-# plt.plot( time_v[1:], nf_1[1:], label='1' )
-# plt.plot( time_v[1:], nf_3[1:] , label='3')
-# plt.plot( time_v[1:], nf_4[1:] , label='4')
+plt.plot( time_v[1:], nf_0[1:], label='0' )
+plt.plot( time_v[1:], nf_1[1:], label='1' )
+plt.plot( time_v[1:], nf_3[1:] , label='3')
+plt.plot( time_v[1:], nf_4[1:] , label='4')
 
-plt.plot( time_v[1:], nf_2[1:], label='2' )
+# plt.plot( time_v[1:], nf_2[1:], label='2' )
 
 plt.legend()
 plt.show()

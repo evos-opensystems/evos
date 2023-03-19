@@ -56,9 +56,9 @@ L = gamma * np.matrix( spin_lat.sso( 'sm', 0 ) )  # int( n_sites/2 ) #Lindblad o
 time_lind_evo = time.process_time()
 
 
-lindblad = lindblad.Lindblad([L],H,n_sites)
+lindblad = lindblad.Lindblad(n_sites)
 rho_0 = lindblad.ket_to_projector(init_state)        
-rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max)
+rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, [L], H)
 #np.save( 'time_lind_evo_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lind_evo-time.process_time())
 print('time_lind_evo:{0}'.format( time.process_time() - time_lind_evo ) )
 #observables
@@ -66,9 +66,11 @@ time_lind_obs = time.process_time()
 names_and_operators_list = {} #{'sz_0': spin_lat.sso('sz',0), 'sz_1': spin_lat.sso('sz',1), 'sz_2': , 'sz_3': sz_3 }
 for i in range(n_sites):
     names_and_operators_list.update({'sz_'+str(i) : spin_lat.sso('sz',i) })
-obs_test_dict =  lindblad.compute_observables(rho_t, names_and_operators_list, dt, t_max )
+obs_test_dict =  lindblad.compute_observables(rho_t, names_and_operators_list, dt, t_max)
 #np.save( 'time_lind_obs_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lind_obs-time.process_time())
 print('time_lind_obs:{0}'.format( time.process_time() - time_lind_evo ) )
+
+
 #PLOT
 time_v = np.linspace(0, t_max, n_timesteps )
 

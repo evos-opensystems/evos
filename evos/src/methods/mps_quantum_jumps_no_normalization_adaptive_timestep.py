@@ -262,11 +262,7 @@ class MPSQuantumJumps():
                 except:
                     pass    
                     
-<<<<<<< HEAD
-            print('max states =  ', int( maxStates * psi_t.norm() **2 ) )   
-=======
             '''
->>>>>>> reka
             self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
             self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
             self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )
