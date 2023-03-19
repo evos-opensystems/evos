@@ -243,11 +243,10 @@ class MPSQuantumJumps():
         #loop over timesteps
         memory_usage = []
         r1 = r1_array[0] #NOTE: initialize random number
-        
+        '''
         switched_to_1tdvp = False
-        
         for i in range( n_timesteps ):
-            '''
+            
             # print('computing timestep ',i) #debugging
             # print('norm(psi_t) = {}'.format( psi_t.norm() ) )
             #switch to single-site tdvp when maximal bond dim is reached
@@ -256,23 +255,14 @@ class MPSQuantumJumps():
                     bdim_i = np.loadtxt('bdim_mat')[:,i]
                     bdim_i_av = np.sum(bdim_i)/len(bdim_i)
                     #print('bdim_i_av = ',bdim_i_av)
-                    # if bdim_i_av / self.conf_tdvp.trunc.maxStates >= 0.95: #FIXME: is this a good threshold?
-                    #     print('switched to 1tdvp')
-                    #     self.conf_tdvp.mode = ptn.tdvp.Mode.Single
-                    #     switched_to_1tdvp = True
+                    if bdim_i_av / self.conf_tdvp.trunc.maxStates >= 0.95: #FIXME: is this a good threshold?
+                        print('switched to 1tdvp')
+                        self.conf_tdvp.mode = ptn.tdvp.Mode.Single
+                        switched_to_1tdvp = True
                 except:
                     pass    
                     
-<<<<<<< HEAD
-            '''
-=======
-<<<<<<< HEAD
-            '''
-        
-=======
-            ''' 
->>>>>>> reka
->>>>>>> dd0dc539e6c736fb1a49bb0638133d062dbf72d7
+                
             self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
             self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
             self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )
@@ -288,10 +278,10 @@ class MPSQuantumJumps():
             #psi_1 = self.exact_step_with_nonherm_tdvp_solver(psi_t) 
             worker_do_stepList = worker.do_step()
             psi_1 = worker.get_psi(False)
-            
+        '''
             norm_psi1 = psi_1.norm()
             #print('norm_psi1 at timestep {} :'.format(norm_psi1, i))
-        
+             
             delta_p = 1 - norm_psi1 ** 2
             
             if r1 > delta_p: #evolve with non-hermitian hamiltonian
@@ -321,7 +311,7 @@ class MPSQuantumJumps():
                 worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
                 worker_do_stepList = worker.do_step()
                 psi_t = worker.get_psi(False)
-                              
+                                
                 jump_counter +=1 #debugging
                 jump_time_list.append(i) #FIXME: return this!
                 np.savetxt('jump_time_list',jump_time_list)
@@ -343,7 +333,4 @@ class MPSQuantumJumps():
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
             #print('process time for observables at timest {}: {}'.format(i, time.process_time() - t_obs_start) )
         os.chdir('..') #exit the trajectory directory
-        #print('jump_counter: ',jump_counter)    
-            
-        
-        
+        #print('jump_counter: ',jump_counter)   
