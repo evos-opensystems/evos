@@ -30,7 +30,7 @@ mu_R = -1
 
 #time-evolution parameters
 dt = 0.1
-t_max = 10
+t_max = 100
 n_timesteps = int(t_max/dt)
 which_timestep = 0  #FIXME : UPDATE THIS IN TEVO LOOP !!!
 
@@ -65,7 +65,8 @@ for i in range( len(eps_vector_l) ):
 eps_delta_vector_l = eps_delta_vector_l[1:]
 eps_vector_l = eps_vector_l[1:]
 k_vector_l = k_vector_l[1:]
-    
+# k_vector_l[:] = 0 #FIXME remove it
+
 #RIGHT LEAD
 eps_step_r = 2 * W / ( n_lead_right + 1 )
 eps_vector_r = np.arange( -W, W, eps_step_r )
@@ -79,6 +80,8 @@ for i in range( len(eps_vector_r) ):
 eps_delta_vector_r = eps_delta_vector_r[1:]
 eps_vector_r = eps_vector_r[1:]
 k_vector_r = k_vector_r[1:]
+# k_vector_r[:] = 0 #FIXME remove it
+
 print('k_vector_l.shape', k_vector_l.shape)
 
 #PLOT FITTED LEFT SPECTRAL FUNCTION 
@@ -155,9 +158,9 @@ def lindblad_op_list_left_lead( eps_delta_vector_l, eps_vector_l, mu_L, T_L ):
 
 def lindblad_op_list_right_lead( eps_delta_vector_r, eps_vector_r, mu_R, T_R ):
     l_list_right = []
-    for site in range(n_lead_left):
-        l_list_right.append( np.sqrt( eps_delta_vector_r[site] * np.exp( 1./T_R * ( eps_vector_r[site] - mu_R ) ) * fermi_dist( 1./T_R, eps_vector_r[site], mu_R ) ) * ferm_lat.sso( 'c',site ) )
-        l_list_right.append( np.sqrt( eps_delta_vector_r[site]* fermi_dist( 1./T_R, eps_vector_r[site], mu_R) ) * ferm_lat.sso('ch',site) )
+    for site in range(n_lead_right):
+        l_list_right.append( np.sqrt( eps_delta_vector_r[site] * np.exp( 1./T_R * ( eps_vector_r[site] - mu_R ) ) * fermi_dist( 1./T_R, eps_vector_r[site], mu_R ) ) * ferm_lat.sso( 'c', n_lead_left + n_system + site ) )
+        l_list_right.append( np.sqrt( eps_delta_vector_r[site]* fermi_dist( 1./T_R, eps_vector_r[site], mu_R) ) * ferm_lat.sso('ch', n_lead_left + n_system + site) )
     return l_list_right     
 
 
@@ -173,14 +176,14 @@ l_list_tot = l_list_left + l_list_right
 def H_sistem_t(A, om, dt, t_max, t ): 
     t_vec = np.arange(0,t_max,dt)
     eps = A * np.cos( om * t )
-    h_sys = eps * ferm_lat.sso('ch', n_lead_left) @ ferm_lat.sso('ch', n_lead_left)
+    h_sys = eps * ferm_lat.sso('ch', n_lead_left) @ ferm_lat.sso('c', n_lead_left)
     return h_sys 
 
 
 def H_tot_t(t):
     #NOTE: this MUST a function of t only in order to be compatible with the time-dependent lindblad solver
     
-    return H_leads_left + H_leads_right + H_sistem_t(A, om, dt, t_max, t )
+    return H_leads_left + H_leads_right + H_sistem_t(A, om, dt, t_max, t ) 
 
 
 
@@ -202,25 +205,49 @@ lindblad = lindblad.SolveLindbladEquation(dim_tot, H_tot_t, l_list_tot, dt, t_ma
 nf_0, time_v = lindblad.solve( ferm_lat.sso('ch',0) @ ferm_lat.sso('c',0), init_state ) #UPDATE [L], H at each timestep
 # nf_1, time_v = lindblad.solve( ferm_lat.sso('ch',1) @ ferm_lat.sso('c',1), init_state ) #UPDATE [L], H at each timestep
 # nf_2, time_v = lindblad.solve( ferm_lat.sso('ch',2) @ ferm_lat.sso('c',2), init_state ) #UPDATE [L], H at each timestep
-nf_3, time_v = lindblad.solve( ferm_lat.sso('ch',3) @ ferm_lat.sso('c',3), init_state ) #UPDATE [L], H at each timestep
-nf_4, time_v = lindblad.solve( ferm_lat.sso('ch',4) @ ferm_lat.sso('c',4), init_state ) #UPDATE [L], H at each timestep
+# nf_3, time_v = lindblad.solve( ferm_lat.sso('ch',3) @ ferm_lat.sso('c',3), init_state ) #UPDATE [L], H at each timestep
+# nf_4, time_v = lindblad.solve( ferm_lat.sso('ch',4) @ ferm_lat.sso('c',4), init_state ) #UPDATE [L], H at each timestep
 
 # curr_L , time_v = lindblad.solve( 0.5j*( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left-1) - ferm_lat.sso('ch',n_lead_left-1) @ ferm_lat.sso('c',n_lead_left) ), init_state ) #UPDATE [L], H at each timestep
 
-# N_L = np.array(nf_0[1:]) + np.array(nf_1[1:]) + np.array(nf_2[1:] ) 
+# derivative of number of particles on left lead
+# N_L = np.array(nf_0[1:]) + np.array(nf_1[1:])
 # N_L_der = np.zeros(len(N_L))
 # for i in range(1,len(N_L)):
 #     N_L_der[i] = (N_L[i] - N_L[i-1])/dt
 
-#NOTE: lead occupation is not symmetric and looks strange.
-# 1) add check of lead thermalization with exact result
-# 2) use time-independent Lindblad solver
+
+def thermal_occupation(beta, energy, mu):
+    rho = expm( -beta * ( energy - mu ) * np.array( [ [0,0],[0,1] ] ) ) / np.trace( expm( -beta * ( energy - mu ) * np.array( [ [0,0],[0,1] ] ) ) )
+    occupation = np.trace( rho @ np.array( [ [0,0],[0,1] ] ) ) 
+    return occupation 
+
+# therm_occ_left_0 = thermal_occupation( 1./T_L ,eps_vector_l[0], mu_L ) 
+# therm_occ_left_1 = thermal_occupation( 1./T_L ,eps_vector_l[1], mu_L ) 
+
+# therm_occ_right_0 = thermal_occupation( 1./T_R ,eps_vector_r[0], mu_R ) 
+# therm_occ_right_1 = thermal_occupation( 1./T_R ,eps_vector_r[1], mu_R ) 
+
 
 #PLOT
+fig = plt.figure()
+
 # plt.plot( time_v[2:], N_L_der[1:] )
 # plt.plot( time_v[1:], curr_L[1:] )
-plt.plot( time_v[1:], nf_0[1:] )
-plt.plot( time_v[1:], nf_3[1:] )
-plt.plot( time_v[1:], nf_4[1:] )
+#LEADS
+#left
+plt.plot( time_v[1:], nf_0[1:], label='site 0' )
+# plt.plot( time_v[1:], nf_1[1:], label='site 1' )
+# #system
+# plt.plot( time_v[1:], nf_2[1:], label='site 2' ) 
+# #right
+# plt.plot( time_v[1:], nf_3[1:], label='site 3' )
+# plt.plot( time_v[1:], nf_4[1:], label='site 4' ) 
 
-plt.show()
+# #exact leads thermalization
+# plt.hlines(y=therm_occ_left_0, xmin=0, xmax = t_max , label='site 0 therm' )
+# plt.hlines(y=therm_occ_left_1, xmin=0, xmax = t_max , label='site 1 therm')
+# plt.hlines(y=therm_occ_right_0, xmin=0, xmax = t_max , label='site 3 therm')
+# plt.hlines(y=therm_occ_right_1, xmin=0, xmax = t_max , label='site 4 therm')
+# plt.show()
+fig.savefig('test.png')
