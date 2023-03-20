@@ -248,13 +248,8 @@ class MPSQuantumJumps():
         
         for i in range( n_timesteps ):
             '''
-<<<<<<< HEAD
-            print('computing timestep ',i) #debugging
-            print('norm(psi_t) = {}'.format( psi_t.norm() ) )
-=======
             # print('computing timestep ',i) #debugging
             # print('norm(psi_t) = {}'.format( psi_t.norm() ) )
->>>>>>> reka
             #switch to single-site tdvp when maximal bond dim is reached
             if i % 5 == 0 and switched_to_1tdvp == False:
                 try: #NOTE this switching to 1tdvp works only if the bond dimension is saved in an observable 'bdim_mat'
@@ -270,10 +265,14 @@ class MPSQuantumJumps():
                     
 <<<<<<< HEAD
             '''
+=======
+<<<<<<< HEAD
+            '''
         
 =======
             ''' 
 >>>>>>> reka
+>>>>>>> dd0dc539e6c736fb1a49bb0638133d062dbf72d7
             self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
             self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
             self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )

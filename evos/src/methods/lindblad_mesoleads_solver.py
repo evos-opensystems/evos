@@ -6,6 +6,7 @@ from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 import evos.src.lattice.spinful_fermions_lattice as spinful_fermions_lattice
 
+
 class LindbladEquation: 
     def __init__(self, n_tot:int, H:float, L_list:float):
         
