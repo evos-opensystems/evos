@@ -9,7 +9,7 @@ import psutil
 import sys
 
 import evos
-import evos.src.methods.mps_quantum_jumps as mps_quantum_jumps
+import evos.src.methods.mps_quantum_jumps_retry as mps_quantum_jumps
 import evos.src.observables.observables as observables
 import pyten as ptn
 
@@ -25,14 +25,14 @@ J = 1
 gamma = 1
 W = 10
 seed_W = 7
-n_trajectories = 1
+n_trajectories = 200
 first_trajectory = 0
 
 n_trajectories_average = 200
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 tdvp_dt = 0.01
-tdvp_maxt = 10
+tdvp_maxt = 5
 
 dim_H = 2 ** n_sites  
 spin = 0.5    
@@ -54,14 +54,17 @@ tdvp_gse_conf_adaptive = True
 tdvp_gse_conf_sing_val_threshold = 1e-12
 
 n_timesteps = int(tdvp_maxt/tdvp_dt)
+
+tol = 1e-4 #for bisection method in adaptive timestep tdvp
+max_iterations = 10 #for bisection method in adaptive timestep tdvp
 ## 
 
-
 try:
-    os.system('mkdir data_qj_mps_time_dependent')
-    os.chdir('data_qj_mps_time_dependent')
+    os.system('mkdir data_qj_mps')
+    os.chdir('data_qj_mps')
 except:
     pass
+
 
 
 #lattice 
@@ -93,7 +96,7 @@ for i in range(n_sites):
         init_state.truncate()
     print('exp value of sz on ',i, ptn.mp.expectation( init_state, lat.get('sz',i) ))
 
-qj = mps_quantum_jumps.MPSQuantumJumps(n_sites, lat) #ADAPTIVE TIMESTEP, NO NORMALIZATION
+qj = mps_quantum_jumps.MPSQuantumJumps(n_sites, lat, H, [L]) #ADAPTIVE TIMESTEP, NO NORMALIZATION
 
 #observables
 obsdict = observables.ObservablesDict()
@@ -140,14 +143,10 @@ print('computing time-evolution for trajectory {}'.format(trajectory) )
 #COMPUTE ONE TRAJECTORY WITH TDVP AND ADAPTIVE TIMESTEP
 #test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
 
-state = init_state.copy()
-conf_tdvp.maxt = tdvp_dt #FIXME: find better solution for that. Computing 1 single timestep for each Hamiltonian and Lindblad op list.
+
 for trajectory in range(n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
-    timestep_counter = 0
-    for timestep in range(n_timesteps):
-        timestep_counter += 1
-        state = qj.quantum_jump_single_trajectory_time_evolution( state, conf_tdvp, trajectory, obsdict, H, [L], compute_obs_for_init_state=False, timestep_for_obs_saving_shift = timestep_counter )
+    test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, trajectory, obsdict)
 
 
 read_directory = os.getcwd()

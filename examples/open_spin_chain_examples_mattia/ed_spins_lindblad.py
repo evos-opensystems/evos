@@ -18,7 +18,7 @@ seed_W = 7
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01
-t_max = 10
+t_max = 2.5
 n_timesteps = int(t_max/dt)
 
 #os.chdir('benchmark')
@@ -52,7 +52,7 @@ for i in np.arange(1,n_sites,2): #flip every second spin down
 init_state /= la.norm(init_state)
 
 #Lindbladian: dissipation only on central site
-L = gamma * np.matrix( spin_lat.sso( 'sm', 0 ) )  # int( n_sites/2 ) #Lindblad operators must be cast from arrays to matrices in order to be able to use .H
+L = gamma * spin_lat.sso( 'sm', int( n_sites/2 ) ) # int( n_sites/2 ) #Lindblad operators must be cast from arrays to matrices in order to be able to use .H
 time_lind_evo = time.process_time()
 
 
@@ -88,11 +88,13 @@ for i in range(n_sites):
     sz_matrix[i,:] = obs_test_dict['sz_'+str(i)]
 
 try:
-    os.system('mkdir data_lindblad')
+    # os.system('mkdir data_lindblad')
     os.chdir('data_lindblad')
 except:
     pass    
-np.savetxt('sz_matrix_n_sites' +str(n_sites) + '_t_max' + str(t_max) + '_dt' +str(dt) , sz_matrix )
+
+np.savetxt('sz_av', sz_matrix)
+# np.savetxt('sz_matrix_n_sites' +str(n_sites) + '_t_max' + str(t_max) + '_dt' +str(dt) , sz_matrix )
 
 # plt.imshow(sz_matrix, aspect='auto', extent=[0,t_max,1,n_sites])
 # plt.yticks(range(1,n_sites+1))
