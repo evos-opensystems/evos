@@ -124,7 +124,7 @@ class SolveLindbladEquation():
                 # print(t1)
 
             else:
-                # print('timestep = ', t1)
+                print('timestep = ', t1)
                 t_before_index = np.where(self.t==t1)[0] -1
                 t_before = float(self.t[t_before_index])
             
