@@ -18,7 +18,7 @@ seed_W = 7
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01
-t_max = 10
+t_max = 2.5
 n_timesteps = int(t_max/dt)
 
 #os.chdir('benchmark')
@@ -52,13 +52,13 @@ for i in np.arange(1,n_sites,2): #flip every second spin down
 init_state /= la.norm(init_state)
 
 #Lindbladian: dissipation only on central site
-L = gamma * np.matrix( spin_lat.sso( 'sm', 0 ) )  # int( n_sites/2 ) #Lindblad operators must be cast from arrays to matrices in order to be able to use .H
+L = gamma * spin_lat.sso( 'sm', int( n_sites/2 ) ) # int( n_sites/2 ) #Lindblad operators must be cast from arrays to matrices in order to be able to use .H
 time_lind_evo = time.process_time()
 
 
-lindblad = lindblad.Lindblad([L],H,n_sites)
+lindblad = lindblad.Lindblad(n_sites)
 rho_0 = lindblad.ket_to_projector(init_state)        
-rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max)
+rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, [L], H)
 #np.save( 'time_lind_evo_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lind_evo-time.process_time())
 print('time_lind_evo:{0}'.format( time.process_time() - time_lind_evo ) )
 #observables
@@ -66,9 +66,11 @@ time_lind_obs = time.process_time()
 names_and_operators_list = {} #{'sz_0': spin_lat.sso('sz',0), 'sz_1': spin_lat.sso('sz',1), 'sz_2': , 'sz_3': sz_3 }
 for i in range(n_sites):
     names_and_operators_list.update({'sz_'+str(i) : spin_lat.sso('sz',i) })
-obs_test_dict =  lindblad.compute_observables(rho_t, names_and_operators_list, dt, t_max )
+obs_test_dict =  lindblad.compute_observables(rho_t, names_and_operators_list, dt, t_max)
 #np.save( 'time_lind_obs_n_sites' +str(n_sites) + '_n_timesteps' + str(n_timesteps), time_lind_obs-time.process_time())
 print('time_lind_obs:{0}'.format( time.process_time() - time_lind_evo ) )
+
+
 #PLOT
 time_v = np.linspace(0, t_max, n_timesteps )
 
@@ -86,11 +88,13 @@ for i in range(n_sites):
     sz_matrix[i,:] = obs_test_dict['sz_'+str(i)]
 
 try:
-    os.system('mkdir data_lindblad')
+    # os.system('mkdir data_lindblad')
     os.chdir('data_lindblad')
 except:
     pass    
-np.savetxt('sz_matrix_n_sites' +str(n_sites) + '_t_max' + str(t_max) + '_dt' +str(dt) , sz_matrix )
+
+np.savetxt('sz_av', sz_matrix)
+# np.savetxt('sz_matrix_n_sites' +str(n_sites) + '_t_max' + str(t_max) + '_dt' +str(dt) , sz_matrix )
 
 # plt.imshow(sz_matrix, aspect='auto', extent=[0,t_max,1,n_sites])
 # plt.yticks(range(1,n_sites+1))

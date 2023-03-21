@@ -45,7 +45,8 @@ class LindbladEquation:
                 for  m in range(0, self.dim_H):
                     rho[n,m] = np.conjugate(rho[m,n])
                     
-            
+            # print('self.H ',self.H)
+            # print('rho',rho)
             drho = -1j* commutator(self.H, rho) 
                 
             for i in range(0, len(self.L_list)): 
@@ -77,9 +78,8 @@ class SolveLindbladEquation():
         self.dim_H = dim_H
         self.dt = dt
         self.T = T
-        #self.t_0 = t_0
-        tsteps = int(T/self.dt)
-        t = np.linspace(0, T, tsteps)
+        tsteps = int(self.T/self.dt)
+        t = np.arange(0, self.T, self.dt) #np.linspace(0,self.T, tsteps)
         self.tsteps = tsteps
         self.t = t
         #n_sites = int((dim_H)**(1/4))
@@ -130,8 +130,8 @@ class SolveLindbladEquation():
         for t1 in self.t:
             if t1 == 0:
                 t_before =0
-                exp = observable.dot(rho_matrix).trace()
-                #print(t1)
+                exp = 1 
+
 
             else:
                 #print('timestep = ', t1)
@@ -139,8 +139,9 @@ class SolveLindbladEquation():
                 t_before = float(self.t[t_before_index])
             
                 dyn_drho_dt = Dyn_rho_dt[int(np.where(self.t == t_before)[0])]
-                #print(t1)
+                # print(t1)
                 
+
                 sol = solve_ivp(dyn_drho_dt.drho_dt, (t_before,t_before+self.dt), rho_vec, t_eval = [t_before+self.dt])
             
                 # solution into matrix
