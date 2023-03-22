@@ -9,12 +9,14 @@ from numpy import linalg as la
 import sys
 import math
 import os
+np.set_printoptions(threshold=sys.maxsize)
+
 # from pathlib import Path
 # from scipy.optimize import curve_fit
 
 n_system = 1 # number of system sites
-n_lead_left = 4 # number of lindblad operators acting on leftest site
-n_lead_right = 4 # number of lindblad operators acting on rightmost site
+n_lead_left = 5 # number of lindblad operators acting on leftest site
+n_lead_right = 5 # number of lindblad operators acting on rightmost site
 plot_fitted_spectral_density = False
 n_tot = n_system + n_lead_left + n_lead_right
 dim_H_sys = 2 ** n_system
@@ -30,7 +32,7 @@ mu_R = - 0.5
 
 #time-evolution parameters
 dt = 0.1
-t_max = 50
+t_max = 100
 n_timesteps = int(t_max/dt)
 which_timestep = 0  #FIXME : UPDATE THIS IN TEVO LOOP !!!
 
@@ -214,6 +216,16 @@ init_state /= la.norm(init_state)
 
 # print( np.conjugate(init_state)@ ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left) @  init_state   )
 
+#left lead particle current operator
+j_p_left_op = np.zeros( (dim_tot, dim_tot), dtype='complex' )
+for site in range(n_lead_left):
+    j_p_left_op += k_vector_l[site] * ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',site)
+    j_p_left_op -= k_vector_l[site] * ferm_lat.sso('ch',site) @ ferm_lat.sso('c',n_lead_left)
+j_p_left_op *= 1j
+#print( np.allclose(j_p_left_op, j_p_left_op.T, rtol=1e-5, atol=1e-8) )
+#for site in range(n_lead_left):
+# print(j_p_left_op )
+# quit()    
 
 #SOLVE LINDBLAD EQUATION WITH REKA'S SOLVER
 lindblad = lindblad.SolveLindbladEquation(dim_tot, H_tot_t, l_list_tot, dt, t_max)
@@ -227,13 +239,16 @@ lindblad = lindblad.SolveLindbladEquation(dim_tot, H_tot_t, l_list_tot, dt, t_ma
 # curr_L , time_v = lindblad.solve( 0.5j*( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left-1) - ferm_lat.sso('ch',n_lead_left-1) @ ferm_lat.sso('c',n_lead_left) ), init_state ) #UPDATE [L], H at each timestep
 #en_curr, time_v =  lindblad.solve( h_onsite_l, init_state ) #UPDATE [L], H at each timestep
 
-nf_system, time_v = lindblad.solve( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left), init_state ) #UPDATE [L], H at each timestep
+#nf_system, time_v = lindblad.solve( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left), init_state ) #UPDATE [L], H at each timestep
+
+j_p_left, time_v = lindblad.solve( j_p_left_op, init_state ) #UPDATE [L], H at each timestep
+
 
 # derivative of number of particles on left lead
 # N_L = np.array(nf_0[1:]) + np.array(nf_1[1:])
-# N_L_der = np.zeros(len(N_L))
-# for i in range(1,len(N_L)):
-#     N_L_der[i] = (N_L[i] - N_L[i-1])/dt
+# nf_system_der = np.zeros(len(nf_system))
+# for i in range(1,len(nf_system)):
+#     nf_system_der[i] = (nf_system[i] - nf_system[i-1])/dt
 
 
 def thermal_occupation(beta, energy, mu):
@@ -259,7 +274,7 @@ fig = plt.figure()
 # plt.plot( time_v[1:], nf_0[1:], label='site 0' )
 # plt.plot( time_v[1:], nf_1[1:], label='site 1' )
 # #system
-plt.plot( time_v[1:], nf_system[1:], label='system site' ) 
+#plt.plot( time_v[1:], nf_system[1:], label='system site' ) 
 # #right
 # plt.plot( time_v[1:], nf_3[1:], label='site 3' )
 # plt.plot( time_v[1:], nf_4[1:], label='site 4' ) 
@@ -270,5 +285,9 @@ plt.plot( time_v[1:], nf_system[1:], label='system site' )
 # plt.hlines(y=therm_occ_left_1, xmin=0, xmax = t_max , label='site 1 therm')
 # plt.hlines(y=therm_occ_right_0, xmin=0, xmax = t_max , label='site 3 therm')
 # plt.hlines(y=therm_occ_right_1, xmin=0, xmax = t_max , label='site 4 therm')
+#current
+## plt.plot( time_v[50:], nf_system_der[50:], label='system site curr' ) 
+plt.plot( time_v[1:], j_p_left[1:], label='system site curr' ) 
+
 # plt.show()
-fig.savefig('test.png')
+fig.savefig('test_n_tot_sites_' + str(n_tot)+ '.png')
