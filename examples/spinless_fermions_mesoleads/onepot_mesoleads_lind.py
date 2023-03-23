@@ -11,12 +11,10 @@ import math
 import os
 np.set_printoptions(threshold=sys.maxsize)
 
-# from pathlib import Path
-# from scipy.optimize import curve_fit
-
+#Parameters
 n_system = 1 # number of system sites
-n_lead_left = 5 # number of lindblad operators acting on leftest site
-n_lead_right = 5 # number of lindblad operators acting on rightmost site
+n_lead_left = 2 # number of lindblad operators acting on leftest site
+n_lead_right = 2 # number of lindblad operators acting on rightmost site
 plot_fitted_spectral_density = False
 n_tot = n_system + n_lead_left + n_lead_right
 dim_H_sys = 2 ** n_system
@@ -31,8 +29,8 @@ mu_L = 0.5
 mu_R = - 0.5
 
 #time-evolution parameters
-dt = 0.1
-t_max = 100
+dt = 0.05
+t_max = 10
 n_timesteps = int(t_max/dt)
 which_timestep = 0  #FIXME : UPDATE THIS IN TEVO LOOP !!!
 
@@ -83,8 +81,6 @@ eps_delta_vector_r = eps_delta_vector_r[1:]
 eps_vector_r = eps_vector_r[1:]
 k_vector_r = k_vector_r[1:]
 # k_vector_r[:] = 0 #FIXME remove it
-
-print('k_vector_l.shape', k_vector_l.shape)
 
 #PLOT FITTED LEFT SPECTRAL FUNCTION 
 if plot_fitted_spectral_density:
@@ -192,7 +188,7 @@ l_list_tot = l_list_left + l_list_right
 
 def H_sistem_t(A, om, dt, t_max, t ): 
     t_vec = np.arange(0,t_max,dt)
-    eps = A * np.cos( om * t )
+    eps = A * np.cos( om * t )  #FIXME: change 0 with t
     h_sys = eps * ferm_lat.sso('ch', n_lead_left) @ ferm_lat.sso('c', n_lead_left)
     return h_sys 
 
@@ -239,9 +235,9 @@ lindblad = lindblad.SolveLindbladEquation(dim_tot, H_tot_t, l_list_tot, dt, t_ma
 # curr_L , time_v = lindblad.solve( 0.5j*( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left-1) - ferm_lat.sso('ch',n_lead_left-1) @ ferm_lat.sso('c',n_lead_left) ), init_state ) #UPDATE [L], H at each timestep
 #en_curr, time_v =  lindblad.solve( h_onsite_l, init_state ) #UPDATE [L], H at each timestep
 
-#nf_system, time_v = lindblad.solve( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left), init_state ) #UPDATE [L], H at each timestep
+nf_system, time_v = lindblad.solve( ferm_lat.sso('ch',n_lead_left) @ ferm_lat.sso('c',n_lead_left), init_state ) #UPDATE [L], H at each timestep
 
-j_p_left, time_v = lindblad.solve( j_p_left_op, init_state ) #UPDATE [L], H at each timestep
+#j_p_left, time_v = lindblad.solve( j_p_left_op, init_state ) #UPDATE [L], H at each timestep
 
 
 # derivative of number of particles on left lead
@@ -274,7 +270,7 @@ fig = plt.figure()
 # plt.plot( time_v[1:], nf_0[1:], label='site 0' )
 # plt.plot( time_v[1:], nf_1[1:], label='site 1' )
 # #system
-#plt.plot( time_v[1:], nf_system[1:], label='system site' ) 
+plt.plot( time_v[1:], nf_system[1:], label='system site' ) 
 # #right
 # plt.plot( time_v[1:], nf_3[1:], label='site 3' )
 # plt.plot( time_v[1:], nf_4[1:], label='site 4' ) 
@@ -287,7 +283,14 @@ fig = plt.figure()
 # plt.hlines(y=therm_occ_right_1, xmin=0, xmax = t_max , label='site 4 therm')
 #current
 ## plt.plot( time_v[50:], nf_system_der[50:], label='system site curr' ) 
-plt.plot( time_v[1:], j_p_left[1:], label='system site curr' ) 
+#plt.plot( time_v[1:], j_p_left[1:], label='system site curr' ) 
 
-# plt.show()
-fig.savefig('test_n_tot_sites_' + str(n_tot)+ '.png')
+#LOAD QJ DATA
+#os.chdir('qj_n_tot5')
+n_system = np.loadtxt('n_system_av')
+plt.plot( time_v[1:-1], n_system[2:-1], label='n_system qj' ) 
+#os.chdir('..')
+
+plt.legend()
+plt.show()
+fig.savefig('short_particle_current_n_tot_sites_' + str(n_tot)+ '.png')
