@@ -44,7 +44,8 @@ G = 1
 W = 8 
 
 #QJ trajectories
-n_trajectories = 200
+n_trajectories = 1
+first_trajectory = 0
 
 #Fit
 
@@ -148,8 +149,8 @@ def H_leads_right( eps_vector_r, k_vector_r, mu_R ):
         h_sys_lead += k_vector_r[ site - n_lead_left - n_system ] *  ( ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', n_system + n_lead_left -1 ) + ferm_lat.sso('ch',n_system + n_lead_left -1 ) @ ferm_lat.sso('c', site ) )
     
         
-    h_left_lead = h_onsite_r + h_sys_lead    
-    return h_left_lead
+    h_right_lead = h_onsite_r + h_sys_lead    
+    return h_right_lead
 
 #LEINDBLAD OPERATORS LISTS FOR LEADS
 def lindblad_op_list_left_lead( eps_delta_vector_l, eps_vector_l, mu_L, T_L ):
@@ -188,15 +189,14 @@ def H_tot_t(t):
     
     return H_leads_left + H_leads_right + H_sistem_t(A, om, dt, t_max, t ) 
 
-
-
-
 # H_sistem_t = H_sistem_t(A, om, dt, t_max, which_timestep) #FIXME: build it at every timestep!
 ######
 
 #INITAL STATE: vacuum for leads and 1/sqrt(2) (|0> + |1>) for the system (single dot)
 vac = ferm_lat.vacuum_state #vacuum state = all up
-sys_up_state = ferm_lat.sso('ch',n_lead_left) @ vac.copy() 
+sys_up_state = ferm_lat.sso('ch',n_lead_left) @ vac.copy()
+
+sys_up_state /= la.norm(sys_up_state)
 init_state = (vac + sys_up_state)
 init_state /= la.norm(init_state)
 
@@ -261,7 +261,7 @@ os.chdir( 'qj_n_tot' + str(n_tot) )
 
 #compute qj trajectories sequentially
 state = init_state.copy()
-for trajectory in range(n_trajectories): 
+for trajectory in range(first_trajectory, n_trajectories + first_trajectory): 
     print('computing trajectory {}'.format(trajectory))
     timestep_counter = 0 #needed for the observables not to be saved all in the same entry (of t=0)
     for timestep in range(n_timesteps):

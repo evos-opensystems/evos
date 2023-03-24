@@ -92,7 +92,7 @@ for i in range(n_sites):
         init_state.truncate()
     print('exp value of sz on ',i, ptn.mp.expectation( init_state, lat.get('sz',i) ))
 
-qj = mps_quantum_jumps.MPSQuantumJumps(n_sites, lat, ) #H, [L]
+qj = mps_quantum_jumps.MPSQuantumJumps(n_sites, lat ) #H, [L]
 
 #observables
 obsdict = observables.ObservablesDict()
@@ -133,14 +133,14 @@ conf_tdvp.cache = tdvp_cache
 conf_tdvp.maxt = tdvp_maxt
 
 #compute time-evolution for one trajectory
-trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
-print('computing time-evolution for trajectory {}'.format(trajectory) )
+#trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
+#print('computing time-evolution for trajectory {}'.format(trajectory) )
 
 #COMPUTE ONE TRAJECTORY WITH TDVP AND ADAPTIVE TIMESTEP
 #test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
 
 state = init_state.copy()
-for trajectory in range(n_trajectories): 
+for trajectory in range(first_trajectory, n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
     timestep_counter = 0 #needed for the observables not to be saved all in the same entry (of t=0)
     for timestep in range(n_timesteps):
