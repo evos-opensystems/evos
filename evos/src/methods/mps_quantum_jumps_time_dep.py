@@ -89,7 +89,7 @@ class MPSQuantumJumps():
         return psi, which_jump_op      
 
     
-    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, trajectory: int, obsdict: dict,  H, lindbl_op_list, total_timesteps_for_r, time_gse_subspace_switch = 0.1, compute_obs_for_init_state = True, timestep_for_obs_saving_shift = 0 ):
+    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, t_max: float, dt: float, conf_tdvp, trajectory: int, obsdict: dict,  H, lindbl_op_list, total_timesteps_for_r, time_gse_subspace_switch = 0.1, compute_obs_for_init_state = True, timestep_for_obs_saving_shift = 0 ):
         
         """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
         first to check if a jump needs to be applied if yes then which operator to use.
@@ -110,6 +110,8 @@ class MPSQuantumJumps():
             time at which tdvp switches from GSE to Subspace method    
         """
         
+        print('timestep_for_obs_saving_shift: ', timestep_for_obs_saving_shift)
+        
         ### mooved here from __init__
         self.lindbl_op_list = lindbl_op_list
         self.H = H
@@ -129,8 +131,8 @@ class MPSQuantumJumps():
         ####
 
         self.conf_tdvp = conf_tdvp
-        t_max = np.real( self.conf_tdvp.maxt )
-        dt = np.real( self.conf_tdvp.dt )
+        #t_max = np.real( self.conf_tdvp.maxt )
+        #dt = np.real( self.conf_tdvp.dt )
         #non-hermitian tdvp #FIXME: specify this before
         self.conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
         self.conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before

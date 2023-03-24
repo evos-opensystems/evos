@@ -25,14 +25,14 @@ J = 1
 gamma = 1
 W = 10
 seed_W = 7
-n_trajectories = 200
+n_trajectories = 1
 first_trajectory = 0
 
 n_trajectories_average = 200
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 tdvp_dt = 0.01
-tdvp_maxt = 5
+tdvp_maxt = 10
 
 dim_H = 2 ** n_sites  
 spin = 0.5    
