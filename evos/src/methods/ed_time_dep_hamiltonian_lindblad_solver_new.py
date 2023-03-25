@@ -121,10 +121,7 @@ class SolveLindbladEquation():
             if t1 == 0:
                 t_before =0
                 exp = 1 
-<<<<<<< HEAD
-=======
                 # print(t1)
->>>>>>> 8a4eee624a06493bc2b72f905d9e9bd2ab9ebe78
 
             else:
                 print('timestep = ', t1)

@@ -30,7 +30,7 @@ mu_R = - 0.5
 
 #time-evolution parameters
 dt = 0.05
-t_max = 10
+t_max = 0.1
 n_timesteps = int(t_max/dt)
 which_timestep = 0  #FIXME : UPDATE THIS IN TEVO LOOP !!!
 

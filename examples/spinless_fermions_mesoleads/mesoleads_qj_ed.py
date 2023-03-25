@@ -44,7 +44,7 @@ G = 1
 W = 8 
 
 #QJ trajectories
-n_trajectories = 1
+n_trajectories = 50
 first_trajectory = 0
 
 #Fit
@@ -115,21 +115,20 @@ ferm_lat = spinless_fermions_lattice.SpinlessFermionsLattice(n_tot)
 #LEADS HAMILTONIAN
 def H_leads_left( eps_vector_l, k_vector_l, mu_L ):
     # onsite energy of left leads
-    # print(eps_vector_l)
     h_onsite_l = np.zeros( (dim_tot, dim_tot), dtype = 'complex' )
     for site in range( n_lead_left ): 
         # print( 'on site ', site)
-        h_onsite_l += ( eps_vector_l[site] - mu_L ) * ( ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', site ) )
+        h_onsite_l += ( eps_vector_l[site] - mu_L ) * ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', site )
     
     # system-lead coupling
     #every lead site is coupled to the leftmost system site
-    h_sys_lead = np.zeros( (dim_tot, dim_tot), dtype = 'complex' )
+    h_sys_lead_l = np.zeros( (dim_tot, dim_tot), dtype = 'complex' )
     for site in range(n_lead_left):
-        # print( 'coupling {} and {}'.format( site, n_lead_left ) )
-        h_sys_lead += k_vector_l[site] *  ( ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', n_lead_left ) + ferm_lat.sso('ch',n_lead_left ) @ ferm_lat.sso('c', site ) )
+        print( 'coupling {} and {}'.format( site, n_lead_left ) )
+        h_sys_lead_l += k_vector_l[site] * ( ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', n_lead_left ) + ferm_lat.sso('ch',n_lead_left ) @ ferm_lat.sso('c', site ) )
     
         
-    h_left_lead = h_onsite_l + h_sys_lead    
+    h_left_lead = h_onsite_l + h_sys_lead_l 
     return h_left_lead
 
 
@@ -143,13 +142,13 @@ def H_leads_right( eps_vector_r, k_vector_r, mu_R ):
     
     # system-lead coupling
     #every lead site is coupled to the rightmost system site
-    h_sys_lead = np.zeros( (dim_tot, dim_tot), dtype = 'complex' )
+    h_sys_lead_r = np.zeros( (dim_tot, dim_tot), dtype = 'complex' )
     for site in range( n_lead_left + n_system , n_tot ):
         # print( 'coupling {} and {}'.format( site, n_system + n_lead_left -1 ) )
-        h_sys_lead += k_vector_r[ site - n_lead_left - n_system ] *  ( ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', n_system + n_lead_left -1 ) + ferm_lat.sso('ch',n_system + n_lead_left -1 ) @ ferm_lat.sso('c', site ) )
+        h_sys_lead_r += k_vector_r[ site - n_lead_left - n_system ] *  ( ferm_lat.sso('ch',site ) @ ferm_lat.sso('c', n_system + n_lead_left -1 ) + ferm_lat.sso('ch',n_system + n_lead_left -1 ) @ ferm_lat.sso('c', site ) )
     
         
-    h_right_lead = h_onsite_r + h_sys_lead    
+    h_right_lead = h_onsite_r + h_sys_lead_r    
     return h_right_lead
 
 #LEINDBLAD OPERATORS LISTS FOR LEADS
@@ -175,7 +174,6 @@ H_leads_right = H_leads_right(eps_vector_r, k_vector_r, mu_R)
 l_list_left = lindblad_op_list_left_lead( eps_delta_vector_l, eps_vector_l, mu_L, T_L )
 l_list_right = lindblad_op_list_right_lead( eps_delta_vector_r, eps_vector_r, mu_R, T_R )
 l_list_tot = l_list_left + l_list_right 
-
 
 def H_sistem_t(A, om, dt, t_max, t ): 
     t_vec = np.arange(0,t_max,dt)
@@ -272,7 +270,7 @@ for trajectory in range(first_trajectory, n_trajectories + first_trajectory):
 read_directory = os.getcwd()
 write_directory = os.getcwd()
 
-obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
+obsdict.compute_trajectories_averages_and_errors( list(range(first_trajectory, n_trajectories + first_trajectory)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 j_p_left = np.loadtxt('j_p_left_op_av')
 n_0 = np.loadtxt('n_0_av')
 n_system = np.loadtxt('n_system_av')

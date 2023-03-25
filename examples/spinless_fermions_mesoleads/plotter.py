@@ -17,12 +17,12 @@ os.chdir('..')
 
 #PLOT
 t_max = 20
-dt = 0.05
+dt = 0.01
 time_v = np.arange( 0, t_max + dt , dt )
 
 fig = plt.figure()
-plt.plot(time_v, n_system_av, label='n_system_av ed qj', color='red')
-plt.plot(time_v, n_system_av_mps, label='n_system_av ed qj', color='blue')
+plt.plot(time_v[:-1], n_system_av, label='n_system_av ed qj', color='red')
+plt.plot(time_v[:-1], n_system_av_mps, label='n_system_av ed qj', color='blue')
 
 #plt.plot(time_v, n_system_av-n_system_av_mps, label='n_system_av ed qj', color='red')
 
