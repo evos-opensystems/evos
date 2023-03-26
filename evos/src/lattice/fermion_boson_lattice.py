@@ -83,15 +83,15 @@ class FermionBosonLattice():
                 
             
             if site < operator_site and (site + 1) % 5 != 0: #fermionic site left
-                print('site {} is fermionic'.format(site))
+                #print('site {} is left fermionic'.format(site))
                 single_site_operator = np.kron(single_site_operator,self.Id_f)
             
             if site > operator_site and (site + 1) % 5 != 0: #fermionic site right
-                print('site {} is fermionic'.format(site))
+                #print('site {} is right fermionic'.format(site))
                 single_site_operator = np.kron(single_site_operator,self.parity)    
                 
             elif site != operator_site and (site + 1) % 5 == 0: #bosonic site
-                print('site {} is bosonic'.format(site))
+                #print('site {} is bosonic'.format(site))
                 single_site_operator = np.kron(single_site_operator,self.Id_b)
                 
         return single_site_operator
