@@ -32,41 +32,68 @@ class FermionBosonLattice():
         operators.update({'a':a})
         
         #vacuum state
-        vacuum_state = np.zeros( ( 4 * ( max_bosons + 1 ) ) ** n_sites, dtype='complex')
+        vacuum_state = np.zeros( ( 16 * ( max_bosons + 1 ) ) ** n_sites, dtype='complex')
         vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
+           
+    
+    def sso_fer(self, operator_name: str, site: int, spin: str = '0') -> np.ndarray :
+        """Constructs single-site operator. Spinful fermion is described as two TLSs.
+         
+        Parameters
+        ----------
+        operator_name : str
+            operators defined in init
+        site : int
+            site on which operator acts
+        spin : str, optional
+            'up' or 'down' for fermions, by default '0' (bosons)
 
+        Returns
+        -------
+        np.ndarray
+            single site operator acting on whole hilbert space
 
-    def sso_fer(self, operator_name: str, spin: str, site: int) -> np.ndarray :
-        """Construct bosonic single-site operator. Spinful fermion is described as two TLSs. even sites: up, odd sites: down"""
-                
+        Raises
+        ------
+        ValueError
+            check spin input
+        """
+        
+        #get index of operator 
+        if spin == 'up':
+            operator_site = 2 * site - int( site/4 )
+        elif spin == 'down':
+            operator_site = 2 * site - int( site/4 ) + 1
+        elif spin == '0': #default
+            operator_site = (site + 1) * 5 - 1
+        elif spin != '0' and spin != 'up' and spin != 'down':
+            raise ValueError(" 'spin' must be either 'up' or 'down'. The default is '0' (i.e. boson) ")   
+
         operator = self.operators[operator_name]
-        if site == 0 and spin:
+        #initialize single_site_operator
+        if site == 0 and spin == 'up':
             single_site_operator = operator.copy()
         else:
-            single_site_operator = self.Id_f.copy()
+            single_site_operator = self.Id_f
         
-        for i in range(1, self.n_sites):  
-            if i < site:
-                single_site_operator = np.kron(single_site_operator, self.Id_f)
-                single_site_operator = np.kron(single_site_operator, self.Id_f)
-                single_site_operator = np.kron(single_site_operator, self.Id_b)
+        for site in range(1, 5 * self.n_sites ):
+            if site == operator_site: #operator site
+                single_site_operator = np.kron(single_site_operator,operator)
                 
-            elif i > site:
-                single_site_operator = np.kron(single_site_operator,self.parity)                    
-                single_site_operator = np.kron(single_site_operator,self.parity) 
-                single_site_operator = np.kron(single_site_operator,self.Id_b) 
-                
-            elif i == site and spin == 'up':
-                single_site_operator = np.kron(single_site_operator,operator)  
-                single_site_operator = np.kron(single_site_operator,self.Id_f) #FIXME: correct????
-                single_site_operator = np.kron(single_site_operator,self.Id_b)
             
-            elif i == site and spin == 'down':
+            if site < operator_site and (site + 1) % 5 != 0: #fermionic site left
+                print('site {} is fermionic'.format(site))
                 single_site_operator = np.kron(single_site_operator,self.Id_f)
-                single_site_operator = np.kron(single_site_operator,operator)  
-                single_site_operator = np.kron(single_site_operator,self.Id_b)               
             
+            if site > operator_site and (site + 1) % 5 != 0: #fermionic site right
+                print('site {} is fermionic'.format(site))
+                single_site_operator = np.kron(single_site_operator,self.parity)    
+                
+            elif site != operator_site and (site + 1) % 5 == 0: #bosonic site
+                print('site {} is bosonic'.format(site))
+                single_site_operator = np.kron(single_site_operator,self.Id_b)
+                
         return single_site_operator
 
                   
