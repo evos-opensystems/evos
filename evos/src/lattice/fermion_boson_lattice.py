@@ -37,7 +37,7 @@ class FermionBosonLattice():
         self.vacuum_state = vacuum_state
            
     
-    def sso_fer(self, operator_name: str, site: int, spin: str = '0') -> np.ndarray :
+    def sso(self, operator_name: str, site: int, spin: str = '0') -> np.ndarray :
         """Constructs single-site operator. Spinful fermion is described as two TLSs.
          
         Parameters
