@@ -18,8 +18,15 @@ class FermionBosonLattice():
         #operators
         ch = np.array( [ [0,0], [1,0] ], dtype='complex' )
         c = np.array( [ [0,1], [0,0] ], dtype='complex' )
-        ah = ch.copy()
-        a = c.copy()
+        
+        ah = np.zeros( (max_bosons + 1,max_bosons + 1) )
+        for i in range( 1, max_bosons + 1 ):
+            ah[i, i - 1] = np.sqrt(i)
+            
+        a = np.zeros( ( max_bosons + 1, max_bosons + 1) )
+        for i in range(max_bosons):
+            a[i, i + 1 ] = np.sqrt(i+1)
+         
         self.parity = np.array( [ [1,0], [0,-1] ], dtype='complex' )
         self.Id_f = np.eye(2)
         self.Id_b = np.eye(max_bosons+1)        
@@ -60,11 +67,17 @@ class FermionBosonLattice():
             check spin input
         """
         
+        if ( spin == '0' and operator_name == 'c' ) or ( spin == '0' and operator_name == 'ch') :
+            raise ValueError("Specify spin 'up' or 'down' for fermionic operator ")
+        elif ( spin == 'up' and operator_name == 'a' ) or ( spin == 'up' and operator_name == 'ah')  or  ( spin == 'down' and operator_name == 'a' ) or ( spin == 'up' and operator_name == 'down'):
+            raise ValueError("For bosonic operator spin must be '0' (default) ")
+         
+        
         #get index of operator 
         if spin == 'up':
-            operator_site = 2 * site - int( site/4 )
+            operator_site = 2 * site - int( site/3 )
         elif spin == 'down':
-            operator_site = 2 * site - int( site/4 ) + 1
+            operator_site = 2 * site - int( site/3 ) + 1
         elif spin == '0': #default
             operator_site = (site + 1) * 5 - 1
         elif spin != '0' and spin != 'up' and spin != 'down':
