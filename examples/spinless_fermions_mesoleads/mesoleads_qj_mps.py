@@ -15,8 +15,8 @@ import evos.src.observables.observables as observables
 
 #Parameters
 n_system = 1 # number of system sites
-n_lead_left = 2 # number of lindblad operators acting on leftest site
-n_lead_right = 2 # number of lindblad operators acting on rightmost site
+n_lead_left = 5 # number of lindblad operators acting on leftest site
+n_lead_right = 5 # number of lindblad operators acting on rightmost site
 plot_fitted_spectral_density = False
 n_tot = n_system + n_lead_left + n_lead_right
 dim_H_sys = 2 ** n_system
