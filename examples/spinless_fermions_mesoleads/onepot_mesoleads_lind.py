@@ -30,7 +30,7 @@ mu_R = - 0.5
 
 #time-evolution parameters
 dt = 0.05
-t_max = 10
+t_max = 20
 n_timesteps = int(t_max/dt)
 which_timestep = 0  #FIXME : UPDATE THIS IN TEVO LOOP !!!
 
@@ -287,9 +287,10 @@ plt.plot( time_v[1:], nf_system[1:], label='system site' )
 
 #LOAD QJ DATA
 #os.chdir('qj_n_tot5')
+os.chdir('qj_n_tot5')
 n_system = np.loadtxt('n_system_av')
 plt.plot( time_v[1:-1], n_system[2:-1], label='n_system qj' ) 
-#os.chdir('..')
+os.chdir('..')
 
 plt.legend()
 plt.show()
