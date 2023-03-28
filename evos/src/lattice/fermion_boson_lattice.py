@@ -79,7 +79,7 @@ class FermionBosonLattice():
         elif spin == 'down':
             operator_site = 2 * site - int( site/3 ) + 1
         elif spin == '0': #default
-            operator_site = (site + 1) * 5 - 1
+            operator_site = site + 2 * int( (site +1)/3 )
         elif spin != '0' and spin != 'up' and spin != 'down':
             raise ValueError(" 'spin' must be either 'up' or 'down'. The default is '0' (i.e. boson) ")   
 
