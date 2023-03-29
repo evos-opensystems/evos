@@ -54,6 +54,7 @@ mu_R = -1
 def const_spec_funct(G,W,eps):
     if eps >= -W and eps <= W:
         return G
+    
     else:
         return 0
 
