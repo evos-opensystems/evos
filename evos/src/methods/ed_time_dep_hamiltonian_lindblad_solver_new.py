@@ -131,7 +131,7 @@ class SolveLindbladEquation():
             if t1 == 0:
                 t_before =0
                 exp = 1 
-
+                # print(t1)
 
             else:
                 #print('timestep = ', t1)

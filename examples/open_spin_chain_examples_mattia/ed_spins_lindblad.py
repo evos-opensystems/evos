@@ -17,8 +17,8 @@ W = 10
 seed_W = 7
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
-dt = 0.01
-t_max = 2.5
+dt = 0.005
+t_max = 5
 n_timesteps = int(t_max/dt)
 
 #os.chdir('benchmark')
