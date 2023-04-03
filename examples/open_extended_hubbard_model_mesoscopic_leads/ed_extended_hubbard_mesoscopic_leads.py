@@ -26,6 +26,7 @@ from scipy.optimize import curve_fit
 
 # Hamiltonian
 
+
 '''
 t_hop = float(sys.argv[1])
 U = float(sys.argv[2])
