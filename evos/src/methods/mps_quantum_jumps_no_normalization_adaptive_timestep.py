@@ -247,7 +247,6 @@ class MPSQuantumJumps():
         switched_to_1tdvp = False
         
         for i in range( n_timesteps ):
-            '''
             # print('computing timestep ',i) #debugging
             # print('norm(psi_t) = {}'.format( psi_t.norm() ) )
             #switch to single-site tdvp when maximal bond dim is reached
@@ -263,16 +262,6 @@ class MPSQuantumJumps():
                 except:
                     pass    
                     
-<<<<<<< HEAD
-            '''
-=======
-<<<<<<< HEAD
-            '''
-        
-=======
-            ''' 
->>>>>>> reka
->>>>>>> dd0dc539e6c736fb1a49bb0638133d062dbf72d7
             self.conf_tdvp.trunc.threshold = threshold * psi_t.norm()
             self.conf_tdvp.trunc.weight = weight * psi_t.norm() **2 
             self.conf_tdvp.trunc.maxStates = int( maxStates * psi_t.norm() **2 )

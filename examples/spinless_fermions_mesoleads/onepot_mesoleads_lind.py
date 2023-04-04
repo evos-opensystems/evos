@@ -259,8 +259,19 @@ def thermal_occupation(beta, energy, mu):
 # therm_occ_right_1 = thermal_occupation( 1./T_R ,eps_vector_r[1], mu_R ) 
 
 
+#SAVE OBS
+try:
+    os.mkdir('lindblad_n_tot' + str(n_tot) )
+except:
+    pass
+
+os.chdir('lindblad_n_tot' + str(n_tot) )
+
+np.savetxt('nf_system', np.real( nf_system ) )    
+
+
 #PLOT
-fig = plt.figure()
+#fig = plt.figure()
 
 # plt.plot( time_v[2:], N_L_der[1:] )
 # plt.plot( time_v[2:], N_L[1:] )
@@ -270,7 +281,7 @@ fig = plt.figure()
 # plt.plot( time_v[1:], nf_0[1:], label='site 0' )
 # plt.plot( time_v[1:], nf_1[1:], label='site 1' )
 # #system
-plt.plot( time_v[1:], nf_system[1:], label='system site' ) 
+#plt.plot( time_v[1:], nf_system[1:], label='system site' ) 
 # #right
 # plt.plot( time_v[1:], nf_3[1:], label='site 3' )
 # plt.plot( time_v[1:], nf_4[1:], label='site 4' ) 
@@ -287,11 +298,10 @@ plt.plot( time_v[1:], nf_system[1:], label='system site' )
 
 #LOAD QJ DATA
 #os.chdir('qj_n_tot5')
-os.chdir('qj_n_tot5')
-n_system = np.loadtxt('n_system_av')
-plt.plot( time_v[1:-1], n_system[2:-1], label='n_system qj' ) 
-os.chdir('..')
+# n_system = np.loadtxt('n_system_av')
+# plt.plot( time_v[1:-1], n_system[2:-1], label='n_system qj' ) 
+# #os.chdir('..')
 
-plt.legend()
-plt.show()
-fig.savefig('short_particle_current_n_tot_sites_' + str(n_tot)+ '.png')
+# plt.legend()
+# plt.show()
+# fig.savefig('short_particle_current_n_tot_sites_' + str(n_tot)+ '.png')

@@ -57,8 +57,9 @@ class MPSQuantumJumps():
         threshold *= norm 
         weight *= norm ** 2
         maxStates = int(maxStates * norm ** 2 )
+        #FIXME: substitute this with op_apply_naive !!!
         for jump_op in self.lindbl_op_list:
-            states_after_jump_operator_application = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ), threshold, 12, 4)[0] #ptn.Truncation()
+            states_after_jump_operator_application = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ), threshold, 12, 4)[0] 
             states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
         norms_after_jump_operator_application_vector_squared = np.zeros( len( states_after_jump_operator_application_list ) )
@@ -84,12 +85,12 @@ class MPSQuantumJumps():
                 break
         print('After jump, norm(psi) = {}'.format( psi.norm() ) )    
         print('finished "select_jump_operator" method')    
-        psi.normalise()
-        print('The state after the jump has then be normalised')    
+        # psi.normalise()
+        # print('The state after the jump has then be normalised')    
         return psi, which_jump_op      
 
     
-    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, t_max: float, dt: float, conf_tdvp, trajectory: int, obsdict: dict,  H, lindbl_op_list, total_timesteps_for_r, time_gse_subspace_switch = 0.1, compute_obs_for_init_state = True, timestep_for_obs_saving_shift = 0 ):
+    def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, trajectory: int, obsdict: dict,  H, lindbl_op_list, time_gse_subspace_switch = 0.2, compute_obs_for_init_state = True, timestep_for_obs_saving_shift = 0 ):
         
         """Compute the time-evolution via the quantum jumps method for a single trajectory. Two arrays r1 and r2 of random numbers are used 
         first to check if a jump needs to be applied if yes then which operator to use.
@@ -110,8 +111,6 @@ class MPSQuantumJumps():
             time at which tdvp switches from GSE to Subspace method    
         """
         
-        print('timestep_for_obs_saving_shift: ', timestep_for_obs_saving_shift)
-        
         ### mooved here from __init__
         self.lindbl_op_list = lindbl_op_list
         self.H = H
@@ -131,8 +130,8 @@ class MPSQuantumJumps():
         ####
 
         self.conf_tdvp = conf_tdvp
-        #t_max = np.real( self.conf_tdvp.maxt )
-        #dt = np.real( self.conf_tdvp.dt )
+        t_max = np.real( self.conf_tdvp.maxt )
+        dt = np.real( self.conf_tdvp.dt )
         #non-hermitian tdvp #FIXME: specify this before
         self.conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
         self.conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
@@ -153,10 +152,10 @@ class MPSQuantumJumps():
         r2_atjump_list = [] #debugging
         
         np.random.seed( trajectory + 1 ) #set seed for r1 this trajectory
-        r1_array = np.random.uniform( 0, 1, total_timesteps_for_r ) #generate random numbers array r1
+        r1_array = np.random.uniform( 0, 1, n_timesteps ) #generate random numbers array r1
         #print('r1_array: ',r1_array)
         np.random.seed( int( ( trajectory + 1 ) / dt ) ) #set seed for r2 this trajectory
-        r2_array = np.random.uniform( 0, 1, total_timesteps_for_r )  #generate random numbers array r2 to be used by method 'select_jump_operator()'
+        r2_array = np.random.uniform( 0, 1, n_timesteps )  #generate random numbers array r2 to be used by method 'select_jump_operator()'
 
         #Compute observables with initial state
         timestep_shift = 0
@@ -170,6 +169,7 @@ class MPSQuantumJumps():
         memory_usage = []
         #main loop: time-evolution
         for i in range( n_timesteps ):
+            print('computing timestep ' + str(i) )
             if np.round(i * self.conf_tdvp.dt, 2) == time_gse_subspace_switch: #switch to Subspace method
                 print('switched from GSE to Subspace after {} timesteps'.format(i) )
                 self.conf_tdvp.mode = ptn.tdvp.Mode.Subspace
@@ -180,7 +180,7 @@ class MPSQuantumJumps():
                 # self.conf_tdvp.trunc.weight = tdvp_trunc_weight #this is not used by gse
                 worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[ self.H_eff.copy() ], self.conf_tdvp.copy() )
                 
-            r1 = r1_array[ i + timestep_shift + timestep_for_obs_saving_shift ]
+            r1 = r1_array[i]
             # print('r1 at timestep {} = {}'.format(i,r1)) 
             #reinitialize worker with normalized state
             worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
@@ -193,14 +193,15 @@ class MPSQuantumJumps():
             psi_1 = worker.get_psi(False)
             
             norm_psi1 = psi_1.norm()
-             
+            print('norm_psi1 after tevo step {} = {}'.format(i,norm_psi1) ) 
             delta_p = 1 - norm_psi1 ** 2
             
             if r1 > delta_p: #evolve with non-hermitian hamiltonian
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
-                psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[ i + timestep_shift + timestep_for_obs_saving_shift ] )   
+                # print('jump at timestep {}, with r1 = {} and delta_p = {} '.format(i, r1, delta_p) )
+                psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
                 which_jump_op_list.append( which_jump_op ) #debugging
                 jump_counter +=1 #debugging
             

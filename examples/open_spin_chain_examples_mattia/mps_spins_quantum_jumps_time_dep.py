@@ -11,9 +11,7 @@ import sys
 import evos
 import evos.src.methods.mps_quantum_jumps_time_dep as mps_quantum_jumps
 import evos.src.observables.observables as observables
-import pyten as ptn
 
-quit()
 #FOR PARALLELIZING
 # from mpi4py import MPI
 # comm =MPI.COMM_WORLD
@@ -59,8 +57,8 @@ n_timesteps = int(tdvp_maxt/tdvp_dt)
 
 
 try:
-    os.system('mkdir data_qj_mps')
-    os.chdir('data_qj_mps')
+    os.system('mkdir data_qj_mps_time_dependent')
+    os.chdir('data_qj_mps_time_dependent')
 except:
     pass
 
@@ -94,7 +92,7 @@ for i in range(n_sites):
         init_state.truncate()
     print('exp value of sz on ',i, ptn.mp.expectation( init_state, lat.get('sz',i) ))
 
-qj = mps_quantum_jumps.MPSQuantumJumps(n_sites, lat, H, [L]) #ADAPTIVE TIMESTEP, NO NORMALIZATION
+qj = mps_quantum_jumps.MPSQuantumJumps(n_sites, lat ) #H, [L]
 
 #observables
 obsdict = observables.ObservablesDict()
@@ -135,20 +133,23 @@ conf_tdvp.cache = tdvp_cache
 conf_tdvp.maxt = tdvp_maxt
 
 #compute time-evolution for one trajectory
-trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
-print('computing time-evolution for trajectory {}'.format(trajectory) )
+#trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
+#print('computing time-evolution for trajectory {}'.format(trajectory) )
 
 #COMPUTE ONE TRAJECTORY WITH TDVP AND ADAPTIVE TIMESTEP
 #test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, tol, max_iterations, trajectory, obsdict, tdvp_trunc_threshold, tdvp_trunc_weight, tdvp_trunc_maxStates)
 
-
-for trajectory in range(n_trajectories): 
+state = init_state.copy()
+for trajectory in range(first_trajectory, n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
-    test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, trajectory, obsdict)
+    timestep_counter = 0 #needed for the observables not to be saved all in the same entry (of t=0)
+    for timestep in range(n_timesteps):
+        print('timestep: ', timestep)
+        state = qj.quantum_jump_single_trajectory_time_evolution(state, tdvp_dt, tdvp_dt, conf_tdvp, trajectory, obsdict, H, [L], n_timesteps, compute_obs_for_init_state = False, timestep_for_obs_saving_shift = timestep_counter)
+        timestep_counter += 1
 
-
+##averages and errors
 read_directory = os.getcwd()
 write_directory = os.getcwd()
-
 
 obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 

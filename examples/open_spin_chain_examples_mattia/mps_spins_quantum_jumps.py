@@ -9,7 +9,7 @@ import psutil
 import sys
 
 import evos
-import evos.src.methods.mps_quantum_jumps as mps_quantum_jumps
+import evos.src.methods.mps_quantum_jumps_retry as mps_quantum_jumps
 import evos.src.observables.observables as observables
 import pyten as ptn
 
@@ -54,14 +54,17 @@ tdvp_gse_conf_adaptive = True
 tdvp_gse_conf_sing_val_threshold = 1e-12
 
 n_timesteps = int(tdvp_maxt/tdvp_dt)
-## 
 
+tol = 1e-4 #for bisection method in adaptive timestep tdvp
+max_iterations = 10 #for bisection method in adaptive timestep tdvp
+## 
 
 try:
     os.system('mkdir data_qj_mps')
     os.chdir('data_qj_mps')
 except:
     pass
+
 
 
 #lattice 
@@ -143,7 +146,7 @@ print('computing time-evolution for trajectory {}'.format(trajectory) )
 
 for trajectory in range(n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
-    test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, trajectory, obsdict)
+    test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(init_state, conf_tdvp, tdvp_maxt, tdvp_dt, trajectory, obsdict)
 
 
 read_directory = os.getcwd()
