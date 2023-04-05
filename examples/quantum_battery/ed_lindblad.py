@@ -34,7 +34,7 @@ T_r = 1
 dt = 0.25
 t_max = 50
 time_v = np.arange(0, t_max, dt)
-n_timesteps = int(t_max/dt + 1)
+n_timesteps = int(t_max/dt)
 
 #LATTICE
 lat = lattice.DotWithOscillatorLattice(max_bosons)
@@ -128,17 +128,34 @@ observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1) }
 computed_observables =  lindblad.compute_observables(rho_t, observables, dt, t_max)
 
 #compute bosonic reduced density matrix at each timestep
-def rho_bosonic(rho0123):
+def compute_rho_bosonic(rho0123):
     rho123 = pt.tracing_out_one_tls_from_tls_bosonic_system(0, rho0123, [1,1,0,1], max_bosons)
     rho23 = pt.tracing_out_one_tls_from_tls_bosonic_system(0, rho123, [1,0,1], max_bosons)
     rho2 = pt.tracing_out_one_tls_from_tls_bosonic_system(1, rho23, [0,1], max_bosons)
     return rho2
 
-
+rho_bosonic = np.zeros( (max_bosons + 1, max_bosons + 1, n_timesteps), dtype='complex')
 for time in range(n_timesteps):
+    rho_bosonic[:,:,time] = compute_rho_bosonic( rho_t[:,:,time] )
       
+##compute non-equilibrium free energy
+#bosonic hamiltonian
+n_op_bos = range(0, max_bosons + 1)
+n_op_bos = np.diag(n_op_bos)
+h_bos_reduced = om_0 * n_op_bos 
+
+#compute internal energy
+U = np.zeros( n_timesteps )
+for time in range(n_timesteps):
+    U[time] = np.trace( h_bos_reduced @ rho_bosonic[:,:,time] )
+
 
 #PLOT
-# plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
+#plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
+# plt.plot(time_v, rho_bosonic[0,0,:], label = 'occ_0 boson' )
+# plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ_1 boson' )
+# plt.plot(time_v, rho_bosonic[2,2,:], label = 'occ_2 boson' )
+# plt.plot(time_v, U, label = 'U boson' )
+
 # plt.legend()
 # plt.show()
