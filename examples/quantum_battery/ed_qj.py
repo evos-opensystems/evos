@@ -35,10 +35,10 @@ T_r = 1
 k_b = 1 #boltzmann constant
  
 dt = 0.05
-t_max = 100
+t_max = 10
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 50
+n_trajectories = 100
 trajectory = 0
 
 #LATTICE
@@ -134,7 +134,8 @@ obsdict.add_observable_computing_function('U',compute_U)
 
 #compute QJ time evolution
 os.chdir('data_qj_ed')
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot, l_list)
+#init_state = lat.sso('ch',1) @ init_state #FIXME: remove this!!!!!!! 
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list) #l_list
 #compute qj trajectories sequentially
 for trajectory in range(n_trajectories): 
     print('computing trajectory {}'.format(trajectory))

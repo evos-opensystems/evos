@@ -108,7 +108,6 @@ def compute_sz(state, obs_array_shape,dtype):  #EXAMPLE 1D
     #OBS DEPENDENT PART START
     for site in range(n_sites):
         obs_array[site] = np.real( ptn.mp.expectation(state, lat.get('sz', site) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
-    
     #OBS DEPENDENT PART END
     return obs_array
 

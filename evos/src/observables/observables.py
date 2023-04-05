@@ -37,9 +37,11 @@ class ObservablesDict():
         for key, value in self.observables_array_dict.items():
             #print(key, value)
             if len(value.shape) < 3:
+                # print('GOT A RANK < 3 ARRAY')
                 with open(key, 'wb') as f:
                     np.savetxt(f, value)
             if len(value.shape) >= 3:
+                # print('GOT A RANK 3 ARRAY')
                 with open(key, 'wb') as f:
                     np.save(f, value)    
 

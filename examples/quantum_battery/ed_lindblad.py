@@ -33,8 +33,8 @@ T_l = 1
 T_r = 1
 k_b = 1 #boltzmann constant
  
-dt = 1
-t_max = 100
+dt = 0.25
+t_max = 10
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 
@@ -110,8 +110,9 @@ init_state = lat.vacuum_state
 
 #Solve Lindblad Equation
 lindblad = lindblad.Lindblad(4)
+#init_state = lat.sso('ch',1) @ init_state #FIXME: remove this!!!!!!! 
 rho_0 = lindblad.ket_to_projector(init_state)        
-rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, l_list, h_tot)
+rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max,l_list, h_tot) #l_list
 
 #Compute observables
 observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2) }
@@ -160,7 +161,7 @@ f_eq_vector = f_eq * np.ones(n_timesteps)
 #SAVE OBSERVABLES
 np.savetxt('n_system', computed_observables['n_system'] )
 np.savetxt('U_from_full_state', computed_observables['U_from_full_state'] )
-
+np.savetxt('S',S)
 #PLOT
 #plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
 plt.plot(time_v, computed_observables['U_from_full_state'], label = 'U_from_full_state' )

@@ -12,27 +12,27 @@ import os
 
 #PARAMETERS
 max_bosons = 2
-# eps = 1
-# Om_kl = 1
-# Om_kr = 1
-# g_kl = 1
-# g_kr = 1
-# om_0 = 1
-# F = 1
-# #FIXME: how do I compute N0??
+eps = 1
+Om_kl = 1
+Om_kr = 1
+g_kl = 1
+g_kr = 1
+om_0 = 1
+F = 1
+#FIXME: how do I compute N0??
 
-# Gamma = 1
-# mu_l = +1
-# mu_r = +1
-# T_l = 1
-# T_r = 1
-# k_b = 1 #boltzmann constant
+Gamma = 1
+mu_l = +1
+mu_r = +1
+T_l = 1
+T_r = 1
+k_b = 1 #boltzmann constant
  
 dt = 0.05
-t_max = 8
+t_max = 0.1
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 50
+n_trajectories = 1
 trajectory = 0
 first_trajectory = 0
 
@@ -48,42 +48,110 @@ vac_state *= lat.get('ch',1)
 vac_state *= lat.get('ch',3) 
 vac_state *= lat.get('ch',7)    
    
-#print(vac_state.norm())
-# for site in range(8):
-#     print('n on site {} is {}'.format( site, ptn.mp.expectation(vac_state, lat.get('n',site ) ) ) )
+class Hamiltonian():
+    
+    def __init__(self, lat, max_bosons):
+        self.lat = lat
+        self.max_bosons = max_bosons
+        
+    def h_s(self, eps):
+        h_s = eps * lat.get('c',2) * lat.get('ch',2) #no need to PP
+        #h_s = ptn.mp.addLog(h_s)
+        h_s.truncate()
+        return h_s 
 
-##########################PREPARE A THERMAL STATE ON SITE 1 TO TEST FERMIONIC-PP
-#parameters
-beta = 1
-T = 1
-omega = 1
+    def h_b(self, Om_kl, Om_kr, mu_l, mu_r):
+        #NOTE: added mu_l and mu_rto onsite energies
+        h_b = []
+        h_b.append( ( Om_kl + mu_l ) * lat.get('c',0) * lat.get('ch',0) ) #no need to PP
+        h_b.append( ( Om_kr + mu_r ) * lat.get('c',6) * lat.get('ch',6) ) #no need to PP
+        h_b = ptn.mp.addLog(h_b)
+        h_b.truncate()
+        return h_b
+   
+    def h_t(self, g_kl, g_kr):
+        #h_t = []
+        h_t = g_kl * ( lat.get('ch',1) * lat.get('c',0) * lat.get('c',3) * lat.get('ch',2) + lat.get('c',2) * lat.get('ch',3) * lat.get('ch',0) * lat.get('c',1) ) 
+        h_t += g_kr * ( lat.get('ch',7) * lat.get('c',6) * lat.get('c',3) * lat.get('ch',2) + lat.get('c',2) * lat.get('ch',3) * lat.get('ch',6) * lat.get('c',7) ) 
+        #h_t = ptn.mp.addLog(h_t)
+        h_t.truncate()
+        return h_t
+    
+    def h_v(self, om_0, F):
+        #FIXME: need to detract N0
+        #FIXME: is m = 1 ?
+        h_v = om_0 * lat.get('a',4) * lat.get('ah',4) - F * lat.get('c',2) * lat.get('ch',2) * ( ( lat.get('a',5) * lat.get('ah',4) + lat.get('ah',5) * lat.get('a',4) ) )
+        h_v.truncate()
+        return h_v 
+    
+    def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
+        h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_v(om_0, F)
+        h_tot.truncate()
+        return h_tot
+        
+    
+#Hamiltonian
+ham = Hamiltonian(lat, max_bosons)
+# h_s = ham.h_s(eps)
+# h_b = ham.h_b(Om_kl, Om_kr, mu_l, mu_r)
+# h_t = ham.h_t(g_kl, g_kr)
+# h_v = ham.h_v(om_0, F)
+h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
 
-#hamiltonian
-h = lat.get('I') #[lat.get('nf',0)] #hermitian, thus no balancing operators needed
-#lindblad operators
-l_list = [ np.exp( - beta * omega/2) * lat.get('c', 1) * lat.get('ch', 0), lat.get('ch',1) * lat.get('c',0) ]
+#Lindblad operators
+def fermi_dist(beta, e, mu):
+    f = 1 / ( np.exp( beta * (e-mu) ) + 1)
+    return f
+
+def lindblad_op_list_left_lead( Om_kl, Gamma, mu_l, T_l ):
+    l_list_left = []
+    l_list_left.append( np.sqrt( Gamma * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.get( 'ch',1 ) * lat.get( 'c',0 ) )
+    l_list_left.append( np.sqrt( Gamma * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.get('c',1) * lat.get('ch',0) )
+    return l_list_left
+
+def lindblad_op_list_right_lead( Om_kr, Gamma, mu_r, T_r ):
+    l_list_right = []
+    l_list_right.append( np.sqrt( Gamma * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) ) * lat.get( 'ch',7 ) * lat.get( 'c',6 ) )
+    l_list_right.append( np.sqrt( Gamma * fermi_dist( 1./T_r, Om_kr, mu_r)) * lat.get('c',7) * lat.get('ch',6) )
+    return l_list_right
+
+l_list_left = lindblad_op_list_left_lead( Om_kl, Gamma, mu_l, T_l )
+l_list_right = lindblad_op_list_right_lead( Om_kr, Gamma, mu_r, T_r )
+l_list = l_list_left + l_list_right
 
 #Observables
 obsdict = observables.ObservablesDict()
-obsdict.initialize_observable('nf_0',(1,), n_timesteps) #1D
-obsdict.initialize_observable('nf_1',(1,), n_timesteps) #1D
+obsdict.initialize_observable('n',(8,), n_timesteps) 
+obsdict.initialize_observable('block_entropies',(7,), n_timesteps)
+obsdict.initialize_observable('rdm_phon',(max_bosons + 1, max_bosons + 1), n_timesteps)
 
-def compute_nf_0(state, obs_array_shape,dtype):  #EXAMPLE 1D
+def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    obs_array = np.real( ptn.mp.expectation(state, lat.get('nf', 0) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
+    for site in range(8):
+        obs_array[site] = np.real( ptn.mp.expectation(state, lat.get('n', site) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
     #OBS DEPENDENT PART END
     return obs_array
 
-def compute_nf_1(state, obs_array_shape,dtype):  #EXAMPLE 1D
+def compute_block_entropies(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    obs_array = np.real( ptn.mp.expectation(state, lat.get('nf', 1) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
+    obs_array = state.block_entropies()
     #OBS DEPENDENT PART END
     return obs_array
 
-obsdict.add_observable_computing_function('nf_0',compute_nf_0 )
-obsdict.add_observable_computing_function('nf_1',compute_nf_1 )
+def compute_rdm_phon(state, obs_array_shape,dtype = 'complex', pickled = True):  #EXAMPLE 1D
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array = rdm =  np.array(ptn.mp.rdm.o1rdm(state,4) )
+    #OBS DEPENDENT PART END
+    return obs_array
+
+
+
+obsdict.add_observable_computing_function('n', compute_n )
+obsdict.add_observable_computing_function('block_entropies', compute_block_entropies )
+obsdict.add_observable_computing_function('rdm_phon', compute_rdm_phon )
 
 ########TDVP CONFIG
 conf_tdvp = ptn.tdvp.Conf()
@@ -105,7 +173,8 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] #most highly model-dependet par
 
 
 #compute time-evolution for one trajectory
-qj = mps_quantum_jumps.MPSQuantumJumps(8, lat, h, l_list) #ADAPTIVE TIMESTEP, NO NORMALIZATION
+vac_state *= lat.get('c',3) * lat.get('ch',2) #FIXME: remove this!!!!!!!
+qj = mps_quantum_jumps.MPSQuantumJumps(8, lat, h_tot, []) #l_list
 
 os.chdir('data_qj_mps')
 trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
@@ -121,20 +190,13 @@ write_directory = os.getcwd()
 
 
 obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
-#exact population of thermal state
-
-n_f_exact = 1./( 1 + np.exp( + beta * omega) )
 
 #PLOT
-nf_0_av = np.loadtxt('nf_0_av')
-nf_1_av = np.loadtxt('nf_1_av')
+n_av = np.loadtxt('n_av')
 
 fig, ax = plt.subplots()
-ax.plot(time_v, nf_0_av[:-1], label='nf_0_av')
-ax.plot(time_v, nf_1_av[:-1], label='nf_1_av')
-ax.plot(time_v, nf_0_av[:-1] + nf_1_av[:-1], label='nf_0_av + nf_1_av')
+ax.plot(time_v, n_av[2,:-1], label='n_sys')
 
-ax.hlines(y=n_f_exact, xmin=0, xmax=t_max, linewidth=2, color='r')
 plt.legend()
 fig.savefig('test_mps.png')
 #########################
