@@ -32,7 +32,7 @@ class ObservablesDict():
 
     def save_observables(self ):
         """Saves all the observables contained in the dictionary 'observables_array_dict'.
-        NOTE: in numpy arrays of rank > 2 need to be pickled.
+        NOTE: in numpy arrays of rank > 2 need to be self.pickledd.
         """
         for key, value in self.observables_array_dict.items():
             #print(key, value)
@@ -43,7 +43,7 @@ class ObservablesDict():
                 with open(key, 'wb') as f:
                     np.save(f, value)    
 
-    def add_observable_computing_function(self,obs_name: str, observable_computing_function):
+    def add_observable_computing_function(self,obs_name: str, observable_computing_function, pickled=False):
         """Assigns a function with which to compute the observable 'obs_name' at each timestep to the dictionary 'observables_comp_functions_dict'
 
         Parameters
@@ -53,6 +53,7 @@ class ObservablesDict():
         observable_computing_function : callable
             function with which to compute the observable 'obs_name' at each timestep
         """
+        self.pickled = pickled
         self.observables_comp_functions_dict.update( {obs_name:observable_computing_function} )
 
 
@@ -155,7 +156,10 @@ class ObservablesDict():
             print('in trajectory {}'.format(trajectory) )
             os.chdir( str( trajectory ) )
             for key in self.observables_array_dict: #loop over observables
-                averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) #FIXME np.load for arrays or rank >=3
+                if self.pickled == False:
+                    averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) 
+                elif self.pickled ==True: #for rank 3 arrays
+                    averaged_observables_array_dict[key + '_av'] += np.load( key + '.npy' )
             os.chdir('..')        
             
         #normalize
@@ -166,7 +170,10 @@ class ObservablesDict():
         for trajectory in traj_list: #loop over trajectories
             os.chdir( str( trajectory ) )  
             for key in self.observables_array_dict: #loop over observables
-                obs = np.loadtxt(key) #FIXME np.load for arrays or rank >=3
+                if self.pickled == False:
+                    obs = np.loadtxt(key) 
+                elif self.pickled == True:
+                    obs = np.load(key + '.npy')
                 obs_av = averaged_observables_array_dict[key + '_av']
                 stat_errors_observables_array_dict['err_' + key] =  (obs - obs_av ) ** 2  
             os.chdir('..') 
@@ -178,14 +185,20 @@ class ObservablesDict():
         #save observables
         for key in averaged_observables_array_dict:
             with open(key, 'wb') as f:
-                np.savetxt(f, averaged_observables_array_dict[key]) #FIXME: works only for real-valued, 1 or 2D arrays
+                if self.pickled == False:
+                    np.savetxt(f, averaged_observables_array_dict[key]) 
+                elif self.pickled == True:
+                    np.save(f, averaged_observables_array_dict[key])    
                 print('saved data in {}'.format(os.getcwd()))
         
         #save errors
         for key in stat_errors_observables_array_dict:
             with open(key, 'wb') as f:
-                np.savetxt(f, stat_errors_observables_array_dict[key]) #FIXME: works only for real-valued, 1 or 2D arrays
-            
+                if self.pickled == False:
+                    np.savetxt(f, stat_errors_observables_array_dict[key]) 
+                elif self.pickled == True:
+                    np.save(f, stat_errors_observables_array_dict[key])
+                    
         #remove single-trajectories folders
         #FIXME: this removes only the trajectories that passed the preprocessing phase!
         if remove_single_trajectories_results:
