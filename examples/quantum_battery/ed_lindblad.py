@@ -8,7 +8,7 @@ import evos.src.methods.partial_traces.partial_trace_tls_boson as pt
 import numpy as np 
 #from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
-#from scipy.linalg import expm
+from scipy.linalg import expm
 from numpy import linalg as la
 import sys
 #import math
@@ -24,15 +24,17 @@ g_kl = 1
 g_kr = 1
 om_0 = 1
 F = 1
+#FIXME: how do I compute N0??
 
 Gamma = 1
-mu_l = -1
+mu_l = +1
 mu_r = +1
 T_l = 1
 T_r = 1
+k_b = 1 #boltzmann constant
  
-dt = 0.25
-t_max = 50
+dt = 1
+t_max = 300
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 
@@ -149,6 +151,23 @@ U = np.zeros( n_timesteps )
 for time in range(n_timesteps):
     U[time] = np.trace( h_bos_reduced @ rho_bosonic[:,:,time] )
 
+#compute von neuman entropy
+def von_neumann_entropy(rho):
+    from scipy import linalg as sla
+    R = rho*(sla.logm(rho)/sla.logm(np.matrix([[2]])))
+    S = -np.matrix.trace(R)
+    return(S)
+
+S = np.zeros( n_timesteps )
+for time in range(n_timesteps):
+    S[time] = von_neumann_entropy( rho_bosonic[:,:,time] )
+#non equilibrium free energy
+f_neq = U - T_l * S
+
+#equilibrium free energy
+Z = np.trace( expm( -h_bos_reduced /(k_b * T_l) ) )
+f_eq = -k_b * T_l * np.log(Z)
+f_eq_vector = f_eq * np.ones(n_timesteps)
 
 #PLOT
 #plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
@@ -156,6 +175,10 @@ for time in range(n_timesteps):
 # plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ_1 boson' )
 # plt.plot(time_v, rho_bosonic[2,2,:], label = 'occ_2 boson' )
 # plt.plot(time_v, U, label = 'U boson' )
+plt.plot(time_v, S, label = 'S boson' )
 
-# plt.legend()
-# plt.show()
+# plt.plot(time_v, f_neq, label = 'f_neq' )
+#plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
+# plt.plot(time_v, f_eq_vector, label = 'f_eq')
+plt.legend()
+plt.show()
