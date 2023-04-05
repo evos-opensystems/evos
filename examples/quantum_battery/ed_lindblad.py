@@ -1,4 +1,4 @@
-"""Trying to reproduce 'https://arxiv.org/pdf/2201.07819.pdf' for a single driven left lead, and a single driven right one. The dimension of the oscillator needs to be strongly truncated.
+"""Trying to reproduce 'https://arxiv.org/pdf/2201.07819.pdf' for a single driven left lead, and a single driven right one with ed lindblad. The dimension of the oscillator needs to be strongly truncated.
 """
 
 import evos.src.lattice.dot_with_oscillator_lattice as lattice 
@@ -34,25 +34,13 @@ T_r = 1
 k_b = 1 #boltzmann constant
  
 dt = 1
-t_max = 300
+t_max = 100
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 
+os.chdir('data_lindblad_ed')
 #LATTICE
 lat = lattice.DotWithOscillatorLattice(max_bosons)
-
-############## TEST PAARTIAL TRACE
-# psi = lat.vacuum_state
-# psi = lat.sso('ah',2) @ lat.sso('ah',2) @ psi
-# psi /= la.norm(psi)
-# lindblad = lindblad.Lindblad(4)
-# rho0123 = lindblad.ket_to_projector(psi)    
-# rho123 = pt.tracing_out_one_tls_from_tls_bosonic_system(0, rho0123, [1,1,0,1], max_bosons)
-# rho23 = pt.tracing_out_one_tls_from_tls_bosonic_system(0, rho123, [1,0,1], max_bosons)
-# rho2 = pt.tracing_out_one_tls_from_tls_bosonic_system(1, rho23, [0,1], max_bosons)
-# print(rho2)
-# quit()
-############## 
 
 class Hamiltonian():
     
@@ -125,8 +113,8 @@ lindblad = lindblad.Lindblad(4)
 rho_0 = lindblad.ket_to_projector(init_state)        
 rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, l_list, h_tot)
 
-#Compute bservables
-observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1) }
+#Compute observables
+observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2) }
 computed_observables =  lindblad.compute_observables(rho_t, observables, dt, t_max)
 
 #compute bosonic reduced density matrix at each timestep
@@ -169,13 +157,18 @@ Z = np.trace( expm( -h_bos_reduced /(k_b * T_l) ) )
 f_eq = -k_b * T_l * np.log(Z)
 f_eq_vector = f_eq * np.ones(n_timesteps)
 
+#SAVE OBSERVABLES
+np.savetxt('n_system', computed_observables['n_system'] )
+np.savetxt('U_from_full_state', computed_observables['U_from_full_state'] )
+
 #PLOT
 #plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
+plt.plot(time_v, computed_observables['U_from_full_state'], label = 'U_from_full_state' )
 # plt.plot(time_v, rho_bosonic[0,0,:], label = 'occ_0 boson' )
 # plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ_1 boson' )
 # plt.plot(time_v, rho_bosonic[2,2,:], label = 'occ_2 boson' )
-# plt.plot(time_v, U, label = 'U boson' )
-plt.plot(time_v, S, label = 'S boson' )
+plt.plot(time_v, U, label = 'U boson' )
+#plt.plot(time_v, S, label = 'S boson' )
 
 # plt.plot(time_v, f_neq, label = 'f_neq' )
 #plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
