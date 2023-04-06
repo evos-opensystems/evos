@@ -1,7 +1,7 @@
 """Trying to reproduce 'https://arxiv.org/pdf/2201.07819.pdf' for a single driven left lead, and a single driven right one with mps quantum jumps. The dimension of the oscillator needs to be strongly truncated.
 """
 import evos.src.methods.mps_quantum_jumps as mps_quantum_jumps
-import evos.src.observables.observables as observables
+import evos.src.observables.observables_pickled as observables
 import pyten as ptn
 import numpy as np 
 #from scipy.integrate import solve_ivp
@@ -9,6 +9,7 @@ import matplotlib.pyplot as plt
 import sys
 #import math
 import os
+sys.stdout.write('test')
 
 #PARAMETERS
 max_bosons = 2
@@ -21,7 +22,7 @@ om_0 = 1
 F = 1
 #FIXME: how do I compute N0??
 
-Gamma = 1
+Gamma = 0.5
 mu_l = +1
 mu_r = +1
 T_l = 1
@@ -29,12 +30,11 @@ T_r = 1
 k_b = 1 #boltzmann constant
  
 dt = 0.05
-t_max = 0.1
+t_max = 10
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
-trajectory = 0
-first_trajectory = 0
+first_trajectory = 2
 
 #Lattice
 ferm_bos_sites = [ 1, 1, 1, 1, 0, 1, 1 ] #doubled the fermionic sites to project-purify
@@ -63,8 +63,8 @@ class Hamiltonian():
     def h_b(self, Om_kl, Om_kr, mu_l, mu_r):
         #NOTE: added mu_l and mu_rto onsite energies
         h_b = []
-        h_b.append( ( Om_kl + mu_l ) * lat.get('c',0) * lat.get('ch',0) ) #no need to PP
-        h_b.append( ( Om_kr + mu_r ) * lat.get('c',6) * lat.get('ch',6) ) #no need to PP
+        h_b.append( ( Om_kl - mu_l ) * lat.get('c',0) * lat.get('ch',0) ) #no need to PP
+        h_b.append( ( Om_kr - mu_r ) * lat.get('c',6) * lat.get('ch',6) ) #no need to PP
         h_b = ptn.mp.addLog(h_b)
         h_b.truncate()
         return h_b
@@ -129,7 +129,7 @@ def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
     for site in range(8):
-        obs_array[site] = np.real( ptn.mp.expectation(state, lat.get('n', site) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
+        obs_array[site] = np.real( ptn.mp.expectation(state, lat.get('n', site) ) ) #/ state.norm() ** 2 #NOTE: state is in general not normalized
     #OBS DEPENDENT PART END
     return obs_array
 
@@ -140,13 +140,12 @@ def compute_block_entropies(state, obs_array_shape,dtype):  #EXAMPLE 1D
     #OBS DEPENDENT PART END
     return obs_array
 
-def compute_rdm_phon(state, obs_array_shape,dtype = 'complex', pickled = True):  #EXAMPLE 1D
+def compute_rdm_phon(state, obs_array_shape,dtype = 'complex'):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
     obs_array = rdm =  np.array(ptn.mp.rdm.o1rdm(state,4) )
     #OBS DEPENDENT PART END
     return obs_array
-
 
 
 obsdict.add_observable_computing_function('n', compute_n )
@@ -173,15 +172,19 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] #most highly model-dependet par
 
 
 #compute time-evolution for one trajectory
-vac_state *= lat.get('c',3) * lat.get('ch',2) #FIXME: remove this!!!!!!!
+#vac_state *= lat.get('c',3) * lat.get('ch',2) #FIXME: remove this!!!!!!!
+
+#exite one particle in the left lead and one in the right lead
+vac_state *= lat.get('c',1) * lat.get('ch',0)
+vac_state *= lat.get('c',7) * lat.get('ch',6)
+
 qj = mps_quantum_jumps.MPSQuantumJumps(8, lat, h_tot, []) #l_list
 
 os.chdir('data_qj_mps')
-trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
-print('computing time-evolution for trajectory {}'.format(trajectory) )
+first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 
 #COMPUTE ONE TRAJECTORY WITH TDVP 
-for trajectory in range(n_trajectories): 
+for trajectory in range(first_trajectory, first_trajectory + n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
     test_singlet_traj_evolution = qj.quantum_jump_single_trajectory_time_evolution(vac_state, conf_tdvp, t_max, dt, trajectory, obsdict)
 
@@ -189,10 +192,10 @@ read_directory = os.getcwd()
 write_directory = os.getcwd()
 
 
-obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
+obsdict.compute_trajectories_averages_and_errors( list( range( first_trajectory, first_trajectory + n_trajectories) ), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
 #PLOT
-n_av = np.loadtxt('n_av')
+n_av = np.load('n_av.npy')
 
 fig, ax = plt.subplots()
 ax.plot(time_v, n_av[2,:-1], label='n_sys')

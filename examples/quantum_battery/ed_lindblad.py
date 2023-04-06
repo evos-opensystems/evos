@@ -26,15 +26,15 @@ om_0 = 1
 F = 1
 #FIXME: how do I compute N0??
 
-Gamma = 1
+Gamma = 0.5
 mu_l = +1
 mu_r = +1
 T_l = 1
 T_r = 1
 k_b = 1 #boltzmann constant
  
-dt = 0.25
-t_max = 10
+dt = 1
+t_max = 100
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 
@@ -55,7 +55,7 @@ class Hamiltonian():
 
     def h_b(self, Om_kl, Om_kr, mu_l, mu_r):
         #NOTE: added mu_l and mu_rto onsite energies
-        h_b = ( Om_kl + mu_l ) * lat.sso('ch',0) @ lat.sso('c',0) + ( Om_kr + mu_r ) * lat.sso('ch',3) @ lat.sso('c',3)
+        h_b = ( Om_kl - mu_l ) * lat.sso('ch',0) @ lat.sso('c',0) + ( Om_kr - mu_r ) * lat.sso('ch',3) @ lat.sso('c',3)
         return h_b
    
     def h_t(self, g_kl, g_kr):
@@ -163,16 +163,20 @@ np.savetxt('n_system', computed_observables['n_system'] )
 np.savetxt('U_from_full_state', computed_observables['U_from_full_state'] )
 np.savetxt('S',S)
 #PLOT
+fig = plt.figure()
 #plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
-plt.plot(time_v, computed_observables['U_from_full_state'], label = 'U_from_full_state' )
-# plt.plot(time_v, rho_bosonic[0,0,:], label = 'occ_0 boson' )
-# plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ_1 boson' )
-# plt.plot(time_v, rho_bosonic[2,2,:], label = 'occ_2 boson' )
-plt.plot(time_v, U, label = 'U boson' )
+#plt.plot(time_v, computed_observables['U_from_full_state'], label = 'U_from_full_state' )
+plt.plot(time_v, rho_bosonic[0,0,:], label = 'occ mode 0 boson' )
+plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ mode 1 boson' )
+plt.plot(time_v, rho_bosonic[2,2,:], label = 'occ mode 2 boson' )
+##plt.plot(time_v, rho_bosonic[3,3,:], label = 'occ mode 3 boson' )
+
+#plt.plot(time_v, U, label = 'U boson' )
 #plt.plot(time_v, S, label = 'S boson' )
 
 # plt.plot(time_v, f_neq, label = 'f_neq' )
 #plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
 # plt.plot(time_v, f_eq_vector, label = 'f_eq')
 plt.legend()
-plt.show()
+fig.savefig('lindblad.png')
+#plt.show()

@@ -15,6 +15,7 @@ import sys
 #import math
 import os
 np.set_printoptions(threshold=sys.maxsize)
+sys.stdout.write('test')
 
 #PARAMETERS
 max_bosons = 2
@@ -27,7 +28,7 @@ om_0 = 1
 F = 1
 #FIXME: how do I compute N0??
 
-Gamma = 1
+Gamma = 0.5
 mu_l = +1
 mu_r = +1
 T_l = 1
@@ -38,8 +39,8 @@ dt = 0.05
 t_max = 10
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 100
-trajectory = 0
+n_trajectories = 1
+first_trajectory = 2
 
 #LATTICE
 lat = lattice.DotWithOscillatorLattice(max_bosons)
@@ -57,7 +58,7 @@ class Hamiltonian():
 
     def h_b(self, Om_kl, Om_kr, mu_l, mu_r):
         #NOTE: added mu_l and mu_rto onsite energies
-        h_b = ( Om_kl + mu_l ) * lat.sso('ch',0) @ lat.sso('c',0) + ( Om_kr + mu_r ) * lat.sso('ch',3) @ lat.sso('c',3)
+        h_b = ( Om_kl - mu_l ) * lat.sso('ch',0) @ lat.sso('c',0) + ( Om_kr - mu_r ) * lat.sso('ch',3) @ lat.sso('c',3)
         return h_b
    
     def h_t(self, g_kl, g_kr):
@@ -112,12 +113,21 @@ init_state = lat.vacuum_state
 #Observables
 obsdict = observables.ObservablesDict()
 obsdict.initialize_observable('n_system',(1,), n_timesteps) #1D
+obsdict.initialize_observable('n_3',(1,), n_timesteps) #1D
+
 obsdict.initialize_observable('U',(1,), n_timesteps) #1D
 
 def compute_n_system(state, obs_array_shape,dtype): 
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
     obs_array[0] = np.real( np.conjugate(state) @ lat.sso('ch',1) @ lat.sso('c',1) @ state  )  
+    #OBS DEPENDENT PART END
+    return obs_array
+
+def compute_n_3(state, obs_array_shape,dtype): 
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array[0] = np.real( np.conjugate(state) @ lat.sso('ch',3) @ lat.sso('c',3) @ state  )  
     #OBS DEPENDENT PART END
     return obs_array
 
@@ -129,15 +139,22 @@ def compute_U(state, obs_array_shape,dtype):
     return obs_array
 
 obsdict.add_observable_computing_function('n_system',compute_n_system)
+obsdict.add_observable_computing_function('n_3',compute_n_3)
 obsdict.add_observable_computing_function('U',compute_U)
 #NOTE: von Neuman entropy is not computed here. It should be possible to compute it with syten
 
 #compute QJ time evolution
 os.chdir('data_qj_ed')
 #init_state = lat.sso('ch',1) @ init_state #FIXME: remove this!!!!!!! 
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list) #l_list
+
+#exite one particle in the left lead and one in the right lead
+init_state = lat.sso('ch',0) @ init_state
+init_state = lat.sso('ch',3) @ init_state
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []) #l_list
+
+first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially
-for trajectory in range(n_trajectories): 
+for trajectory in range(first_trajectory, first_trajectory + n_trajectories): 
     print('computing trajectory {}'.format(trajectory))
     test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(init_state, t_max, dt, trajectory, obsdict )
 
@@ -145,7 +162,7 @@ for trajectory in range(n_trajectories):
 read_directory = os.getcwd()
 write_directory = os.getcwd()
 
-obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
+obsdict.compute_trajectories_averages_and_errors( list( range( first_trajectory, first_trajectory + n_trajectories) ), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
 #PLOT                                                                              
 n_system_av = np.loadtxt('n_system_av')
