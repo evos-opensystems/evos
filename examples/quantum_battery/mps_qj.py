@@ -38,10 +38,10 @@ T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
 dt = 0.05
-t_max = 10
+t_max = 50
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 50
+n_trajectories = 1
 first_trajectory = 0
 
 #Lattice
@@ -85,22 +85,27 @@ class Hamiltonian():
         #h_t.truncate()
         return h_t
     
-    def h_v(self, om_0, F): #system-oscillator
-        h_v = om_0 * lat.get('ah',4) * lat.get('a',4) - F * ( lat.get('c',2) * lat.get('ch',2) - N0 * lat.get('I') ) *  ( lat.get('a',5) * lat.get('ah',4) + lat.get('ah',5) * lat.get('a',4) ) 
+    def h_v(self, F, N0): #system-oscillator
+        h_v = - F * ( lat.get('c',2) * lat.get('ch',2) - N0 * lat.get('I') ) *  ( lat.get('ah',4) * lat.get('a',5)  + lat.get('a',4) * lat.get('ah',5) ) 
         #h_v.truncate()
         return h_v 
     
+    def h_boson(self, om_0): #oscillator
+        h_boson = om_0 * lat.get('nb',4) #lat.get('nb',4)
+        return h_boson
+    
     def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
-        h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_v(om_0, F)
+        h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_boson(om_0) + self.h_v(F, N0)
         #h_tot.truncate()
         return h_tot
         
     
 #Hamiltonian
 ham = Hamiltonian(lat, max_bosons)
-# h_s = ham.h_s(eps)
-h_b = ham.h_b(Om_kl, Om_kr, mu_l, mu_r)
+h_s = ham.h_s(eps)
+#h_b = ham.h_b(Om_kl, Om_kr, mu_l, mu_r)
 # h_t = ham.h_t(g_kl, g_kr)
+h_boson = ham.h_boson(om_0)
 # h_v = ham.h_v(om_0, F)
 h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
 
@@ -133,6 +138,7 @@ obsdict.initialize_observable('rdm_phon',(max_bosons + 1, max_bosons + 1), n_tim
 obsdict.initialize_observable('bond_dim',(8,), n_timesteps)
 obsdict.initialize_observable('phonon_entanglement_entropy',(1,), n_timesteps) 
 obsdict.initialize_observable('phonon_energy',(1,), n_timesteps) 
+obsdict.initialize_observable('dot_energy',(1,), n_timesteps) 
 
 def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -178,7 +184,14 @@ def compute_phonon_entanglement_entropy(state, obs_array_shape,dtype = 'complex'
 def compute_phonon_energy(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    obs_array = np.real( ptn.mp.expectation(state, h_b ) ) #/ state.norm() ** 2 #NOTE: state is in general not normalized
+    obs_array = np.real( ptn.mp.expectation(state, h_boson ) ) #/ state.norm() ** 2 #NOTE: state is in general not normalized
+    #OBS DEPENDENT PART END
+    return obs_array
+
+def compute_dot_energy(state, obs_array_shape,dtype):  #EXAMPLE 1D
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array = np.real( ptn.mp.expectation(state, h_s ) ) #/ state.norm() ** 2 #NOTE: state is in general not normalized
     #OBS DEPENDENT PART END
     return obs_array
 
@@ -188,6 +201,8 @@ obsdict.add_observable_computing_function('rdm_phon', compute_rdm_phon )
 obsdict.add_observable_computing_function('bond_dim', compute_bond_dim )
 obsdict.add_observable_computing_function('phonon_entanglement_entropy', compute_phonon_entanglement_entropy )
 obsdict.add_observable_computing_function('phonon_energy', compute_phonon_energy )
+obsdict.add_observable_computing_function('dot_energy', compute_dot_energy )
+
 
 ########TDVP CONFIG
 conf_tdvp = ptn.tdvp.Conf()
@@ -222,10 +237,24 @@ vac_state *= lat.get('c',7) * lat.get('ch',6)
 #     S = -np.matrix.trace(R)
 #     return(S)
 
-qj = mps_quantum_jumps.MPSQuantumJumps(8, lat, h_tot, l_list) #
+qj = mps_quantum_jumps.MPSQuantumJumps(8, lat, h_tot, [] ) #l_list
 
 os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
+
+######
+energy_bos_t0 = ptn.mp.expectation(vac_state, h_boson)
+nb_t0 = ptn.mp.expectation(vac_state, lat.get('nb',4)) 
+ah_a_t0 = ptn.mp.expectation(vac_state, lat.get('a',4) * lat.get('ah',4) ) 
+ah_a_ah_a_t0 = ptn.mp.expectation(vac_state, lat.get('ah',4) * lat.get('a',4) * lat.get('ah',5) * lat.get('a',5) ) 
+
+######
+# print('energy_bos_t0 = ',energy_bos_t0)
+# print('nb_t0 = ',nb_t0)
+# print('ah_a_t0 = ', ah_a_t0)
+# print('ah_a_ah_a_t0 = ', ah_a_ah_a_t0)
+# quit()
+######
 
 #COMPUTE ONE TRAJECTORY WITH TDVP 
 for trajectory in range(first_trajectory, first_trajectory + n_trajectories): 

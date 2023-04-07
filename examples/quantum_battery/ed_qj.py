@@ -43,7 +43,7 @@ T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
 dt = 0.05
-t_max = 20
+t_max = 50
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -164,7 +164,7 @@ os.chdir('data_qj_ed')
 #exite one particle in the left lead and one in the right lead
 init_state = lat.sso('ch',0) @ init_state
 init_state = lat.sso('ch',3) @ init_state
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list ) #l_list
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , [] ) #l_list
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially
