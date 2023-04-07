@@ -18,29 +18,36 @@ np.set_printoptions(threshold=sys.maxsize)
 sys.stdout.write('test')
 
 #PARAMETERS
-max_bosons = 2
-eps = 1
-Om_kl = 1
-Om_kr = 1
-g_kl = 1
-g_kr = 1
-om_0 = 1
-F = 1
-#FIXME: how do I compute N0??
+max_bosons = 3
 
-Gamma = 0.5
-mu_l = +1
-mu_r = +1
-T_l = 1
-T_r = 1
+om_0 = 0.2
+m = 1
+lamb = 0.1
+x0 = np.sqrt( 2./ (m * om_0) )
+F = 2 *lamb / x0
+
+eps = 1  #FIXME
+Om_kl = +0.5
+Om_kr = -0.5
+Gamma = 2
+g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
+g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
+N0 = 0.5 #FIXME: is this correct?
+delta_l = 1
+delta_r = 1
+
+mu_l = +0.5 #FIXME
+mu_r = +0.5 #FIXME
+T_l = 1./0.5 #beta_l = 0.5
+T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
 dt = 0.05
-t_max = 10
+t_max = 20
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
-first_trajectory = 2
+first_trajectory = 0
 
 #LATTICE
 lat = lattice.DotWithOscillatorLattice(max_bosons)
@@ -51,31 +58,29 @@ class Hamiltonian():
         self.lat = lat
         self.max_bosons = max_bosons
         
-    def h_s(self, eps):
-        
+    def h_s(self, eps): #system
         h_s = eps * lat.sso('ch',1) @ lat.sso('c',1)
         return h_s 
 
-    def h_b(self, Om_kl, Om_kr, mu_l, mu_r):
+    def h_b(self, Om_kl, Om_kr, mu_l, mu_r): #leads
         #NOTE: added mu_l and mu_rto onsite energies
-        h_b = ( Om_kl - mu_l ) * lat.sso('ch',0) @ lat.sso('c',0) + ( Om_kr - mu_r ) * lat.sso('ch',3) @ lat.sso('c',3)
+        h_b = Om_kl * lat.sso('ch',0) @ lat.sso('c',0) + Om_kr * lat.sso('ch',3) @ lat.sso('c',3)
         return h_b
    
-    def h_t(self, g_kl, g_kr):
+    def h_t(self, g_kl, g_kr): #system-leads
         h_t = g_kl * ( lat.sso('ch',1) @ lat.sso('c',0) + lat.sso('ch',0) @ lat.sso('c',1) ) + g_kr * ( lat.sso('ch',1) @ lat.sso('c',3) + lat.sso('ch',3) @ lat.sso('c',1) )
         return h_t
     
-    def h_v(self, om_0, F):
-        #FIXME: need to detract N0
-        #FIXME: is m = 1 ?
-        h_v = om_0 * lat.sso('ah',2) @ lat.sso('a',2) - F * lat.sso('ch',1) @ lat.sso('c',1) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
+    def h_v(self, om_0, F): #system-oscillator
+        dimH = lat.sso('c',0).shape[0]
+        h_v = om_0 * lat.sso('ah',2) @ lat.sso('a',2) - F * ( lat.sso('ch',1) @ lat.sso('c',1) - N0 * np.eye(dimH, dtype='complex') ) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
         h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_v(om_0, F)
         return h_tot
         
-    
+ 
 #Hamiltonian
 ham = Hamiltonian(lat, max_bosons)
 # h_s = ham.h_s(eps)
@@ -84,26 +89,25 @@ ham = Hamiltonian(lat, max_bosons)
 # h_v = ham.h_v(om_0, F)
 h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
 
-
 #Lindblad operators
 def fermi_dist(beta, e, mu):
     f = 1 / ( np.exp( beta * (e-mu) ) + 1)
     return f
 
-def lindblad_op_list_left_lead( Om_kl, Gamma, mu_l, T_l ):
+def lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l ):
     l_list_left = []
-    l_list_left.append( np.sqrt( Gamma * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.sso( 'c',0 ) )
-    l_list_left.append( np.sqrt( Gamma * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.sso('ch',0) )
+    l_list_left.append( np.sqrt( delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.sso( 'c',0 ) )
+    l_list_left.append( np.sqrt( delta_l * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.sso('ch',0) )
     return l_list_left
 
-def lindblad_op_list_right_lead( Om_kr, Gamma, mu_r, T_r ):
+def lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r ):
     l_list_right = []
-    l_list_right.append( np.sqrt( Gamma * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) ) * lat.sso( 'c',3 ) )
-    l_list_right.append( np.sqrt( Gamma * fermi_dist( 1./T_r, Om_kr, mu_r)) * lat.sso('ch',3) )
+    l_list_right.append( np.sqrt( delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) ) * lat.sso( 'c',3 ) )
+    l_list_right.append( np.sqrt( delta_r * fermi_dist( 1./T_r, Om_kr, mu_r)) * lat.sso('ch',3) )
     return l_list_right
 
-l_list_left = lindblad_op_list_left_lead( Om_kl, Gamma, mu_l, T_l )
-l_list_right = lindblad_op_list_right_lead( Om_kr, Gamma, mu_r, T_r )
+l_list_left = lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l )
+l_list_right = lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r )
 l_list = l_list_left + l_list_right
 
 #Initial State: using vacuum for now
@@ -114,8 +118,9 @@ init_state = lat.vacuum_state
 obsdict = observables.ObservablesDict()
 obsdict.initialize_observable('n_system',(1,), n_timesteps) #1D
 obsdict.initialize_observable('n_3',(1,), n_timesteps) #1D
-
 obsdict.initialize_observable('U',(1,), n_timesteps) #1D
+obsdict.initialize_observable('n_bos',(1,), n_timesteps) #1D
+
 
 def compute_n_system(state, obs_array_shape,dtype): 
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -138,9 +143,18 @@ def compute_U(state, obs_array_shape,dtype):
     #OBS DEPENDENT PART END
     return obs_array
 
+def compute_n_bos(state, obs_array_shape,dtype): 
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array[0] = np.real( np.conjugate(state) @ lat.sso('ah',2) @ lat.sso('a',2) @ state  )  
+    #OBS DEPENDENT PART END
+    return obs_array
+
 obsdict.add_observable_computing_function('n_system',compute_n_system)
 obsdict.add_observable_computing_function('n_3',compute_n_3)
 obsdict.add_observable_computing_function('U',compute_U)
+obsdict.add_observable_computing_function('n_bos',compute_n_bos)
+
 #NOTE: von Neuman entropy is not computed here. It should be possible to compute it with syten
 
 #compute QJ time evolution
@@ -150,7 +164,7 @@ os.chdir('data_qj_ed')
 #exite one particle in the left lead and one in the right lead
 init_state = lat.sso('ch',0) @ init_state
 init_state = lat.sso('ch',3) @ init_state
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []) #l_list
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list ) #l_list
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially

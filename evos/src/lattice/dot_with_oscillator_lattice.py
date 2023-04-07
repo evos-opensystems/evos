@@ -17,17 +17,17 @@ class DotWithOscillatorLattice():
         ch = np.array( [ [0,0], [1,0] ], dtype='complex' )
         c = np.array( [ [0,1], [0,0] ], dtype='complex' )
         
-        ah = np.zeros( (max_bosons + 1,max_bosons + 1) )
+        ah = np.zeros( (max_bosons + 1,max_bosons + 1), dtype='complex'  )
         for i in range( 1, max_bosons + 1 ):
             ah[i, i - 1] = np.sqrt(i)
             
-        a = np.zeros( ( max_bosons + 1, max_bosons + 1) )
+        a = np.zeros( ( max_bosons + 1, max_bosons + 1), dtype='complex'  )
         for i in range(max_bosons):
             a[i, i + 1 ] = np.sqrt(i+1)
          
         self.parity = np.array( [ [1,0], [0,-1] ], dtype='complex' )
-        self.Id_f = np.eye(2)
-        self.Id_b = np.eye(max_bosons+1)        
+        self.Id_f = np.eye(2, dtype='complex')
+        self.Id_b = np.eye(max_bosons+1, dtype='complex')        
         operators = {}
         self.operators = operators
         operators.update({'ch':ch})

@@ -9,32 +9,40 @@ import matplotlib.pyplot as plt
 import sys
 #import math
 import os
+from scipy import linalg as sla
 sys.stdout.write('test')
 
 #PARAMETERS
-max_bosons = 2
-eps = 1
-Om_kl = 1
-Om_kr = 1
-g_kl = 1
-g_kr = 1
-om_0 = 1
-F = 1
-#FIXME: how do I compute N0??
+max_bosons = 3
 
-Gamma = 0.5
-mu_l = +1
-mu_r = +1
-T_l = 1
-T_r = 1
+om_0 = 0.2
+m = 1
+lamb = 0.1
+x0 = np.sqrt( 2./ (m * om_0) )
+F = 2 *lamb / x0
+
+eps = 1  #FIXME
+Om_kl = +0.5
+Om_kr = -0.5
+Gamma = 2
+g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
+g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
+N0 = 0.5 #FIXME: is this correct?
+delta_l = 1
+delta_r = 1
+
+mu_l = +0.5 #FIXME
+mu_r = +0.5 #FIXME
+T_l = 1./0.5 #beta_l = 0.5
+T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
 dt = 0.05
 t_max = 10
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 1
-first_trajectory = 2
+n_trajectories = 50
+first_trajectory = 0
 
 #Lattice
 ferm_bos_sites = [ 1, 1, 1, 1, 0, 1, 1 ] #doubled the fermionic sites to project-purify
@@ -54,46 +62,44 @@ class Hamiltonian():
         self.lat = lat
         self.max_bosons = max_bosons
         
-    def h_s(self, eps):
+    def h_s(self, eps): #system
         h_s = eps * lat.get('c',2) * lat.get('ch',2) #no need to PP
         #h_s = ptn.mp.addLog(h_s)
-        h_s.truncate()
+        #h_s.truncate()
         return h_s 
 
-    def h_b(self, Om_kl, Om_kr, mu_l, mu_r):
+    def h_b(self, Om_kl, Om_kr, mu_l, mu_r): #leads
         #NOTE: added mu_l and mu_rto onsite energies
         h_b = []
-        h_b.append( ( Om_kl - mu_l ) * lat.get('c',0) * lat.get('ch',0) ) #no need to PP
-        h_b.append( ( Om_kr - mu_r ) * lat.get('c',6) * lat.get('ch',6) ) #no need to PP
+        h_b.append( Om_kl * lat.get('c',0) * lat.get('ch',0) ) #no need to PP
+        h_b.append( Om_kr * lat.get('c',6) * lat.get('ch',6) ) #no need to PP
         h_b = ptn.mp.addLog(h_b)
-        h_b.truncate()
+        #h_b.truncate()
         return h_b
    
-    def h_t(self, g_kl, g_kr):
+    def h_t(self, g_kl, g_kr): #system-leads
         #h_t = []
         h_t = g_kl * ( lat.get('ch',1) * lat.get('c',0) * lat.get('c',3) * lat.get('ch',2) + lat.get('c',2) * lat.get('ch',3) * lat.get('ch',0) * lat.get('c',1) ) 
         h_t += g_kr * ( lat.get('ch',7) * lat.get('c',6) * lat.get('c',3) * lat.get('ch',2) + lat.get('c',2) * lat.get('ch',3) * lat.get('ch',6) * lat.get('c',7) ) 
         #h_t = ptn.mp.addLog(h_t)
-        h_t.truncate()
+        #h_t.truncate()
         return h_t
     
-    def h_v(self, om_0, F):
-        #FIXME: need to detract N0
-        #FIXME: is m = 1 ?
-        h_v = om_0 * lat.get('a',4) * lat.get('ah',4) - F * lat.get('c',2) * lat.get('ch',2) * ( ( lat.get('a',5) * lat.get('ah',4) + lat.get('ah',5) * lat.get('a',4) ) )
-        h_v.truncate()
+    def h_v(self, om_0, F): #system-oscillator
+        h_v = om_0 * lat.get('ah',4) * lat.get('a',4) - F * ( lat.get('c',2) * lat.get('ch',2) - N0 * lat.get('I') ) *  ( lat.get('a',5) * lat.get('ah',4) + lat.get('ah',5) * lat.get('a',4) ) 
+        #h_v.truncate()
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
         h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_v(om_0, F)
-        h_tot.truncate()
+        #h_tot.truncate()
         return h_tot
         
     
 #Hamiltonian
 ham = Hamiltonian(lat, max_bosons)
 # h_s = ham.h_s(eps)
-# h_b = ham.h_b(Om_kl, Om_kr, mu_l, mu_r)
+h_b = ham.h_b(Om_kl, Om_kr, mu_l, mu_r)
 # h_t = ham.h_t(g_kl, g_kr)
 # h_v = ham.h_v(om_0, F)
 h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
@@ -103,27 +109,30 @@ def fermi_dist(beta, e, mu):
     f = 1 / ( np.exp( beta * (e-mu) ) + 1)
     return f
 
-def lindblad_op_list_left_lead( Om_kl, Gamma, mu_l, T_l ):
+def lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l ):
     l_list_left = []
-    l_list_left.append( np.sqrt( Gamma * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.get( 'ch',1 ) * lat.get( 'c',0 ) )
-    l_list_left.append( np.sqrt( Gamma * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.get('c',1) * lat.get('ch',0) )
+    l_list_left.append( np.sqrt( delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.get( 'ch',1 ) * lat.get( 'c',0 ) )
+    l_list_left.append( np.sqrt( delta_l * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.get('c',1) * lat.get('ch',0) )
     return l_list_left
 
-def lindblad_op_list_right_lead( Om_kr, Gamma, mu_r, T_r ):
+def lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r ):
     l_list_right = []
-    l_list_right.append( np.sqrt( Gamma * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) ) * lat.get( 'ch',7 ) * lat.get( 'c',6 ) )
-    l_list_right.append( np.sqrt( Gamma * fermi_dist( 1./T_r, Om_kr, mu_r)) * lat.get('c',7) * lat.get('ch',6) )
+    l_list_right.append( np.sqrt( delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) ) * lat.get( 'ch',7 ) * lat.get( 'c',6 ) )
+    l_list_right.append( np.sqrt( delta_r * fermi_dist( 1./T_r, Om_kr, mu_r)) * lat.get('c',7) * lat.get('ch',6) )
     return l_list_right
 
-l_list_left = lindblad_op_list_left_lead( Om_kl, Gamma, mu_l, T_l )
-l_list_right = lindblad_op_list_right_lead( Om_kr, Gamma, mu_r, T_r )
+l_list_left = lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l )
+l_list_right = lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r )
 l_list = l_list_left + l_list_right
 
 #Observables
 obsdict = observables.ObservablesDict()
 obsdict.initialize_observable('n',(8,), n_timesteps) 
 obsdict.initialize_observable('block_entropies',(7,), n_timesteps)
-obsdict.initialize_observable('rdm_phon',(max_bosons + 1, max_bosons + 1), n_timesteps)
+obsdict.initialize_observable('rdm_phon',(max_bosons + 1, max_bosons + 1), n_timesteps) 
+obsdict.initialize_observable('bond_dim',(8,), n_timesteps)
+obsdict.initialize_observable('phonon_entanglement_entropy',(1,), n_timesteps) 
+obsdict.initialize_observable('phonon_energy',(1,), n_timesteps) 
 
 def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -143,18 +152,46 @@ def compute_block_entropies(state, obs_array_shape,dtype):  #EXAMPLE 1D
 def compute_rdm_phon(state, obs_array_shape,dtype = 'complex'):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    obs_array = rdm =  np.array(ptn.mp.rdm.o1rdm(state,4) )
+    rdm = np.array(ptn.mp.rdm.o1rdm(state,4) )
+    obs_array[ :rdm.shape[0], :rdm.shape[1] ] = rdm 
     #OBS DEPENDENT PART END
     return obs_array
 
+def compute_bond_dim(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART STAR
+    for site in range(len(obs_array)):
+        obs_array[site] = state[site].getTotalDims()[1]
+    #OBS DEPENDENT PART END
+    return obs_array
+
+def compute_phonon_entanglement_entropy(state, obs_array_shape,dtype = 'complex'):  #EXAMPLE 1D
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    rdm = np.array( ptn.mp.rdm.o1rdm( state, 4) )
+    R = rdm * ( sla.logm( rdm )/ sla.logm( np.matrix( [ [ 2 ] ] ) ) )
+    S = - np.matrix.trace(R)
+    obs_array = S
+    #OBS DEPENDENT PART END
+    return obs_array
+
+def compute_phonon_energy(state, obs_array_shape,dtype):  #EXAMPLE 1D
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array = np.real( ptn.mp.expectation(state, h_b ) ) #/ state.norm() ** 2 #NOTE: state is in general not normalized
+    #OBS DEPENDENT PART END
+    return obs_array
 
 obsdict.add_observable_computing_function('n', compute_n )
 obsdict.add_observable_computing_function('block_entropies', compute_block_entropies )
 obsdict.add_observable_computing_function('rdm_phon', compute_rdm_phon )
+obsdict.add_observable_computing_function('bond_dim', compute_bond_dim )
+obsdict.add_observable_computing_function('phonon_entanglement_entropy', compute_phonon_entanglement_entropy )
+obsdict.add_observable_computing_function('phonon_energy', compute_phonon_energy )
 
 ########TDVP CONFIG
 conf_tdvp = ptn.tdvp.Conf()
-conf_tdvp.mode = ptn.tdvp.Mode.GSE 
+conf_tdvp.mode = ptn.tdvp.Mode.GSE   #TwoSite, GSE, Subspace
 conf_tdvp.dt = dt
 conf_tdvp.trunc.threshold = 1e-8  #NOTE: set to zero for gse
 conf_tdvp.trunc.weight = 1e-10 #tdvp_trunc_weight #NOTE: set to zero for gse
@@ -168,7 +205,7 @@ conf_tdvp.gse_conf.krylov_order = 3
 conf_tdvp.gse_conf.trunc_op = ptn.Truncation(1e-8 , maxStates=500) #maxStates shuld be the same as the one used for tdvp! 1e-8 - 1e-6
 conf_tdvp.gse_conf.trunc_expansion = ptn.Truncation(1e-6, maxStates=500) #precision of GSE. par is trunc. treshold. do not goe below 10^-12 (numerical instability)!!
 conf_tdvp.gse_conf.adaptive = True
-conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] #most highly model-dependet parameter 
+conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-dependet parameter 
 
 
 #compute time-evolution for one trajectory
@@ -178,7 +215,14 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] #most highly model-dependet par
 vac_state *= lat.get('c',1) * lat.get('ch',0)
 vac_state *= lat.get('c',7) * lat.get('ch',6)
 
-qj = mps_quantum_jumps.MPSQuantumJumps(8, lat, h_tot, []) #l_list
+#compute von neuman entropy
+# def von_neumann_entropy(rho):
+#     from scipy import linalg as sla
+#     R = rho*(sla.logm(rho)/sla.logm(np.matrix([[2]])))
+#     S = -np.matrix.trace(R)
+#     return(S)
+
+qj = mps_quantum_jumps.MPSQuantumJumps(8, lat, h_tot, l_list) #
 
 os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
@@ -193,6 +237,7 @@ write_directory = os.getcwd()
 
 
 obsdict.compute_trajectories_averages_and_errors( list( range( first_trajectory, first_trajectory + n_trajectories) ), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
+
 
 #PLOT
 n_av = np.load('n_av.npy')

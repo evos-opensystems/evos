@@ -16,25 +16,32 @@ import os
 np.set_printoptions(threshold=sys.maxsize)
 
 #PARAMETERS
-max_bosons = 2
-eps = 1
-Om_kl = 1
-Om_kr = 1
-g_kl = 1
-g_kr = 1
-om_0 = 1
-F = 1
-#FIXME: how do I compute N0??
+max_bosons = 3
 
-Gamma = 0.5
-mu_l = +1
-mu_r = +1
-T_l = 1
-T_r = 1
+om_0 = 0.2
+m = 1
+lamb = 0.1
+x0 = np.sqrt( 2./ (m * om_0) )
+F = 2 *lamb / x0
+
+eps = 1  #FIXME
+Om_kl = +0.5
+Om_kr = -0.5
+Gamma = 2
+g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
+g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
+N0 = 0.5 #FIXME: is this correct?
+delta_l = 1
+delta_r = 1
+
+mu_l = +0.5 #FIXME
+mu_r = +0.5 #FIXME
+T_l = 1./0.5 #beta_l = 0.5
+T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 1
-t_max = 100
+dt = 5
+t_max = 2000
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 
@@ -63,9 +70,8 @@ class Hamiltonian():
         return h_t
     
     def h_v(self, om_0, F):
-        #FIXME: need to detract N0
-        #FIXME: is m = 1 ?
-        h_v = om_0 * lat.sso('ah',2) @ lat.sso('a',2) - F * lat.sso('ch',1) @ lat.sso('c',1) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
+        dimH = lat.sso('c',0).shape[0]
+        h_v = om_0 * lat.sso('ah',2) @ lat.sso('a',2) - F * ( lat.sso('ch',1) @ lat.sso('c',1) - N0 * np.eye(dimH, dtype='complex') ) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
@@ -87,20 +93,20 @@ def fermi_dist(beta, e, mu):
     f = 1 / ( np.exp( beta * (e-mu) ) + 1)
     return f
 
-def lindblad_op_list_left_lead( Om_kl, Gamma, mu_l, T_l ):
+def lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l ):
     l_list_left = []
-    l_list_left.append( np.sqrt( Gamma * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.sso( 'c',0 ) )
-    l_list_left.append( np.sqrt( Gamma * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.sso('ch',0) )
+    l_list_left.append( np.sqrt( delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.sso( 'c',0 ) )
+    l_list_left.append( np.sqrt( delta_l * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.sso('ch',0) )
     return l_list_left
 
-def lindblad_op_list_right_lead( Om_kr, Gamma, mu_r, T_r ):
+def lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r ):
     l_list_right = []
-    l_list_right.append( np.sqrt( Gamma * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) ) * lat.sso( 'c',3 ) )
-    l_list_right.append( np.sqrt( Gamma * fermi_dist( 1./T_r, Om_kr, mu_r)) * lat.sso('ch',3) )
+    l_list_right.append( np.sqrt( delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) ) * lat.sso( 'c',3 ) )
+    l_list_right.append( np.sqrt( delta_r * fermi_dist( 1./T_r, Om_kr, mu_r)) * lat.sso('ch',3) )
     return l_list_right
 
-l_list_left = lindblad_op_list_left_lead( Om_kl, Gamma, mu_l, T_l )
-l_list_right = lindblad_op_list_right_lead( Om_kr, Gamma, mu_r, T_r )
+l_list_left = lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l )
+l_list_right = lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r )
 l_list = l_list_left + l_list_right
 
 #Initial State: using vacuum for now
@@ -115,7 +121,7 @@ rho_0 = lindblad.ket_to_projector(init_state)
 rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max,l_list, h_tot) #l_list
 
 #Compute observables
-observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2) }
+observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2), 'n_bos':lat.sso('ah',2) @ lat.sso('a',2)  }
 computed_observables =  lindblad.compute_observables(rho_t, observables, dt, t_max)
 
 #compute bosonic reduced density matrix at each timestep
@@ -161,21 +167,25 @@ f_eq_vector = f_eq * np.ones(n_timesteps)
 #SAVE OBSERVABLES
 np.savetxt('n_system', computed_observables['n_system'] )
 np.savetxt('U_from_full_state', computed_observables['U_from_full_state'] )
+np.savetxt('n_bos', computed_observables['n_bos'] )
 np.savetxt('S',S)
 #PLOT
 fig = plt.figure()
 #plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
 #plt.plot(time_v, computed_observables['U_from_full_state'], label = 'U_from_full_state' )
-plt.plot(time_v, rho_bosonic[0,0,:], label = 'occ mode 0 boson' )
-plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ mode 1 boson' )
-plt.plot(time_v, rho_bosonic[2,2,:], label = 'occ mode 2 boson' )
-##plt.plot(time_v, rho_bosonic[3,3,:], label = 'occ mode 3 boson' )
+# plt.plot(time_v, rho_bosonic[0,0,:], label = 'occ mode 0 boson' )
+# plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ mode 1 boson' )
+# plt.plot(time_v, rho_bosonic[2,2,:], label = 'occ mode 2 boson' )
+#plt.plot(time_v, rho_bosonic[3,3,:], label = 'occ mode 3 boson' )
+
+# plt.plot(time_v, computed_observables['n_bos'], label = 'n bosons' )
+
 
 #plt.plot(time_v, U, label = 'U boson' )
 #plt.plot(time_v, S, label = 'S boson' )
 
 # plt.plot(time_v, f_neq, label = 'f_neq' )
-#plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
+plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
 # plt.plot(time_v, f_eq_vector, label = 'f_eq')
 plt.legend()
 fig.savefig('lindblad.png')
