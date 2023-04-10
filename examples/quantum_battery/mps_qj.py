@@ -16,20 +16,20 @@ sys.stdout.write('test')
 max_bosons = 3
 
 om_0 = 0.2
-m = 1
+m = 1.
 lamb = 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
-F = 2 *lamb / x0
+F = 2. *lamb / x0
 
-eps = 1  #FIXME: this is not specified in caption!!
+eps = 1.  #FIXME: this is not specified in caption!!
 Om_kl = +0.5
 Om_kr = -0.5
-Gamma = 2
+Gamma = 2.
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0.5 #FIXME: is this correct?
-delta_l = 1
-delta_r = 1
+N0 = 0.5 #0.5 #FIXME: is this correct?
+delta_l = 1.
+delta_r = 1.
 
 mu_l = +0.5 #FIXME
 mu_r = +0.5 #FIXME
@@ -37,8 +37,8 @@ T_l = 1./0.5 #beta_l = 0.5
 T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 0.01
-t_max = 10
+dt = 0.02
+t_max = 20
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -85,14 +85,14 @@ class Hamiltonian():
         #h_t.truncate()
         return h_t
     
-    def h_v(self, F, N0): #system-oscillator
-        h_v = - F * ( lat.get('c',2) * lat.get('ch',2) - N0 * lat.get('I') ) *  ( lat.get('ah',4) * lat.get('a',5)  + lat.get('a',4) * lat.get('ah',5) ) 
-        #h_v.truncate()
-        return h_v 
-    
     def h_boson(self, om_0): #oscillator
         h_boson = om_0 * lat.get('nb',4) #lat.get('nb',4)
         return h_boson
+    
+    def h_v(self, F, N0): #system-oscillator
+        h_v = - F * ( lat.get('nf',2) - N0 * lat.get('I') ) *  ( lat.get('a',5) * lat.get('ah',4)  + lat.get('ah',5) * lat.get('a',4) ) 
+        #h_v.truncate()
+        return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
         h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_boson(om_0) + self.h_v(F, N0)
@@ -109,6 +109,9 @@ h_boson = ham.h_boson(om_0)
 # h_v = ham.h_v(om_0, F)
 h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
 
+# lat.add('h_tot', 'h_tot', h_tot)
+# lat.save('lat')
+# quit()
 
 ########### GS
 # conf = ptn.dmrg.DMRGConfig()
@@ -250,6 +253,7 @@ obsdict.initialize_observable('bond_dim',(8,), n_timesteps)
 obsdict.initialize_observable('phonon_entanglement_entropy',(1,), n_timesteps) 
 obsdict.initialize_observable('phonon_energy',(1,), n_timesteps) 
 obsdict.initialize_observable('dot_energy',(1,), n_timesteps) 
+obsdict.initialize_observable('phys_dim',(8,), n_timesteps) 
 
 def compute_n(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -306,6 +310,14 @@ def compute_dot_energy(state, obs_array_shape,dtype):  #EXAMPLE 1D
     #OBS DEPENDENT PART END
     return obs_array
 
+def compute_phys_dim(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART STAR
+    for site in range(len(obs_array)):
+        obs_array[site] = state[site].getTotalDims()[0]
+    #OBS DEPENDENT PART END
+    return obs_array
+
 obsdict.add_observable_computing_function('n', compute_n )
 obsdict.add_observable_computing_function('block_entropies', compute_block_entropies )
 obsdict.add_observable_computing_function('rdm_phon', compute_rdm_phon )
@@ -313,6 +325,7 @@ obsdict.add_observable_computing_function('bond_dim', compute_bond_dim )
 obsdict.add_observable_computing_function('phonon_entanglement_entropy', compute_phonon_entanglement_entropy )
 obsdict.add_observable_computing_function('phonon_energy', compute_phonon_energy )
 obsdict.add_observable_computing_function('dot_energy', compute_dot_energy )
+obsdict.add_observable_computing_function('phys_dim', compute_phys_dim )
 
 ########TDVP CONFIG
 conf_tdvp = ptn.tdvp.Conf()
@@ -342,7 +355,7 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-de
 #vac_state *= lat.get('c',1) * lat.get('ch',0)
 vac_state *= lat.get('c',7) * lat.get('ch',6)
 
-qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, l_list ) # l_list, [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
+qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, [] ) # l_list, [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
 
 os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
@@ -366,11 +379,11 @@ obsdict.compute_trajectories_averages_and_errors( list( range( first_trajectory,
 
 
 #PLOT
-n_av = np.load('n_av.npy')
+# n_av = np.load('n_av.npy')
 
-fig, ax = plt.subplots()
-ax.plot(time_v, n_av[2,:-1], label='n_sys')
+# fig, ax = plt.subplots()
+# ax.plot(time_v, n_av[2,:-1], label='n_sys')
 
-plt.legend()
-fig.savefig('test_mps.png')
+# plt.legend()
+# fig.savefig('test_mps.png')
 #########################

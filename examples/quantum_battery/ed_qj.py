@@ -21,20 +21,20 @@ sys.stdout.write('test')
 max_bosons = 3
 
 om_0 = 0.2
-m = 1
+m = 1.
 lamb = 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
-F = 2 *lamb / x0
+F = 2. *lamb / x0 
 
-eps = 1  #FIXME
+eps = 1.  #FIXME
 Om_kl = +0.5
 Om_kr = -0.5
-Gamma = 2
+Gamma = 2.
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0.5 #FIXME: is this correct?
-delta_l = 1
-delta_r = 1
+N0 = 0.5 #0.5 #FIXME: is this correct?
+delta_l = 1.
+delta_r = 1.
 
 mu_l = +0.5 #FIXME
 mu_r = +0.5 #FIXME
@@ -42,8 +42,8 @@ T_l = 1./0.5 #beta_l = 0.5
 T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 0.01
-t_max = 10
+dt = 0.02
+t_max = 20
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -71,13 +71,17 @@ class Hamiltonian():
         h_t = g_kl * ( lat.sso('ch',1) @ lat.sso('c',0) + lat.sso('ch',0) @ lat.sso('c',1) ) + g_kr * ( lat.sso('ch',1) @ lat.sso('c',3) + lat.sso('ch',3) @ lat.sso('c',1) )
         return h_t
     
-    def h_v(self, om_0, F): #system-oscillator
+    def h_boson(self, om_0): #oscillator
+        h_boson = om_0 * lat.sso('ah',2) @ lat.sso('a',2)
+        return h_boson
+    
+    def h_v(self, F): #system-oscillator
         dimH = lat.sso('c',0).shape[0]
-        h_v = om_0 * lat.sso('ah',2) @ lat.sso('a',2) - F * ( lat.sso('ch',1) @ lat.sso('c',1) - N0 * np.eye(dimH, dtype='complex') ) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
+        h_v = - F * ( lat.sso('ch',1) @ lat.sso('c',1) - N0 * np.eye(dimH, dtype='complex') ) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
-        h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_v(om_0, F)
+        h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_boson(om_0) + self.h_v(F)
         return h_tot
         
  
@@ -88,6 +92,8 @@ ham = Hamiltonian(lat, max_bosons)
 # h_t = ham.h_t(g_kl, g_kr)
 # h_v = ham.h_v(om_0, F)
 h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
+# print('h_tot is symmetric: ', ( h_tot == h_tot.T ).all() )
+# quit()
 
 #Lindblad operators
 def fermi_dist(beta, e, mu):
@@ -120,6 +126,8 @@ obsdict.initialize_observable('n_system',(1,), n_timesteps) #1D
 obsdict.initialize_observable('n_3',(1,), n_timesteps) #1D
 obsdict.initialize_observable('U',(1,), n_timesteps) #1D
 obsdict.initialize_observable('n_bos',(1,), n_timesteps) #1D
+obsdict.initialize_observable('n_0',(1,), n_timesteps) #1D
+obsdict.initialize_observable('n_1',(1,), n_timesteps) #1D
 
 def compute_n_system(state, obs_array_shape,dtype): 
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -149,10 +157,26 @@ def compute_n_bos(state, obs_array_shape,dtype):
     #OBS DEPENDENT PART END
     return obs_array
 
+def compute_n_0(state, obs_array_shape,dtype): 
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array[0] = np.real( np.conjugate(state) @ lat.sso('ch',0) @ lat.sso('c',0) @ state  )  
+    #OBS DEPENDENT PART END
+    return obs_array
+
+def compute_n_1(state, obs_array_shape,dtype): 
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART START
+    obs_array[0] = np.real( np.conjugate(state) @ lat.sso('ch',1) @ lat.sso('c',1) @ state  )  
+    #OBS DEPENDENT PART END
+    return obs_array
+
 obsdict.add_observable_computing_function('n_system',compute_n_system)
 obsdict.add_observable_computing_function('n_3',compute_n_3)
 obsdict.add_observable_computing_function('U',compute_U)
 obsdict.add_observable_computing_function('n_bos',compute_n_bos)
+obsdict.add_observable_computing_function('n_0',compute_n_0)
+obsdict.add_observable_computing_function('n_1',compute_n_1)
 
 #NOTE: von Neuman entropy is not computed here. It should be possible to compute it with syten
 
@@ -163,7 +187,7 @@ os.chdir('data_qj_ed')
 #exite one particle in the left lead and one in the right lead
 #init_state = lat.sso('ch',0) @ init_state
 init_state = lat.sso('ch',3) @ init_state
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially
@@ -178,9 +202,9 @@ write_directory = os.getcwd()
 obsdict.compute_trajectories_averages_and_errors( list( range( first_trajectory, first_trajectory + n_trajectories) ), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
 #PLOT                                                                              
-n_system_av = np.loadtxt('n_system_av')
+# n_system_av = np.loadtxt('n_system_av')
 
-plt.plot(time_v, n_system_av[:-1], label='n_system_av')
+# plt.plot(time_v, n_system_av[:-1], label='n_system_av')
 
-plt.legend()
-plt.show()
+# plt.legend()
+#plt.show()
