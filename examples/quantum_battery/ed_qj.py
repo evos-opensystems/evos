@@ -43,7 +43,7 @@ T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
 dt = 0.02
-t_max = 20
+t_max = 15
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -81,7 +81,7 @@ class Hamiltonian():
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
-        h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_boson(om_0) + self.h_v(F)
+        h_tot = + self.h_boson(om_0) + self.h_v(F) +self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) 
         return h_tot
         
  

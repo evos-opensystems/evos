@@ -2,23 +2,27 @@ import numpy as np
 import os 
 import matplotlib.pyplot as plt
 
-#LOAD DATA
+########LOAD DATA
+
+#LINDBLAD
 os.chdir('data_lindblad_ed')
 #n_system_lind = np.loadtxt('n_system')
 #U_lind = np.loadtxt('U_from_full_state')
 #S_lind = np.loadtxt('S')
 os.chdir('..')
 
+#ED QJ
 os.chdir('data_qj_ed')
 n_system_qj = np.loadtxt('n_system_av')
 n_3_qj = np.loadtxt('n_3_av')
 n_bos_qj = np.loadtxt('n_bos_av')
 n_0_qj = np.loadtxt('n_0_av')
 n_1_qj = np.loadtxt('n_1_av')
-
 # U_qj = np.loadtxt('U_av')
 os.chdir('..')
 
+
+# MPS QJ
 os.chdir('data_qj_mps')
 n_qj_mps = np.load('n_av.npy')
 block_entropies_qj_mps = np.load('block_entropies_av.npy')
@@ -31,9 +35,22 @@ phys_dim = np.load('phys_dim_av.npy')
 #quit()
 os.chdir('..')
 
-#PLOT
+#MPS SCHRO KRYLOV
+os.chdir('data_schro_kry_mps')
+n_qj_kry_mps = np.load('n.npy')
+block_entropies_qj_kry_mps = np.load('block_entropies.npy')
+rdm_phon_qj_kry_mps = np.load('rdm_phon.npy')
+bond_dim_kry = np.load('bond_dim.npy')
+phonon_entanglement_entropy_kry = np.load('phonon_entanglement_entropy.npy')
+phonon_energy_kry = np.load('phonon_energy.npy')
+phys_dim_kry = np.load('phys_dim.npy')
+os.chdir('..')
+
+
+
+##########PLOT
 #time_v_lind = np.linspace(0, 10, len(n_system_lind) )
-time_v_qj = np.linspace(0, 5, n_qj_mps.shape[1] )
+time_v_qj = np.linspace(0, 15, n_qj_mps.shape[1] )
 
 fig, ax = plt.subplots()
 # ax.plot(time_v_lind, n_system_lind, label='n_system_lind')
@@ -55,8 +72,9 @@ fig, ax = plt.subplots()
 #OCC BOSONIC SITE
 plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
 plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
-# plt.plot(time_v_qj, n_qj_mps[5,:], label='i')
+#plt.plot(time_v_qj, n_qj_mps[5,:], label='i')
 #plt.plot(time_v_qj, n_qj_mps[4,:] + n_qj_mps[5,:], label='i')
+#plt.plot(time_v_qj, n_qj_kry_mps[4,:], label='n_bos_mps_kry')
 
 #ERROR ON RIGHT LEAD
 #ax.plot(time_v_qj, np.abs(n_qj_mps[6,:] - n_3_qj ), label='ed qj - mps qj')
