@@ -21,7 +21,7 @@ lamb = 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
-eps = 1  #FIXME
+eps = 1  #FIXME: this is not specified in caption!!
 Om_kl = +0.5
 Om_kr = -0.5
 Gamma = 2
@@ -37,8 +37,8 @@ T_l = 1./0.5 #beta_l = 0.5
 T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 0.05
-t_max = 50
+dt = 0.01
+t_max = 10
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -78,10 +78,10 @@ class Hamiltonian():
         return h_b
    
     def h_t(self, g_kl, g_kr): #system-leads
-        #h_t = []
+        
         h_t = g_kl * ( lat.get('ch',1) * lat.get('c',0) * lat.get('c',3) * lat.get('ch',2) + lat.get('c',2) * lat.get('ch',3) * lat.get('ch',0) * lat.get('c',1) ) 
         h_t += g_kr * ( lat.get('ch',7) * lat.get('c',6) * lat.get('c',3) * lat.get('ch',2) + lat.get('c',2) * lat.get('ch',3) * lat.get('ch',6) * lat.get('c',7) ) 
-        #h_t = ptn.mp.addLog(h_t)
+    
         #h_t.truncate()
         return h_t
     
@@ -108,6 +108,117 @@ h_s = ham.h_s(eps)
 h_boson = ham.h_boson(om_0)
 # h_v = ham.h_v(om_0, F)
 h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
+
+
+########### GS
+# conf = ptn.dmrg.DMRGConfig()
+
+# # give us a list to add stages
+# stages = []
+
+# #first stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[0].trunc.maxStates = 16
+# stages[0].convergenceMaxSweeps = 200
+# stages[0].trunc.weight = 1e-6
+# stages[0].trunc.threshold = 1e-8
+# stages[0].convergenceMinSweeps = 50
+# #stages[0].convMinEnergyDiff = -1
+# stages[0].mode.DMRG3S
+# #second stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[1].trunc.maxStates = 32
+# stages[1].convergenceMaxSweeps = 150
+# stages[1].trunc.weight = 1e-7
+# stages[1].trunc.threshold = 1e-9
+# stages[1].convergenceMinSweeps = 40
+# #stages[1].convMinEnergyDiff = -1
+# stages[1].mode.DMRG3S
+
+# #third stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[2].trunc.maxStates = 64
+# stages[2].convergenceMaxSweeps = 100
+# stages[2].trunc.weight = 1e-8
+# stages[2].trunc.threshold = 1e-10
+# stages[2].convergenceMinSweeps = 30
+# #[2].convMinEnergyDiff = -1
+# stages[2].mode.TwoSite
+
+# #fourth stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[3].trunc.maxStates = 128
+# stages[3].convergenceMaxSweeps = 100
+# stages[3].trunc.weight = 1e-10
+# stages[3].trunc.threshold = 1e-12
+# stages[3].convergenceMinSweeps = 25
+# #stages[3].convMinEnergyDiff = -1
+# stages[3].mode.DMRG3S
+
+# #fifth stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[4].trunc.maxStates = 256
+# stages[4].convergenceMaxSweeps = 100
+# stages[4].trunc.weight = 1e-11
+# stages[4].trunc.threshold = 1e-13
+# stages[4].convergenceMinSweeps = 20
+# #stages[4].convMinEnergyDiff = -1
+# stages[4].mode.DMRG3S
+
+# #6th stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[5].trunc.maxStates = 512
+# stages[5].convergenceMaxSweeps = 100
+# stages[5].trunc.weight = 1e-13
+# stages[5].trunc.threshold = 1e-15
+# stages[5].convMinEnergyDiff = 1e-08
+# stages[5].convergenceMinSweeps = 15
+# stages[5].mode.TwoSite
+
+# #7th stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[6].trunc.maxStates = 1024
+# stages[6].convergenceMaxSweeps = 50
+# stages[6].trunc.weight = 1e-14
+# stages[6].trunc.threshold = 1e-15
+# stages[6].convMinEnergyDiff = 1e-08
+# stages[6].convergenceMinSweeps = 10
+# stages[6].mode.DMRG3S
+
+# #8th stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[7].trunc.maxStates = 2048
+# stages[7].convergenceMaxSweeps = 20
+# stages[7].trunc.weight = 1e-15
+# stages[7].trunc.threshold = 1e-15
+# stages[7].convMinEnergyDiff = 1e-09
+# stages[7].convergenceMinSweeps = 5
+# stages[7].mode.DMRG3S
+
+# #9th stage
+# stages.append(ptn.dmrg.DMRGStage())
+# stages[8].trunc.maxStates = 4096
+# stages[8].convergenceMaxSweeps = 20
+# stages[8].trunc.weight = 1e-15
+# stages[8].trunc.threshold = 1e-15
+# stages[8].convMinEnergyDiff = 1e-09
+# #stages[8].convergenceMinSweeps = 5
+# stages[8].mode.DMRG3S
+
+# # assign stages to DMRG configuration object
+# conf.stages = stages
+# dmrg= ptn.mp.dmrg.PDMRG(vac_state.copy(), [h_tot], conf)
+
+# # iterate over stages in config object
+# energy_during_dmrg = []
+# for m in conf.stages:
+#     # run stage until either convergence is met or max. number of sweeps
+#     vac_state = dmrg.run()
+
+# for site in range(8):
+#     bdim = vac_state[site].getTotalDims()[1]
+#     print( 'bdim on site {} is {}'.format(site, bdim) )    
+########### END GS CALCULATION
 
 #Lindblad operators
 def fermi_dist(beta, e, mu):
@@ -167,7 +278,7 @@ def compute_bond_dim(state, obs_array_shape,dtype):
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART STAR
     for site in range(len(obs_array)):
-        obs_array[site] = state[site].getTotalDims()[1]
+        obs_array[site] = state[site].getTotalDims()[2]
     #OBS DEPENDENT PART END
     return obs_array
 
@@ -203,7 +314,6 @@ obsdict.add_observable_computing_function('phonon_entanglement_entropy', compute
 obsdict.add_observable_computing_function('phonon_energy', compute_phonon_energy )
 obsdict.add_observable_computing_function('dot_energy', compute_dot_energy )
 
-
 ########TDVP CONFIG
 conf_tdvp = ptn.tdvp.Conf()
 conf_tdvp.mode = ptn.tdvp.Mode.GSE   #TwoSite, GSE, Subspace
@@ -216,7 +326,10 @@ conf_tdvp.exp_conf.inxTolerance = 1e-6
 conf_tdvp.exp_conf.maxIter =  10
 conf_tdvp.cache = 1
 conf_tdvp.maxt = t_max
-conf_tdvp.gse_conf.krylov_order = 3 
+
+conf_tdvp.gse_conf.mode = ptn.tdvp.GSEMode.BeforeTDVP
+#conf_tdvp.gse_conf.mode = conf_tdvp.gse_conf.mode.BeforeTDVP
+conf_tdvp.gse_conf.krylov_order = 5 #FIXME 3,5 INCRESE
 conf_tdvp.gse_conf.trunc_op = ptn.Truncation(1e-8 , maxStates=500) #maxStates shuld be the same as the one used for tdvp! 1e-8 - 1e-6
 conf_tdvp.gse_conf.trunc_expansion = ptn.Truncation(1e-6, maxStates=500) #precision of GSE. par is trunc. treshold. do not goe below 10^-12 (numerical instability)!!
 conf_tdvp.gse_conf.adaptive = True
@@ -224,20 +337,12 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-de
 
 
 #compute time-evolution for one trajectory
-#vac_state *= lat.get('c',3) * lat.get('ch',2) #FIXME: remove this!!!!!!!
 
 #exite one particle in the left lead and one in the right lead
-vac_state *= lat.get('c',1) * lat.get('ch',0)
+#vac_state *= lat.get('c',1) * lat.get('ch',0)
 vac_state *= lat.get('c',7) * lat.get('ch',6)
 
-#compute von neuman entropy
-# def von_neumann_entropy(rho):
-#     from scipy import linalg as sla
-#     R = rho*(sla.logm(rho)/sla.logm(np.matrix([[2]])))
-#     S = -np.matrix.trace(R)
-#     return(S)
-
-qj = mps_quantum_jumps.MPSQuantumJumps(8, lat, h_tot, [] ) #l_list
+qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, l_list ) # l_list, [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
 
 os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
@@ -248,13 +353,6 @@ nb_t0 = ptn.mp.expectation(vac_state, lat.get('nb',4))
 ah_a_t0 = ptn.mp.expectation(vac_state, lat.get('a',4) * lat.get('ah',4) ) 
 ah_a_ah_a_t0 = ptn.mp.expectation(vac_state, lat.get('ah',4) * lat.get('a',4) * lat.get('ah',5) * lat.get('a',5) ) 
 
-######
-# print('energy_bos_t0 = ',energy_bos_t0)
-# print('nb_t0 = ',nb_t0)
-# print('ah_a_t0 = ', ah_a_t0)
-# print('ah_a_ah_a_t0 = ', ah_a_ah_a_t0)
-# quit()
-######
 
 #COMPUTE ONE TRAJECTORY WITH TDVP 
 for trajectory in range(first_trajectory, first_trajectory + n_trajectories): 
@@ -263,7 +361,6 @@ for trajectory in range(first_trajectory, first_trajectory + n_trajectories):
 
 read_directory = os.getcwd()
 write_directory = os.getcwd()
-
 
 obsdict.compute_trajectories_averages_and_errors( list( range( first_trajectory, first_trajectory + n_trajectories) ), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 

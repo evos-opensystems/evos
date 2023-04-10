@@ -42,8 +42,8 @@ T_l = 1./0.5 #beta_l = 0.5
 T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 0.05
-t_max = 50
+dt = 0.01
+t_max = 10
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -121,7 +121,6 @@ obsdict.initialize_observable('n_3',(1,), n_timesteps) #1D
 obsdict.initialize_observable('U',(1,), n_timesteps) #1D
 obsdict.initialize_observable('n_bos',(1,), n_timesteps) #1D
 
-
 def compute_n_system(state, obs_array_shape,dtype): 
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
@@ -162,9 +161,9 @@ os.chdir('data_qj_ed')
 #init_state = lat.sso('ch',1) @ init_state #FIXME: remove this!!!!!!! 
 
 #exite one particle in the left lead and one in the right lead
-init_state = lat.sso('ch',0) @ init_state
+#init_state = lat.sso('ch',0) @ init_state
 init_state = lat.sso('ch',3) @ init_state
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , [] ) #l_list
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially

@@ -29,8 +29,8 @@ phonon_energy = np.load('phonon_energy_av.npy')
 os.chdir('..')
 
 #PLOT
-time_v_lind = np.linspace(0,50, len(n_system_lind) )
-time_v_qj = np.linspace(0,50, n_qj_mps.shape[1] )
+time_v_lind = np.linspace(0, 10, len(n_system_lind) )
+time_v_qj = np.linspace(0, 10, n_qj_mps.shape[1] )
 
 fig, ax = plt.subplots()
 # ax.plot(time_v_lind, n_system_lind, label='n_system_lind')
@@ -40,7 +40,7 @@ fig, ax = plt.subplots()
 #N ON RIGHT LEAD 6
 ax.plot(time_v_qj, n_qj_mps[6,:], label='n_3_qj_mps')
 ax.plot(time_v_qj, n_3_qj, label='n_3_qj_ed')
-ax.plot(time_v_qj, np.abs(n_qj_mps[6,:] - n_3_qj ), label='ed qj - mps qj')
+#ax.plot(time_v_qj, np.abs(n_qj_mps[6,:] - n_3_qj ), label='ed qj - mps qj')
 
 #RDM
 #for i in range(3):
@@ -62,9 +62,9 @@ T_l = 1./0.5 #beta_l = 0.5 #FIXME: change this if changed in 'mps_qj.py'
 
 
 #BOND DIM
-#i=7
+i=0
 #for i in range(8):
-#ax.plot(time_v_qj, bond_dim[i,:], label='bdim site '+str(i))
+ax.plot(time_v_qj, bond_dim[i,:], label='bdim site '+str(i))
 #ax.vlines(x=0.8, ymin=0, ymax=0.4, color='red')
 
 #ENTROPY
@@ -74,6 +74,8 @@ T_l = 1./0.5 #beta_l = 0.5 #FIXME: change this if changed in 'mps_qj.py'
 #RDM
 #ax.plot(time_v_qj, rdm_phon_qj_mps[1,1,:], label='rdm[1,1] mps')
 
-
+plt.ylabel('n')
+plt.xlabel('time')
+plt.title('Evolution with jumps')
 plt.legend()
 fig.savefig('test_mps.png')

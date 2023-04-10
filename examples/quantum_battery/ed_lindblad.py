@@ -16,7 +16,7 @@ import os
 np.set_printoptions(threshold=sys.maxsize)
 
 #PARAMETERS
-max_bosons = 3
+max_bosons = 5
 
 om_0 = 0.2
 m = 1
@@ -34,13 +34,13 @@ N0 = 0.5 #FIXME: is this correct?
 delta_l = 1
 delta_r = 1
 
-mu_l = +0.5 #FIXME
-mu_r = +0.5 #FIXME
+mu_l = - 10 #FIXME
+mu_r = + 10 #FIXME
 T_l = 1./0.5 #beta_l = 0.5
 T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 5
+dt = 20
 t_max = 2000
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
@@ -60,9 +60,9 @@ class Hamiltonian():
         h_s = eps * lat.sso('ch',1) @ lat.sso('c',1)
         return h_s 
 
-    def h_b(self, Om_kl, Om_kr, mu_l, mu_r):
+    def h_b(self, Om_kl, Om_kr):
         #NOTE: added mu_l and mu_rto onsite energies
-        h_b = ( Om_kl - mu_l ) * lat.sso('ch',0) @ lat.sso('c',0) + ( Om_kr - mu_r ) * lat.sso('ch',3) @ lat.sso('c',3)
+        h_b = Om_kl * lat.sso('ch',0) @ lat.sso('c',0) + Om_kr * lat.sso('ch',3) @ lat.sso('c',3)
         return h_b
    
     def h_t(self, g_kl, g_kr):
@@ -74,18 +74,18 @@ class Hamiltonian():
         h_v = om_0 * lat.sso('ah',2) @ lat.sso('a',2) - F * ( lat.sso('ch',1) @ lat.sso('c',1) - N0 * np.eye(dimH, dtype='complex') ) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
         return h_v 
     
-    def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
-        h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) + self.h_v(om_0, F)
+    def h_tot(self, eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F):
+        h_tot = self.h_s(eps) + self.h_b(Om_kl, Om_kr) + self.h_t(g_kl, g_kr) + self.h_v(om_0, F)
         return h_tot
         
     
 #Hamiltonian
 ham = Hamiltonian(lat, max_bosons)
 # h_s = ham.h_s(eps)
-# h_b = ham.h_b(Om_kl, Om_kr, mu_l, mu_r)
+# h_b = ham.h_b(Om_kl, Om_kr)
 # h_t = ham.h_t(g_kl, g_kr)
 # h_v = ham.h_v(om_0, F)
-h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
+h_tot = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
 
 
 #Lindblad operators
@@ -164,11 +164,33 @@ Z = np.trace( expm( -h_bos_reduced /(k_b * T_l) ) )
 f_eq = -k_b * T_l * np.log(Z)
 f_eq_vector = f_eq * np.ones(n_timesteps)
 
+def compute_sec_ord_coherence_funct(rdm):
+    numerator = 0.
+    denominator = 0.
+    for mode in range(max_bosons+1):
+        numerator += mode * (mode - 1) * rdm[ mode, mode ]
+        denominator += (mode * rdm[ mode, mode ]) ** 2
+    sec_ord_coherence_funct = numerator/denominator
+    return sec_ord_coherence_funct    
+
+sec_ord_coherence_funct_vec = np.zeros(n_timesteps)
+for time in range(n_timesteps):
+    sec_ord_coherence_funct_vec[time] =  compute_sec_ord_coherence_funct( rho_bosonic[:,:,time] )
+    
+
+#PLOT RDM
+# fig = plt.figure()
+# plt.imshow( np.real( rho_bosonic[:,:,-1] ), aspect='auto' )
+# plt.colorbar()
+# fig.savefig('lind_phon_rdm.png')
+# quit()
+
 #SAVE OBSERVABLES
 np.savetxt('n_system', computed_observables['n_system'] )
 np.savetxt('U_from_full_state', computed_observables['U_from_full_state'] )
 np.savetxt('n_bos', computed_observables['n_bos'] )
 np.savetxt('S',S)
+
 #PLOT
 fig = plt.figure()
 #plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
@@ -185,8 +207,10 @@ fig = plt.figure()
 #plt.plot(time_v, S, label = 'S boson' )
 
 # plt.plot(time_v, f_neq, label = 'f_neq' )
-plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
+#plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
 # plt.plot(time_v, f_eq_vector, label = 'f_eq')
+plt.plot(time_v, sec_ord_coherence_funct_vec, label='g2')
+
 plt.legend()
 fig.savefig('lindblad.png')
 #plt.show()
