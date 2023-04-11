@@ -1,6 +1,3 @@
-"""Trying to reproduce 'https://arxiv.org/pdf/2201.07819.pdf' for a single driven left lead, and a single driven right one with ed lindblad. The dimension of the oscillator needs to be strongly truncated.
-"""
-
 import evos.src.lattice.dot_with_oscillator_lattice as lattice 
 import evos.src.methods.lindblad as lindblad
 import evos.src.methods.partial_traces.partial_trace_tls_boson as pt 
@@ -13,11 +10,24 @@ from numpy import linalg as la
 import sys
 #import math
 import os
+import argparse
+
+arg_parser = argparse.ArgumentParser(description = "Trying to reproduce 'https://arxiv.org/pdf/2201.07819.pdf' for a single driven left lead, and a single driven right one with ed lindblad. The dimension of the oscillator needs to be strongly truncated.")
+arg_parser.add_argument("-b",   "--bosons", dest = 'max_bosons',  default = 4, type = int, help = 'number of bosonic degrees of freedom - 1 [4]')
+arg_parser.add_argument("-dt",   "--timestep", dest = 'dt',  default = 50, type = float, help = 'timestep [50]')
+arg_parser.add_argument("-t_max",   "--max_time", dest = 't_max',  default = 5000, type = float, help = 'maximal simulated time [2000]')
+arg_parser.add_argument("-mu_l",   "--checmical_pot_left_lead", dest = 'mu_l',  default = +0.5, type = float, help = 'checmical pot. left lead [0.5]')
+arg_parser.add_argument("-mu_r",   "--checmical_pot_right_lead", dest = 'mu_r',  default = -0.5, type = float, help = 'checmical pot. right lead [-0.5]')
+
+#FIXME: ADD MU_L AND MU_R
+args = arg_parser.parse_args()
+
+
 np.set_printoptions(threshold=sys.maxsize)
 sys.stdout.write('test')
 
 #PARAMETERS
-max_bosons = 16
+max_bosons = args.max_bosons
 
 om_0 = 0.2
 m = 1
@@ -25,7 +35,7 @@ lamb = 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
-eps = 1  #FIXME
+eps = 0  
 Om_kl = +0.5
 Om_kr = -0.5
 Gamma = 2
@@ -35,18 +45,78 @@ N0 = 0.5 #FIXME: is this correct?
 delta_l = 1
 delta_r = 1
 
-mu_l = - 0.5 #FIXME
-mu_r = + 0.5 #FIXME
+mu_l = args.mu_l
+mu_r = args.mu_r
+
 T_l = 1./0.5 #beta_l = 0.5
 T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 50
-t_max = 2000
+dt = args.dt
+t_max = args.t_max
+
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 
-os.chdir('data_lindblad_ed')
+################
+def make_writing_dir_and_change_to_it( parent_data_dirname: str, parameter_dict: dict, overwrite: bool = False, create_directory: bool = True ) -> str :
+    """given a dictionary with some selected job's parameters, it creates the correct subfolder in which to run the job and changes to it
+
+    Parameters
+    ----------
+    parent_data_dirname : str
+        name of the parent directory
+    parameter_dict : dict
+        parameter dictionary specifying the directory
+
+    Returns
+    -------
+    str
+        path of the directory in which to write the states or the observables
+    """
+    import os 
+    from datetime import date
+
+    #go to parent folder if existing. create one with date attached and go to it if not existing
+    if os.path.isdir(parent_data_dirname):
+            os.chdir(parent_data_dirname)
+    else:
+        if create_directory:
+            parent_data_dirname += '_'+str( date.today() )
+            os.mkdir( parent_data_dirname )
+            os.chdir(parent_data_dirname)
+
+
+    dir_depth = len(parameter_dict)
+    count_dir_depth = 0
+    for par in parameter_dict:
+        subdir_name = par +'_'+str(parameter_dict[par])
+
+        #if reached lowest directory level AND it already exists
+        if count_dir_depth == dir_depth-1 and os.path.isdir(subdir_name): 
+            #print(subdir_name)
+            if not overwrite and create_directory: 
+                subdir_name += '_'+str( date.today() )
+        
+        #all other directory levels OR the lowest but it doesn't exists
+        if os.path.isdir(subdir_name):
+            os.chdir(subdir_name)
+        else:
+            if create_directory:
+                os.mkdir( subdir_name )
+                os.chdir(subdir_name)
+                
+        count_dir_depth += 1
+
+    writing_dir = os.getcwd()
+    return writing_dir
+
+parameter_dict = {'max_bosons': max_bosons, 'dt': dt, 't_max': t_max, 'mu_l' : mu_l, 'mu_r' : mu_r  }
+writing_dir = make_writing_dir_and_change_to_it('data_lindblad_ed', parameter_dict)
+
+################
+
+
 #LATTICE
 lat = lattice.DotWithOscillatorLattice(max_bosons)
 
