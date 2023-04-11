@@ -14,9 +14,10 @@ import sys
 #import math
 import os
 np.set_printoptions(threshold=sys.maxsize)
+sys.stdout.write('test')
 
 #PARAMETERS
-max_bosons = 5
+max_bosons = 16
 
 om_0 = 0.2
 m = 1
@@ -34,13 +35,13 @@ N0 = 0.5 #FIXME: is this correct?
 delta_l = 1
 delta_r = 1
 
-mu_l = - 10 #FIXME
-mu_r = + 10 #FIXME
+mu_l = - 0.5 #FIXME
+mu_r = + 0.5 #FIXME
 T_l = 1./0.5 #beta_l = 0.5
 T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 20
+dt = 50
 t_max = 2000
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
@@ -134,7 +135,8 @@ def compute_rho_bosonic(rho0123):
 rho_bosonic = np.zeros( (max_bosons + 1, max_bosons + 1, n_timesteps), dtype='complex')
 for time in range(n_timesteps):
     rho_bosonic[:,:,time] = compute_rho_bosonic( rho_t[:,:,time] )
-      
+    #print('trace rho_bosonic[:,:,{}] = {}'.format(time, np.trace( rho_bosonic[:,:,time] ) ) )  
+
 ##compute non-equilibrium free energy
 #bosonic hamiltonian
 n_op_bos = range(0, max_bosons + 1)
@@ -169,7 +171,8 @@ def compute_sec_ord_coherence_funct(rdm):
     denominator = 0.
     for mode in range(max_bosons+1):
         numerator += mode * (mode - 1) * rdm[ mode, mode ]
-        denominator += (mode * rdm[ mode, mode ]) ** 2
+        denominator += (mode * rdm[ mode, mode ])
+    denominator = denominator ** 2
     sec_ord_coherence_funct = numerator/denominator
     return sec_ord_coherence_funct    
 
