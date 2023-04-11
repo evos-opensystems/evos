@@ -36,15 +36,15 @@ phys_dim = np.load('phys_dim_av.npy')
 os.chdir('..')
 
 #MPS SCHRO KRYLOV
-os.chdir('data_schro_kry_mps')
-n_qj_kry_mps = np.load('n.npy')
-block_entropies_qj_kry_mps = np.load('block_entropies.npy')
-rdm_phon_qj_kry_mps = np.load('rdm_phon.npy')
-bond_dim_kry = np.load('bond_dim.npy')
-phonon_entanglement_entropy_kry = np.load('phonon_entanglement_entropy.npy')
-phonon_energy_kry = np.load('phonon_energy.npy')
-phys_dim_kry = np.load('phys_dim.npy')
-os.chdir('..')
+# os.chdir('data_schro_kry_mps')
+# n_qj_kry_mps = np.load('n.npy')
+# block_entropies_qj_kry_mps = np.load('block_entropies.npy')
+# rdm_phon_qj_kry_mps = np.load('rdm_phon.npy')
+# bond_dim_kry = np.load('bond_dim.npy')
+# phonon_entanglement_entropy_kry = np.load('phonon_entanglement_entropy.npy')
+# phonon_energy_kry = np.load('phonon_energy.npy')
+# phys_dim_kry = np.load('phys_dim.npy')
+# os.chdir('..')
 
 
 
@@ -70,9 +70,9 @@ fig, ax = plt.subplots()
 # ax.plot(time_v_qj, n_0_qj, label='n_0_qj_ed')
 
 #OCC BOSONIC SITE
-# plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
-# plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
-plt.plot(time_v_qj, n_bos_qj - n_qj_mps[4,:], label='n_bos_mps')
+plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
+plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
+#plt.plot(time_v_qj, n_bos_qj - n_qj_mps[4,:], label='n_bos_mps')
 
 
 #plt.plot(time_v_qj, n_qj_mps[5,:], label='i')

@@ -15,7 +15,7 @@ import argparse
 arg_parser = argparse.ArgumentParser(description = "Trying to reproduce 'https://arxiv.org/pdf/2201.07819.pdf' for a single driven left lead, and a single driven right one with ed lindblad. The dimension of the oscillator needs to be strongly truncated.")
 arg_parser.add_argument("-b",   "--bosons", dest = 'max_bosons',  default = 4, type = int, help = 'number of bosonic degrees of freedom - 1 [4]')
 arg_parser.add_argument("-dt",   "--timestep", dest = 'dt',  default = 50, type = float, help = 'timestep [50]')
-arg_parser.add_argument("-t_max",   "--max_time", dest = 't_max',  default = 5000, type = float, help = 'maximal simulated time [2000]')
+arg_parser.add_argument("-t_max",   "--max_time", dest = 't_max',  default = 5000, type = float, help = 'maximal simulated time [5000]')
 arg_parser.add_argument("-mu_l",   "--checmical_pot_left_lead", dest = 'mu_l',  default = +0.5, type = float, help = 'checmical pot. left lead [0.5]')
 arg_parser.add_argument("-mu_r",   "--checmical_pot_right_lead", dest = 'mu_r',  default = -0.5, type = float, help = 'checmical pot. right lead [-0.5]')
 

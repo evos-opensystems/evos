@@ -16,34 +16,50 @@ import sys
 import os
 np.set_printoptions(threshold=sys.maxsize)
 sys.stdout.write('test')
+import argparse
+
+arg_parser = argparse.ArgumentParser(description = "Trying to reproduce 'https://arxiv.org/pdf/2201.07819.pdf' for a single driven left lead, and a single driven right one with ed lindblad. The dimension of the oscillator needs to be strongly truncated.")
+arg_parser.add_argument("-b",   "--bosons", dest = 'max_bosons',  default = 4, type = int, help = 'number of bosonic degrees of freedom - 1 [4]')
+arg_parser.add_argument("-dt",   "--timestep", dest = 'dt',  default = 0.02, type = float, help = 'timestep [0.02]')
+arg_parser.add_argument("-t_max",   "--max_time", dest = 't_max',  default = 5, type = float, help = 'maximal simulated time [5]')
+arg_parser.add_argument("-mu_l",   "--checmical_pot_left_lead", dest = 'mu_l',  default = +0.5, type = float, help = 'checmical pot. left lead [0.5]')
+arg_parser.add_argument("-mu_r",   "--checmical_pot_right_lead", dest = 'mu_r',  default = -0.5, type = float, help = 'checmical pot. right lead [-0.5]')
+
+#FIXME: ADD MU_L AND MU_R
+args = arg_parser.parse_args()
+
+
+np.set_printoptions(threshold=sys.maxsize)
+sys.stdout.write('test')
 
 #PARAMETERS
-max_bosons = 3
+max_bosons = args.max_bosons
 
 om_0 = 0.2
-m = 1.
+m = 1
 lamb = 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
-F = 2. *lamb / x0 
+F = 2 *lamb / x0
 
-eps = 1.  #FIXME
+eps = 0  
 Om_kl = +0.5
 Om_kr = -0.5
-Gamma = 2.
+Gamma = 2
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0.5 #0.5 #FIXME: is this correct?
-delta_l = 1.
-delta_r = 1.
+N0 = 0.5 #FIXME: is this correct?
+delta_l = 1
+delta_r = 1
 
-mu_l = +0.5 #FIXME
-mu_r = +0.5 #FIXME
+mu_l = args.mu_l
+mu_r = args.mu_r
+
 T_l = 1./0.5 #beta_l = 0.5
 T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
-dt = 0.02
-t_max = 5
+dt = args.dt
+t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -81,7 +97,7 @@ class Hamiltonian():
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F):
-        h_tot = + self.h_boson(om_0) + self.h_v(F) +self.h_s(eps) #+ self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr)
+        h_tot = + self.h_boson(om_0) + self.h_v(F) +self.h_s(eps) + self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr)
         return h_tot
         
  
