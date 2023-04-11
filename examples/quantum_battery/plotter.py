@@ -50,7 +50,7 @@ os.chdir('..')
 
 ##########PLOT
 #time_v_lind = np.linspace(0, 10, len(n_system_lind) )
-time_v_qj = np.linspace(0, 15, n_qj_mps.shape[1] )
+time_v_qj = np.linspace(0, 20, n_qj_mps.shape[1] )
 
 fig, ax = plt.subplots()
 # ax.plot(time_v_lind, n_system_lind, label='n_system_lind')

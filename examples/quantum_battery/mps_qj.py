@@ -38,7 +38,7 @@ T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
 dt = 0.02
-t_max = 10
+t_max = 5
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -63,24 +63,24 @@ class Hamiltonian():
         self.max_bosons = max_bosons
         
     def h_s(self, eps): #system
-        h_s = eps * lat.get('nf',2)  #no need to PP
+        h_s = eps * lat.get('c',2) * lat.get('ch',2)  #no need to PP
         #h_s = ptn.mp.addLog(h_s)
         #h_s.truncate()
         return h_s 
 
-    def h_b(self, Om_kl, Om_kr, mu_l, mu_r): #leads
+    def h_b(self, Om_kl, Om_kr): #leads
         #NOTE: added mu_l and mu_rto onsite energies
         h_b = []
-        h_b.append( Om_kl * lat.get('nf',0) ) #no need to PP
-        h_b.append( Om_kr * lat.get('nf',6) ) #no need to PP
+        h_b.append( Om_kl * lat.get('c',0) * lat.get('ch',0) ) #no need to PP
+        h_b.append( Om_kr * lat.get('c',6) * lat.get('ch',6) ) #no need to PP
         h_b = ptn.mp.addLog(h_b)
         #h_b.truncate()
         return h_b
    
     def h_t(self, g_kl, g_kr): #system-leads
         
-        h_t = g_kl * ( lat.get('c',0) * lat.get('ch',1) * lat.get('ch',2) * lat.get('c',3) + lat.get('ch',3) * lat.get('c',2) * lat.get('c',1) * lat.get('ch',0) ) 
-        h_t += g_kr * ( lat.get('ch',2) * lat.get('c',3) * lat.get('c',6) * lat.get('ch',7) + lat.get('c',7) * lat.get('ch',6) * lat.get('c',3) * lat.get('c',2) ) 
+        h_t = g_kl * ( lat.get('c',0)* lat.get('ch',1) * lat.get('ch',2) * lat.get('c',3)  +  lat.get('ch',3) * lat.get('c',2) * lat.get('c',1) * lat.get('ch',0) ) 
+        h_t += g_kr * (lat.get('c',6) * lat.get('ch',7) * lat.get('ch',2) * lat.get('c',3)  +  lat.get('ch',3) * lat.get('c',2) * lat.get('c',7) * lat.get('ch',6) ) 
     
         #h_t.truncate()
         return h_t
@@ -94,8 +94,8 @@ class Hamiltonian():
         #h_v.truncate()
         return h_v 
     
-    def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
-        h_tot =  self.h_boson(om_0) + self.h_v(F, N0) +self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) 
+    def h_tot(self, eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F):
+        h_tot =   + self.h_s(eps) + self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr) #+ self.h_boson(om_0) + self.h_v(F, N0)
         #h_tot.truncate()
         return h_tot
         
@@ -107,11 +107,11 @@ h_s = ham.h_s(eps)
 # h_t = ham.h_t(g_kl, g_kr)
 h_boson = ham.h_boson(om_0)
 # h_v = ham.h_v(om_0, F)
-h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
+h_tot = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
 
-lat.add('h_tot', 'h_tot', h_tot)
-lat.save('lat')
-quit()
+# lat.add('h_tot', 'h_tot', h_tot)
+# lat.save('lat')
+# quit()
 
 ########### GS
 # conf = ptn.dmrg.DMRGConfig()

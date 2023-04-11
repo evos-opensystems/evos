@@ -43,7 +43,7 @@ T_r = 1./0.5 #beta_r = 0.5
 k_b = 1 #boltzmann constant
  
 dt = 0.02
-t_max = 15
+t_max = 5
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
@@ -62,7 +62,7 @@ class Hamiltonian():
         h_s = eps * lat.sso('ch',1) @ lat.sso('c',1)
         return h_s 
 
-    def h_b(self, Om_kl, Om_kr, mu_l, mu_r): #leads
+    def h_b(self, Om_kl, Om_kr): #leads
         #NOTE: added mu_l and mu_rto onsite energies
         h_b = Om_kl * lat.sso('ch',0) @ lat.sso('c',0) + Om_kr * lat.sso('ch',3) @ lat.sso('c',3)
         return h_b
@@ -80,8 +80,8 @@ class Hamiltonian():
         h_v = - F * ( lat.sso('ch',1) @ lat.sso('c',1) - N0 * np.eye(dimH, dtype='complex') ) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
         return h_v 
     
-    def h_tot(self, eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F):
-        h_tot = + self.h_boson(om_0) + self.h_v(F) +self.h_s(eps) + self.h_b(Om_kl, Om_kr, mu_l, mu_r) + self.h_t(g_kl, g_kr) 
+    def h_tot(self, eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F):
+        h_tot =  +self.h_s(eps) + self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr) #+ self.h_boson(om_0) + self.h_v(F)
         return h_tot
         
  
@@ -91,7 +91,7 @@ ham = Hamiltonian(lat, max_bosons)
 # h_b = ham.h_b(Om_kl, Om_kr, mu_l, mu_r)
 # h_t = ham.h_t(g_kl, g_kr)
 # h_v = ham.h_v(om_0, F)
-h_tot = ham.h_tot(eps, Om_kl, Om_kr, mu_l, mu_r, g_kl, g_kr, om_0, F)
+h_tot = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
 # print('h_tot is symmetric: ', ( h_tot == h_tot.T ).all() )
 # quit()
 
