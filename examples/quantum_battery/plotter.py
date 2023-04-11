@@ -50,7 +50,7 @@ os.chdir('..')
 
 ##########PLOT
 #time_v_lind = np.linspace(0, 10, len(n_system_lind) )
-time_v_qj = np.linspace(0, 20, n_qj_mps.shape[1] )
+time_v_qj = np.linspace(0, 5, n_qj_mps.shape[1] )
 
 fig, ax = plt.subplots()
 # ax.plot(time_v_lind, n_system_lind, label='n_system_lind')
@@ -70,8 +70,11 @@ fig, ax = plt.subplots()
 # ax.plot(time_v_qj, n_0_qj, label='n_0_qj_ed')
 
 #OCC BOSONIC SITE
-plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
-plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
+# plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
+# plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
+plt.plot(time_v_qj, n_bos_qj - n_qj_mps[4,:], label='n_bos_mps')
+
+
 #plt.plot(time_v_qj, n_qj_mps[5,:], label='i')
 #plt.plot(time_v_qj, n_qj_mps[4,:] + n_qj_mps[5,:], label='i')
 #plt.plot(time_v_qj, n_qj_kry_mps[4,:], label='n_bos_mps_kry')

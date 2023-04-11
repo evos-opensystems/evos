@@ -81,7 +81,7 @@ class Hamiltonian():
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F):
-        h_tot =  +self.h_s(eps) + self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr) #+ self.h_boson(om_0) + self.h_v(F)
+        h_tot = + self.h_boson(om_0) + self.h_v(F) +self.h_s(eps) #+ self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr)
         return h_tot
         
  
