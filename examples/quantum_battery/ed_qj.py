@@ -62,7 +62,7 @@ dt = args.dt
 t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 1
+n_trajectories = 150
 first_trajectory = 0
 
 #LATTICE
@@ -136,6 +136,9 @@ l_list = l_list_left + l_list_right
 #NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
 
+# FIXME exite one particle in the left lead: USED TO DEBUGG
+init_state = lat.sso('ch',0) @ init_state
+
 #Observables
 obsdict = observables.ObservablesDict()
 obsdict.initialize_observable('n_system',(1,), n_timesteps) #1D
@@ -200,10 +203,7 @@ obsdict.add_observable_computing_function('n_1',compute_n_1)
 os.chdir('data_qj_ed')
 #init_state = lat.sso('ch',1) @ init_state #FIXME: remove this!!!!!!! 
 
-#exite one particle in the left lead and one in the right lead
-#init_state = lat.sso('ch',0) @ init_state
-init_state = lat.sso('ch',3) @ init_state
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially

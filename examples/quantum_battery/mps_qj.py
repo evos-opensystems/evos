@@ -64,13 +64,27 @@ first_trajectory = 0
 ferm_bos_sites = [ 1, 1, 1, 1, 0, 1, 1 ] #doubled the fermionic sites to project-purify
 lat = ptn.mp.lat.u1u1.genSpinlessFermiBose(ferm_bos_sites, max_bosons)
 lat = ptn.mp.proj_pur.proj_purification(lat, [0], ["a", "ah"])
-# print(lat)
+
 vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, "0," + str( max_bosons ) )
+#vac_state = ptn.mp.generateNearVacuumState(lat)
 
 #prepare PP vacuum for fermions
 vac_state *= lat.get('ch',1)    
 vac_state *= lat.get('ch',3) 
 vac_state *= lat.get('ch',7)    
+
+#FIXME: exite one particle in the left lead (USED TO DEBUGG WITHOUT INJECTION)
+vac_state *= lat.get('ch',0) * lat.get('c',1) 
+#vac_state *= lat.get('ch',6) * lat.get('c',7)
+
+################################################################
+# for mode in range(max_bosons):
+#     vac_state *=lat.get('ah',5)
+#     vac_state.normalise()
+# for site in range(8):
+#     print(site, ptn.mp.expectation(vac_state, lat.get('n',site) ) )
+    
+################################################################
    
 class Hamiltonian():
     
@@ -347,18 +361,17 @@ obsdict.add_observable_computing_function('phys_dim', compute_phys_dim )
 conf_tdvp = ptn.tdvp.Conf()
 conf_tdvp.mode = ptn.tdvp.Mode.GSE   #TwoSite, GSE, Subspace
 conf_tdvp.dt = dt
-conf_tdvp.trunc.threshold = 1e-8  #NOTE: set to zero for gse
-conf_tdvp.trunc.weight = 1e-10 #tdvp_trunc_weight #NOTE: set to zero for gse
+conf_tdvp.trunc.threshold = 1e-10  #NOTE: set to zero for gse
+conf_tdvp.trunc.weight = 1e-15 #tdvp_trunc_weight #NOTE: set to zero for gse
 conf_tdvp.trunc.maxStates = 1000
-conf_tdvp.exp_conf.errTolerance = 1e-7
-conf_tdvp.exp_conf.inxTolerance = 1e-6
+conf_tdvp.exp_conf.errTolerance = 1e-10
+conf_tdvp.exp_conf.inxTolerance = 1e-15
 conf_tdvp.exp_conf.maxIter =  10
 conf_tdvp.cache = 1
 conf_tdvp.maxt = t_max
 
 conf_tdvp.gse_conf.mode = ptn.tdvp.GSEMode.BeforeTDVP
-#conf_tdvp.gse_conf.mode = conf_tdvp.gse_conf.mode.BeforeTDVP
-conf_tdvp.gse_conf.krylov_order = 5 #FIXME 3,5 INCRESE
+conf_tdvp.gse_conf.krylov_order = 3 #FIXME 3,5 INCRESE
 conf_tdvp.gse_conf.trunc_op = ptn.Truncation(1e-8 , maxStates=500) #maxStates shuld be the same as the one used for tdvp! 1e-8 - 1e-6
 conf_tdvp.gse_conf.trunc_expansion = ptn.Truncation(1e-6, maxStates=500) #precision of GSE. par is trunc. treshold. do not goe below 10^-12 (numerical instability)!!
 conf_tdvp.gse_conf.adaptive = True
@@ -367,11 +380,7 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-de
 
 #compute time-evolution for one trajectory
 
-#exite one particle in the left lead and one in the right lead
-#vac_state *= lat.get('c',1) * lat.get('ch',0)
-vac_state *= lat.get('c',7) * lat.get('ch',6)
-
-qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, [] ) # l_list, [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
+qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, l_list ) # l_list, [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
 
 os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
