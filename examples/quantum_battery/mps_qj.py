@@ -61,7 +61,7 @@ n_trajectories = 1
 first_trajectory = 0
 
 #Lattice
-ferm_bos_sites = [ 1, 1, 1, 1, 0, 1, 1 ] #doubled the fermionic sites to project-purify
+ferm_bos_sites = [ 1, 1, 1, 1, 0, 1, 1 ] #doubled the fermionic sites to project-purify by hand 
 lat = ptn.mp.lat.u1u1.genSpinlessFermiBose(ferm_bos_sites, max_bosons)
 lat = ptn.mp.proj_pur.proj_purification(lat, [0], ["a", "ah"])
 
@@ -71,7 +71,7 @@ vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, "0," + str( max_bos
 #prepare PP vacuum for fermions
 vac_state *= lat.get('ch',1)    
 vac_state *= lat.get('ch',3) 
-vac_state *= lat.get('ch',7)    
+vac_state *= lat.get('ch',6)    
 
 #FIXME: exite one particle in the left lead (USED TO DEBUGG WITHOUT INJECTION)
 vac_state *= lat.get('ch',0) * lat.get('c',1) 
