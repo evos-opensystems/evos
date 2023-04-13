@@ -251,3 +251,38 @@ for site in np.arange(0, 8, 2):
 #     print(site, ptn.mp.expectation(purified_id, lat.get('n',site)))
 # quit()           
 
+#VECTORIZED DISSIPATOR
+def fermi_dist(beta, e, mu):
+    f = 1 / ( np.exp( beta * (e-mu) ) + 1)
+    return f
+
+def lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l ):
+    l_list_left = []
+    l_list_left.append( np.sqrt( delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.get( 'ch',1 ) * lat.get( 'c',0 ) )
+    l_list_left.append( np.sqrt( delta_l * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.get('c',1) * lat.get('ch',0) )
+    return l_list_left
+
+def lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r ):
+    l_list_right = []
+    l_list_right.append( np.sqrt( delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) ) * lat.get( 'ch',7 ) * lat.get( 'c',6 ) )
+    l_list_right.append( np.sqrt( delta_r * fermi_dist( 1./T_r, Om_kr, mu_r)) * lat.get('c',7) * lat.get('ch',6) )
+    return l_list_right
+
+l_list_left = lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l )
+l_list_right = lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r )
+l_list = l_list_left + l_list_right
+
+
+def vectorized_dissipator():
+    
+    first_term =  delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l )  * lat.get( 'ch',1 ) * lat.get( 'c',0 )   *    lat.get( 'ch',1 + idx_shift_lattice_doubling ) * lat.get( 'c',0 + idx_shift_lattice_doubling )
+    
+    first_term += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * lat.get('c',1) * lat.get('ch',0)  *   lat.get('c',1+ idx_shift_lattice_doubling) * lat.get('ch',0+ idx_shift_lattice_doubling)
+
+    first_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'ch',7 ) * lat.get( 'c',6 )   *  lat.get( 'ch',7+ idx_shift_lattice_doubling ) * lat.get( 'c',6+ idx_shift_lattice_doubling ) 
+    
+    first_term +=  delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('c',7) * lat.get('ch',6) * lat.get('c',7 + idx_shift_lattice_doubling) * lat.get('ch',6+ idx_shift_lattice_doubling)
+    
+    return vectorized_dissipator
+
+vectorized_dissipator = vectorized_dissipator()    
