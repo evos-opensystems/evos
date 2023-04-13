@@ -62,7 +62,7 @@ dt = args.dt
 t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 150
+n_trajectories = 1
 first_trajectory = 0
 
 #LATTICE
@@ -91,7 +91,7 @@ class Hamiltonian():
         h_boson = om_0 * lat.sso('ah',2) @ lat.sso('a',2)
         return h_boson
     
-    def h_v(self, F): #system-oscillator
+    def h_v(self, F, N0): #system-oscillator
         dimH = lat.sso('c',0).shape[0]
         h_v = - F * ( lat.sso('ch',1) @ lat.sso('c',1) - N0 * np.eye(dimH, dtype='complex') ) @ ( lat.sso('ah',2) + lat.sso('a',2) ) 
         return h_v 
@@ -103,11 +103,13 @@ class Hamiltonian():
  
 #Hamiltonian
 ham = Hamiltonian(lat, max_bosons)
-# h_s = ham.h_s(eps)
-# h_b = ham.h_b(Om_kl, Om_kr, mu_l, mu_r)
-# h_t = ham.h_t(g_kl, g_kr)
-# h_v = ham.h_v(om_0, F)
-h_tot = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
+h_s = ham.h_s(eps)
+h_b = ham.h_b(Om_kl, Om_kr)
+h_t = ham.h_t(g_kl, g_kr)
+h_boson = ham.h_boson(om_0)
+h_v = ham.h_v(F, N0)
+h_tot = h_s + h_b + h_t + h_boson + h_v 
+#h_tot = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
 # print('h_tot is symmetric: ', ( h_tot == h_tot.T ).all() )
 # quit()
 
@@ -201,9 +203,8 @@ obsdict.add_observable_computing_function('n_1',compute_n_1)
 
 #compute QJ time evolution
 os.chdir('data_qj_ed')
-#init_state = lat.sso('ch',1) @ init_state #FIXME: remove this!!!!!!! 
 
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially
