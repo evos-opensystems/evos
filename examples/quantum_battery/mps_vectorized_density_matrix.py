@@ -71,10 +71,10 @@ vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, "0," + str( max_bos
 idx_shift_lattice_doubling = 8 
 vac_state *= lat.get('ch',1)    
 vac_state *= lat.get('ch',3) 
-vac_state *= lat.get('ch',6)    
+vac_state *= lat.get('ch',7)    
 vac_state *= lat.get('ch',1 + idx_shift_lattice_doubling)    
 vac_state *= lat.get('ch',3 + idx_shift_lattice_doubling) 
-vac_state *= lat.get('ch',6 + idx_shift_lattice_doubling)  
+vac_state *= lat.get('ch',7 + idx_shift_lattice_doubling)  
 
 #FIXME: I AM NOT EXCITING ANY PARTICLE HERE. CHANGE THAT IF YOU WANT TO TEST THE HAMILTONIAN ONLY!
 
@@ -127,77 +127,9 @@ h_tot_left = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattice
 h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattice_doubling = 8)
 
 
-#############Build Purified identity for FERMIONS
-# sites_test = [ 1, 1, 1, 1 ] #doubled the fermionic sites to project-purify by hand 
-# idx_shift_lattice_doubling = 2
-# lat = ptn.mp.lat.u1u1.genSpinlessFermiBose(sites_test, max_bosons)
-
-
-# def mpo_max_ent_pair_ferm(site):
-#     """_summary_
-#     """
-    
-#     op = lat.get('I')
-#     op_tot = op.copy()
-#     for mode in range(1,2):
-#         print('mode = ', mode)
-#         op *= lat.get('c',site + 1 ) * lat.get('ch',site)  *  lat.get('c',site + idx_shift_lattice_doubling + 1) * lat.get('ch',site + idx_shift_lattice_doubling) #* 1./mode #FIXME: reverse order?
-#         op *= 1./mode
-#         op_tot += op
-#         op.truncate()
-#         op_tot.truncate()
-        
-#     return op_tot  
-
-# vac_test = ptn.mp.generateNearVacuumState(lat)
-
-
-# vac_test *= lat.get('ch',1) #create pp vacuum
-# vac_test *= lat.get('ch',3) #create pp vacuum
-
-# purified_id = vac_test.copy() 
-
-# purified_id *= mpo_max_ent_pair_ferm(0) 
-# #####purified_id.normalise()
-# for site in range(4):
-#     print(site, ptn.mp.expectation(purified_id, lat.get('n',site)))
-
-#############    
-
-
-#############Build Purified identity for BOSONS
-# sites_test = [ 0,0 ] #doubled the fermionic sites to project-purify by hand 
-# idx_shift_lattice_doubling = 2
-# lat = ptn.mp.lat.u1u1.genSpinlessFermiBose(sites_test, max_bosons)
-# lat = ptn.mp.proj_pur.proj_purification(lat, [0], ["a", "ah"])
-
-
-# def mpo_max_ent_pair_bos(site, max_bosons):
-#     """_summary_
-#     """
-#     op = lat.get('I')
-#     op_tot = op.copy()
-#     for mode in range(1, max_bosons+1):
-#         print('mode = ', mode)
-#         op *= lat.get('a',site + 1 ) * lat.get('ah',site)  *  lat.get('a',site + idx_shift_lattice_doubling + 1) * lat.get('ah',site + idx_shift_lattice_doubling) #* 1./mode #FIXME: reverse order?
-#         op *= 1./mode
-#         op_tot += op
-#         op.truncate()
-#         op_tot.truncate()
-        
-#     return op_tot    
-
-# vac_test =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, "0," + str( max_bosons ) )
-
-
-# purified_id = vac_test.copy() 
-
-# purified_id *= mpo_max_ent_pair_bos(0, max_bosons) 
-# purified_id.normalise()
-# for site in range(4):
-#     print(site, ptn.mp.expectation(purified_id, lat.get('n',site)))
-
-#############   
+# for site in range(16):
+#     print('bdim on site {} = {}'.format( site, (h_tot_left + h_tot_right )[site].getTotalDims()[0]) )
+# quit()
 
 #BUILD UNNORMALIZED PURIFIED IDENTITY
 
@@ -310,13 +242,33 @@ def compute_vectorized_dissipator():
 
 
 vectorized_dissipator = compute_vectorized_dissipator()    
-vectorized_lindbladian = h_tot_left + h_tot_right + vectorized_dissipator 
+vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right + vectorized_dissipator 
 vectorized_lindbladian.truncate()
+vectorized_lindbladian_dag = ptn.mp.dot( lat.get("I"), vectorized_lindbladian.copy() )
+vectorized_L_dag_L = vectorized_lindbladian * vectorized_lindbladian_dag
+vectorized_L_dag_L.truncate()
+lat.add('vectorized_L_dag_L', 'vectorized_L_dag_L', vectorized_L_dag_L)
+lat.save('lat')
 
-#GROUND STATE
-########### GS
+# for site in range(16):
+#     print('bdim on site {} = {}'.format( site, vectorized_L_dag_L[site].getTotalDims()[0]) )
+
+#GROUND STATE OF HAMILTONIAN AS WARM UP FOR GS FOR L_DAGGER_L !
+init_state_dmrg_h = vac_state.copy()
+init_state_dmrg_h *=  lat.get('c',1) * lat.get('ch',0)
+init_state_dmrg_h *= lat.get('c',3) * lat.get('ch',2)
+init_state_dmrg_h *=  lat.get('c',9) * lat.get('ch',8)
+init_state_dmrg_h *= lat.get('c',11) * lat.get('ch',10)
+
+init_state_dmrg_h *=  lat.get('a',5) * lat.get('ah',4)
+init_state_dmrg_h *=  lat.get('a',5) * lat.get('ah',4)
+init_state_dmrg_h *=  lat.get('a',13) * lat.get('ah',12)
+init_state_dmrg_h *=  lat.get('a',13) * lat.get('ah',12)
+
+init_state_dmrg_h.normalise()
+# print( 'init_state_dmrg_h.norm() = ',init_state_dmrg_h.norm() )
+# quit()
 conf = ptn.dmrg.DMRGConfig()
-
 # give us a list to add stages
 stages = []
 
@@ -411,12 +363,132 @@ stages[8].mode.DMRG3S
 
 # assign stages to DMRG configuration object
 conf.stages = stages
-dmrg= ptn.mp.dmrg.PDMRG(vac_state.copy(), [h_tot], conf)
+dmrg= ptn.mp.dmrg.PDMRG(init_state_dmrg_h.copy(), [h_tot_left + h_tot_right], conf)
 
 # iterate over stages in config object
 energy_during_dmrg = []
 for m in conf.stages:
     # run stage until either convergence is met or max. number of sweeps
-    vac_state = dmrg.run()
+    h_gs = dmrg.run()
+
+########### END GS CALCULATION
+
+
+
+
+#GROUND STATE OF  L_DAGGER_L STARTING FROM GS OF HAMILTONIAN
+
+conf = ptn.dmrg.DMRGConfig()
+# give us a list to add stages
+stages = []
+
+#first stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[0].trunc.maxStates = 16
+stages[0].convergenceMaxSweeps = 200
+stages[0].trunc.weight = 1e-6
+stages[0].trunc.threshold = 1e-8
+stages[0].convergenceMinSweeps = 50
+#stages[0].convMinEnergyDiff = -1
+stages[0].mode.DMRG3S
+#second stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[1].trunc.maxStates = 32
+stages[1].convergenceMaxSweeps = 150
+stages[1].trunc.weight = 1e-7
+stages[1].trunc.threshold = 1e-9
+stages[1].convergenceMinSweeps = 40
+#stages[1].convMinEnergyDiff = -1
+stages[1].mode.DMRG3S
+
+#third stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[2].trunc.maxStates = 64
+stages[2].convergenceMaxSweeps = 100
+stages[2].trunc.weight = 1e-8
+stages[2].trunc.threshold = 1e-10
+stages[2].convergenceMinSweeps = 30
+#[2].convMinEnergyDiff = -1
+stages[2].mode.TwoSite
+
+#fourth stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[3].trunc.maxStates = 128
+stages[3].convergenceMaxSweeps = 100
+stages[3].trunc.weight = 1e-10
+stages[3].trunc.threshold = 1e-12
+stages[3].convergenceMinSweeps = 25
+#stages[3].convMinEnergyDiff = -1
+stages[3].mode.DMRG3S
+
+#fifth stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[4].trunc.maxStates = 256
+stages[4].convergenceMaxSweeps = 100
+stages[4].trunc.weight = 1e-11
+stages[4].trunc.threshold = 1e-13
+stages[4].convergenceMinSweeps = 20
+#stages[4].convMinEnergyDiff = -1
+stages[4].mode.DMRG3S
+
+#6th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[5].trunc.maxStates = 512
+stages[5].convergenceMaxSweeps = 100
+stages[5].trunc.weight = 1e-13
+stages[5].trunc.threshold = 1e-15
+stages[5].convMinEnergyDiff = 1e-08
+stages[5].convergenceMinSweeps = 15
+stages[5].mode.TwoSite
+
+#7th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[6].trunc.maxStates = 1024
+stages[6].convergenceMaxSweeps = 50
+stages[6].trunc.weight = 1e-14
+stages[6].trunc.threshold = 1e-15
+stages[6].convMinEnergyDiff = 1e-08
+stages[6].convergenceMinSweeps = 10
+stages[6].mode.DMRG3S
+
+#8th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[7].trunc.maxStates = 2048
+stages[7].convergenceMaxSweeps = 20
+stages[7].trunc.weight = 1e-15
+stages[7].trunc.threshold = 1e-15
+stages[7].convMinEnergyDiff = 1e-09
+stages[7].convergenceMinSweeps = 5
+stages[7].mode.DMRG3S
+
+#9th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[8].trunc.maxStates = 4096
+stages[8].convergenceMaxSweeps = 20
+stages[8].trunc.weight = 1e-15
+stages[8].trunc.threshold = 1e-15
+stages[8].convMinEnergyDiff = 1e-09
+#stages[8].convergenceMinSweeps = 5
+stages[8].mode.DMRG3S
+
+
+#10th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[9].trunc.maxStates = 8192
+stages[9].convergenceMaxSweeps = 20
+stages[9].trunc.weight = 1e-15
+stages[9].trunc.threshold = 1e-15
+stages[9].convMinEnergyDiff = 1e-09
+stages[9].mode.DMRG3S
+
+# assign stages to DMRG configuration object
+conf.stages = stages
+dmrg= ptn.mp.dmrg.PDMRG(h_gs.copy(), [vectorized_L_dag_L], conf)
+
+# iterate over stages in config object
+energy_during_dmrg = []
+for m in conf.stages:
+    # run stage until either convergence is met or max. number of sweeps
+    ness_mps = dmrg.run()
 
 ########### END GS CALCULATION
