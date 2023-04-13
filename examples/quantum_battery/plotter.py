@@ -5,11 +5,12 @@ import matplotlib.pyplot as plt
 ########LOAD DATA
 parent_dir = os.getcwd()
 #LINDBLAD #FIXME: change dir by hand
-os.chdir('data_lindblad_ed/max_bosons_2/dt_0.02/t_max_20.0/mu_l_0.5/mu_r_-0.5')
+os.chdir('data_lindblad_ed/max_bosons_4/dt_0.02/t_max_5.0/mu_l_0.5/mu_r_-0.5')
+#os.chdir('data_lindblad_ed')
 n_bos_lind = np.loadtxt('n_bos')
-#n_system_lind = np.loadtxt('n_system')
-#U_lind = np.loadtxt('U_from_full_state')
-#S_lind = np.loadtxt('S')
+n_system_lind = np.loadtxt('n_system')
+U_lind = np.loadtxt('U_from_full_state')
+S_lind = np.loadtxt('S')
 os.chdir(parent_dir)
 
 #ED QJ
@@ -37,22 +38,22 @@ phys_dim = np.load('phys_dim_av.npy')
 os.chdir('..')
 
 #MPS SCHRO KRYLOV
-# os.chdir('data_schro_kry_mps')
-# n_qj_kry_mps = np.load('n.npy')
-# block_entropies_qj_kry_mps = np.load('block_entropies.npy')
-# rdm_phon_qj_kry_mps = np.load('rdm_phon.npy')
-# bond_dim_kry = np.load('bond_dim.npy')
-# phonon_entanglement_entropy_kry = np.load('phonon_entanglement_entropy.npy')
-# phonon_energy_kry = np.load('phonon_energy.npy')
-# phys_dim_kry = np.load('phys_dim.npy')
-# os.chdir('..')
+os.chdir('data_schro_kry_mps')
+n_qj_kry_mps = np.load('n.npy')
+block_entropies_qj_kry_mps = np.load('block_entropies.npy')
+rdm_phon_qj_kry_mps = np.load('rdm_phon.npy')
+bond_dim_kry = np.load('bond_dim.npy')
+phonon_entanglement_entropy_kry = np.load('phonon_entanglement_entropy.npy')
+phonon_energy_kry = np.load('phonon_energy.npy')
+phys_dim_kry = np.load('phys_dim.npy')
+os.chdir('..')
 
 
 
 ##########PLOT
-time_v_lind = np.linspace(0, 100, len(n_bos_lind) )
+time_v_lind = np.linspace(0, 5, len(n_bos_lind) )
 #time_v_qj = np.linspace(0, 100, n_qj_mps.shape[1] )
-time_v_qj = np.linspace(0, 100, len(n_bos_qj) )
+time_v_qj = np.linspace(0, 5, n_qj_kry_mps.shape[1] )
 
 fig, ax = plt.subplots()
 # ax.plot(time_v_lind, n_system_lind, label='n_system_lind')
@@ -62,27 +63,34 @@ fig, ax = plt.subplots()
 # N ON RIGHT LEAD 6
 # ax.plot(time_v_qj, n_qj_mps[6,:], label='n_3_qj_mps')
 # ax.plot(time_v_qj, n_3_qj, label='n_3_qj_ed')
+# ax.plot(time_v_qj, n_qj_kry_mps[6,:], label='n_3_kry_mps')
 
 # N ON DOT
 # ax.plot(time_v_qj, n_qj_mps[2,:], label='n_3_qj_mps')
+# ax.plot(time_v_qj, n_qj_kry_mps[2,:], label='n_3_kry_mps')
+
 # ax.plot(time_v_qj, n_system_qj, label='n_3_qj_ed')
 
 # N ON LEFT LEAD
 # ax.plot(time_v_qj, n_qj_mps[0,:], label='n_0_qj_mps')
+# ax.plot(time_v_qj, n_qj_kry_mps[0,:], label='n_0_kry_mps')
 # ax.plot(time_v_qj, n_0_qj, label='n_0_qj_ed')
 
 #OCC BOSONIC SITE
-plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
-# plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
+#plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
+plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
 #plt.plot(time_v_qj, n_bos_qj - n_qj_mps[4,:], label='n_bos_mps')
-plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind')
+#plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind')
 
-#plt.plot(time_v_qj, n_qj_mps[5,:], label='i')
-#plt.plot(time_v_qj, n_qj_mps[4,:] + n_qj_mps[5,:], label='i')
+#plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
+#plt.plot(time_v_qj, n_qj_mps[4,:] + n_qj_mps[5,:], label='n_bos_mps_qj phys + aux')
 #plt.plot(time_v_qj, n_qj_kry_mps[4,:], label='n_bos_mps_kry')
+#plt.plot(time_v_qj, n_qj_kry_mps[4,:]+n_qj_kry_mps[5,:], label='n_bos_mps_kry phys + aux')
 
 #ERROR ON RIGHT LEAD
 #ax.plot(time_v_qj, np.abs(n_qj_mps[6,:] - n_3_qj ), label='ed qj - mps qj')
+#ax.plot(time_v_qj, np.abs(n_qj_mps[6,:] -n_qj_kry_mps[6,:]  ), label='mps qj - mps kry')
+#ax.plot(time_v_qj, np.abs(n_qj_kry_mps[6,:] - n_3_qj ), label='mps kry - ed qj')
 
 #RDM
 #for i in range(3):

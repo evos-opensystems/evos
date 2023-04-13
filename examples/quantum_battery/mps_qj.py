@@ -78,12 +78,9 @@ vac_state *= lat.get('ch',0) * lat.get('c',1)
 #vac_state *= lat.get('ch',6) * lat.get('c',7)
 
 ################################################################
-# for mode in range(max_bosons):
-#     vac_state *=lat.get('ah',5)
-#     vac_state.normalise()
 # for site in range(8):
-#     print(site, ptn.mp.expectation(vac_state, lat.get('n',site) ) )
-    
+#     print(site, ptn.mp.expectation(vac_state, lat.get('n',site)))
+# quit()    
 ################################################################
    
 class Hamiltonian():
@@ -109,8 +106,8 @@ class Hamiltonian():
    
     def h_t(self, g_kl, g_kr): #system-leads
         
-        h_t = g_kl * ( lat.get('c',0)* lat.get('ch',1) * lat.get('ch',2) * lat.get('c',3)  +  lat.get('ch',3) * lat.get('c',2) * lat.get('c',1) * lat.get('ch',0) ) 
-        h_t += g_kr * (lat.get('c',6) * lat.get('ch',7) * lat.get('ch',2) * lat.get('c',3)  +  lat.get('ch',3) * lat.get('c',2) * lat.get('c',7) * lat.get('ch',6) ) 
+        h_t = g_kl * ( lat.get('c',0) * lat.get('ch',2)  +  lat.get('c',2) * lat.get('ch',0) ) 
+        h_t += g_kr * (lat.get('c',6)  * lat.get('ch',2)  + lat.get('c',2) * lat.get('ch',6) ) 
     
         #h_t.truncate()
         return h_t
@@ -380,7 +377,7 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-de
 
 #compute time-evolution for one trajectory
 
-qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, l_list ) # l_list, [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
+qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, [] ) # l_list, [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
 
 os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
