@@ -283,6 +283,28 @@ def vectorized_dissipator():
     
     first_term +=  delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('c',7) * lat.get('ch',6) * lat.get('c',7 + idx_shift_lattice_doubling) * lat.get('ch',6+ idx_shift_lattice_doubling)
     
+    
+    second_term = delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l )  * lat.get( 'ch',1 ) * lat.get( 'c',0 )   *    lat.get( 'c',1  ) * lat.get( 'ch',0 )
+    
+    second_term += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * lat.get('c',1) * lat.get('ch',0)  *   lat.get('ch',1) * lat.get('c',0)
+    
+    second_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'ch',7 ) * lat.get( 'c',6 )   *  lat.get( 'c',7 ) * lat.get( 'ch',6 ) 
+    
+    second_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('c',7) * lat.get('ch',6) * lat.get('ch',7) * lat.get('c',6)
+    second_term *= 0.5
+    
+    
+    third_term = delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l )  * lat.get( 'ch',1+ idx_shift_lattice_doubling ) * lat.get( 'c',0+ idx_shift_lattice_doubling )   *    lat.get( 'c',1+ idx_shift_lattice_doubling  ) * lat.get( 'ch',0 + idx_shift_lattice_doubling)
+    
+    third_term += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * lat.get('c',1+ idx_shift_lattice_doubling) * lat.get('ch',0+ idx_shift_lattice_doubling)  *   lat.get('ch',1+ idx_shift_lattice_doubling) * lat.get('c',0+ idx_shift_lattice_doubling)
+    
+    third_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'ch',7+ idx_shift_lattice_doubling ) * lat.get( 'c',6+ idx_shift_lattice_doubling )   *  lat.get( 'c',7 + idx_shift_lattice_doubling) * lat.get( 'ch',6+ idx_shift_lattice_doubling ) 
+    
+    third_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('c',7+ idx_shift_lattice_doubling) * lat.get('ch',6+ idx_shift_lattice_doubling) * lat.get('ch',7+ idx_shift_lattice_doubling) * lat.get('c',6+ idx_shift_lattice_doubling)
+    
+    third_term *= 0.5
+    
+    vectorized_dissipator = first_term + second_term + third_term
     return vectorized_dissipator
 
 vectorized_dissipator = vectorized_dissipator()    
