@@ -71,10 +71,10 @@ vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, "0," + str( max_bos
 #prepare PP vacuum for fermions
 vac_state *= lat.get('ch',1)    
 vac_state *= lat.get('ch',3) 
-vac_state *= lat.get('ch',6)    
+vac_state *= lat.get('ch',7)    
 
 #FIXME: exite one particle in the left lead (USED TO DEBUGG WITHOUT INJECTION)
-vac_state *= lat.get('ch',0) * lat.get('c',1) 
+vac_state *=  lat.get('c',1) * lat.get('ch',0)
 #vac_state *= lat.get('ch',6) * lat.get('c',7)
 
 ################################################################
