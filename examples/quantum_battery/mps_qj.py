@@ -42,7 +42,7 @@ Om_kr = -0.5
 Gamma = 2
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0.5 #FIXME: is this correct?
+N0 = 0 #FIXME: is this correct?
 delta_l = 1
 delta_r = 1
 
@@ -90,7 +90,7 @@ class Hamiltonian():
         self.max_bosons = max_bosons
         
     def h_s(self, eps): #system
-        h_s = eps * lat.get('c',2) * lat.get('ch',2)  #no need to PP
+        h_s = eps * lat.get('nf',2)  #no need to PP
         #h_s = ptn.mp.addLog(h_s)
         #h_s.truncate()
         return h_s 
@@ -98,16 +98,16 @@ class Hamiltonian():
     def h_b(self, Om_kl, Om_kr): #leads
         #NOTE: added mu_l and mu_rto onsite energies
         h_b = []
-        h_b.append( Om_kl * lat.get('c',0) * lat.get('ch',0) ) #no need to PP
-        h_b.append( Om_kr * lat.get('c',6) * lat.get('ch',6) ) #no need to PP
+        h_b.append( Om_kl * lat.get('nf',0) ) #no need to PP
+        h_b.append( Om_kr * lat.get('nf',6) ) #no need to PP
         h_b = ptn.mp.addLog(h_b)
         #h_b.truncate()
         return h_b
    
     def h_t(self, g_kl, g_kr): #system-leads
         
-        h_t = g_kl * ( lat.get('c',0) * lat.get('ch',2)  +  lat.get('c',2) * lat.get('ch',0) ) 
-        h_t += g_kr * (lat.get('c',6)  * lat.get('ch',2)  + lat.get('c',2) * lat.get('ch',6) ) 
+        h_t = g_kl * ( lat.get('ch',1) * lat.get('c',0) * lat.get('c',3) * lat.get('ch',2)  +  lat.get('ch',3) * lat.get('c',2) * lat.get('c',1) * lat.get('ch',0) ) 
+        h_t += g_kr * ( lat.get('ch',7) * lat.get('c',6)  * lat.get('c',3) * lat.get('ch',2)  + lat.get('ch',3) * lat.get('c',2) * lat.get('c',7) * lat.get('ch',6) ) 
     
         #h_t.truncate()
         return h_t
