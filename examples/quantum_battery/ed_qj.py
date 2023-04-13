@@ -62,7 +62,7 @@ dt = args.dt
 t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 150
+n_trajectories = 0
 first_trajectory = 0
 
 #LATTICE
@@ -203,7 +203,7 @@ obsdict.add_observable_computing_function('n_1',compute_n_1)
 os.chdir('data_qj_ed')
 #init_state = lat.sso('ch',1) @ init_state #FIXME: remove this!!!!!!! 
 
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially
