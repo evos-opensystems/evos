@@ -65,19 +65,19 @@ fig, ax = plt.subplots()
 # ax.plot(time_v_qj, n_qj_kry_mps[6,:], label='n_3_kry_mps')
 
 # N ON DOT
-# ax.plot(time_v_qj, n_qj_mps[2,:], label='n_3_qj_mps')
+#ax.plot(time_v_qj, n_qj_mps[2,:], label='n_3_qj_mps')
 # ax.plot(time_v_qj, n_qj_kry_mps[2,:], label='n_3_kry_mps')
-
-# ax.plot(time_v_qj, n_system_qj, label='n_3_qj_ed')
+#ax.plot(time_v_qj, n_system_qj, label='n_3_qj_ed')
+#ax.plot(time_v_qj, n_system_qj-n_qj_mps[2,:], label='n_3_qj_ed-n_3_qj_mps')
 
 # N ON LEFT LEAD
-# ax.plot(time_v_qj, n_qj_mps[0,:], label='n_0_qj_mps')
+ax.plot(time_v_qj, n_qj_mps[0,:], label='n_0_qj_mps')
 # ax.plot(time_v_qj, n_qj_kry_mps[0,:], label='n_0_kry_mps')
-#ax.plot(time_v_qj, n_0_qj, label='n_0_qj_ed')
+ax.plot(time_v_qj, n_0_qj, label='n_0_qj_ed')
 
 #OCC BOSONIC SITE
-plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
-plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
+# plt.plot(time_v_qj[:], n_bos_qj[:], label='n_bos_ed')
+# plt.plot(time_v_qj[:], n_qj_mps[4,:], label='n_bos_mps')
 #plt.plot(time_v_qj, n_qj_mps[4,:] - n_bos_qj, label='n_bos_mps - n_bos_ed')
 
 # plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')

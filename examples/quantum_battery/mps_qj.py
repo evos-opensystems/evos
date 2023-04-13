@@ -377,7 +377,7 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-de
 
 #compute time-evolution for one trajectory
 
-qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, [] ) # l_list, [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
+qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, l_list ) # l_list, , [  lat.get('c',1) * lat.get('ch',0) ],  [ lat.get('c',1) * lat.get('ch',0),  lat.get('ch',1) * lat.get('c',0) ]
 
 os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
