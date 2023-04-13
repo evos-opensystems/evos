@@ -273,7 +273,7 @@ l_list_right = lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r )
 l_list = l_list_left + l_list_right
 
 
-def vectorized_dissipator():
+def compute_vectorized_dissipator():
     
     first_term =  delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l )  * lat.get( 'ch',1 ) * lat.get( 'c',0 )   *    lat.get( 'ch',1 + idx_shift_lattice_doubling ) * lat.get( 'c',0 + idx_shift_lattice_doubling )
     
@@ -305,6 +305,118 @@ def vectorized_dissipator():
     third_term *= 0.5
     
     vectorized_dissipator = first_term + second_term + third_term
+    vectorized_dissipator.truncate()
     return vectorized_dissipator
 
-vectorized_dissipator = vectorized_dissipator()    
+
+vectorized_dissipator = compute_vectorized_dissipator()    
+vectorized_lindbladian = h_tot_left + h_tot_right + vectorized_dissipator 
+vectorized_lindbladian.truncate()
+
+#GROUND STATE
+########### GS
+conf = ptn.dmrg.DMRGConfig()
+
+# give us a list to add stages
+stages = []
+
+#first stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[0].trunc.maxStates = 16
+stages[0].convergenceMaxSweeps = 200
+stages[0].trunc.weight = 1e-6
+stages[0].trunc.threshold = 1e-8
+stages[0].convergenceMinSweeps = 50
+#stages[0].convMinEnergyDiff = -1
+stages[0].mode.DMRG3S
+#second stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[1].trunc.maxStates = 32
+stages[1].convergenceMaxSweeps = 150
+stages[1].trunc.weight = 1e-7
+stages[1].trunc.threshold = 1e-9
+stages[1].convergenceMinSweeps = 40
+#stages[1].convMinEnergyDiff = -1
+stages[1].mode.DMRG3S
+
+#third stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[2].trunc.maxStates = 64
+stages[2].convergenceMaxSweeps = 100
+stages[2].trunc.weight = 1e-8
+stages[2].trunc.threshold = 1e-10
+stages[2].convergenceMinSweeps = 30
+#[2].convMinEnergyDiff = -1
+stages[2].mode.TwoSite
+
+#fourth stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[3].trunc.maxStates = 128
+stages[3].convergenceMaxSweeps = 100
+stages[3].trunc.weight = 1e-10
+stages[3].trunc.threshold = 1e-12
+stages[3].convergenceMinSweeps = 25
+#stages[3].convMinEnergyDiff = -1
+stages[3].mode.DMRG3S
+
+#fifth stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[4].trunc.maxStates = 256
+stages[4].convergenceMaxSweeps = 100
+stages[4].trunc.weight = 1e-11
+stages[4].trunc.threshold = 1e-13
+stages[4].convergenceMinSweeps = 20
+#stages[4].convMinEnergyDiff = -1
+stages[4].mode.DMRG3S
+
+#6th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[5].trunc.maxStates = 512
+stages[5].convergenceMaxSweeps = 100
+stages[5].trunc.weight = 1e-13
+stages[5].trunc.threshold = 1e-15
+stages[5].convMinEnergyDiff = 1e-08
+stages[5].convergenceMinSweeps = 15
+stages[5].mode.TwoSite
+
+#7th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[6].trunc.maxStates = 1024
+stages[6].convergenceMaxSweeps = 50
+stages[6].trunc.weight = 1e-14
+stages[6].trunc.threshold = 1e-15
+stages[6].convMinEnergyDiff = 1e-08
+stages[6].convergenceMinSweeps = 10
+stages[6].mode.DMRG3S
+
+#8th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[7].trunc.maxStates = 2048
+stages[7].convergenceMaxSweeps = 20
+stages[7].trunc.weight = 1e-15
+stages[7].trunc.threshold = 1e-15
+stages[7].convMinEnergyDiff = 1e-09
+stages[7].convergenceMinSweeps = 5
+stages[7].mode.DMRG3S
+
+#9th stage
+stages.append(ptn.dmrg.DMRGStage())
+stages[8].trunc.maxStates = 4096
+stages[8].convergenceMaxSweeps = 20
+stages[8].trunc.weight = 1e-15
+stages[8].trunc.threshold = 1e-15
+stages[8].convMinEnergyDiff = 1e-09
+#stages[8].convergenceMinSweeps = 5
+stages[8].mode.DMRG3S
+
+# assign stages to DMRG configuration object
+conf.stages = stages
+dmrg= ptn.mp.dmrg.PDMRG(vac_state.copy(), [h_tot], conf)
+
+# iterate over stages in config object
+energy_during_dmrg = []
+for m in conf.stages:
+    # run stage until either convergence is met or max. number of sweeps
+    vac_state = dmrg.run()
+
+########### END GS CALCULATION
