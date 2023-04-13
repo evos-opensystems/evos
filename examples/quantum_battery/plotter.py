@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 ########LOAD DATA
 parent_dir = os.getcwd()
 #LINDBLAD #FIXME: change dir by hand
-os.chdir('data_lindblad_ed/max_bosons_2/dt_0.02/t_max_20.0/mu_l_0.5/mu_r_-0.5')
+os.chdir('data_lindblad_ed/max_bosons_4/dt_0.02/t_max_5.0/mu_l_0.5/mu_r_-0.5')
 n_bos_lind = np.loadtxt('n_bos')
 #n_system_lind = np.loadtxt('n_system')
 #U_lind = np.loadtxt('U_from_full_state')
@@ -50,9 +50,9 @@ os.chdir('..')
 
 
 ##########PLOT
-time_v_lind = np.linspace(0, 100, len(n_bos_lind) )
+time_v_lind = np.linspace(0, 5, len(n_bos_lind) )
 #time_v_qj = np.linspace(0, 100, n_qj_mps.shape[1] )
-time_v_qj = np.linspace(0, 100, len(n_bos_qj) )
+time_v_qj = np.linspace(0, 5, len(n_bos_qj) )
 
 fig, ax = plt.subplots()
 # ax.plot(time_v_lind, n_system_lind, label='n_system_lind')
@@ -72,10 +72,11 @@ fig, ax = plt.subplots()
 # ax.plot(time_v_qj, n_0_qj, label='n_0_qj_ed')
 
 #OCC BOSONIC SITE
-plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
+#plt.plot(time_v_qj, n_bos_qj, label='n_bos_ed')
 # plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
 #plt.plot(time_v_qj, n_bos_qj - n_qj_mps[4,:], label='n_bos_mps')
-plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind')
+#plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind')
+plt.plot(time_v_lind, n_bos_lind -n_bos_qj[1:] , label='n_bos_lind-n_bos_qj')
 
 #plt.plot(time_v_qj, n_qj_mps[5,:], label='i')
 #plt.plot(time_v_qj, n_qj_mps[4,:] + n_qj_mps[5,:], label='i')

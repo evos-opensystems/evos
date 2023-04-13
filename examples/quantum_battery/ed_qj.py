@@ -62,7 +62,7 @@ dt = args.dt
 t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 0
+n_trajectories = 1
 first_trajectory = 0
 
 #LATTICE
