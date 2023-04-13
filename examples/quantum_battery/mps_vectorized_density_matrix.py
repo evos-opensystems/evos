@@ -130,18 +130,18 @@ h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattic
 #############Build Purified identity for FERMIONS
 # sites_test = [ 1, 1, 1, 1 ] #doubled the fermionic sites to project-purify by hand 
 # idx_shift_lattice_doubling = 2
-# lat_test = ptn.mp.lat.u1u1.genSpinlessFermiBose(sites_test, max_bosons)
+# lat = ptn.mp.lat.u1u1.genSpinlessFermiBose(sites_test, max_bosons)
 
 
 # def mpo_max_ent_pair_ferm(site):
 #     """_summary_
 #     """
     
-#     op = lat_test.get('I')
+#     op = lat.get('I')
 #     op_tot = op.copy()
 #     for mode in range(1,2):
 #         print('mode = ', mode)
-#         op *= lat_test.get('c',site + 1 ) * lat_test.get('ch',site)  *  lat_test.get('c',site + idx_shift_lattice_doubling + 1) * lat_test.get('ch',site + idx_shift_lattice_doubling) #* 1./mode #FIXME: reverse order?
+#         op *= lat.get('c',site + 1 ) * lat.get('ch',site)  *  lat.get('c',site + idx_shift_lattice_doubling + 1) * lat.get('ch',site + idx_shift_lattice_doubling) #* 1./mode #FIXME: reverse order?
 #         op *= 1./mode
 #         op_tot += op
 #         op.truncate()
@@ -149,18 +149,18 @@ h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattic
         
 #     return op_tot  
 
-# vac_test = ptn.mp.generateNearVacuumState(lat_test)
+# vac_test = ptn.mp.generateNearVacuumState(lat)
 
 
-# vac_test *= lat_test.get('ch',1) #create pp vacuum
-# vac_test *= lat_test.get('ch',3) #create pp vacuum
+# vac_test *= lat.get('ch',1) #create pp vacuum
+# vac_test *= lat.get('ch',3) #create pp vacuum
 
 # purified_id = vac_test.copy() 
 
 # purified_id *= mpo_max_ent_pair_ferm(0) 
 # #####purified_id.normalise()
 # for site in range(4):
-#     print(site, ptn.mp.expectation(purified_id, lat_test.get('n',site)))
+#     print(site, ptn.mp.expectation(purified_id, lat.get('n',site)))
 
 #############    
 
@@ -168,18 +168,18 @@ h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattic
 #############Build Purified identity for BOSONS
 # sites_test = [ 0,0 ] #doubled the fermionic sites to project-purify by hand 
 # idx_shift_lattice_doubling = 2
-# lat_test = ptn.mp.lat.u1u1.genSpinlessFermiBose(sites_test, max_bosons)
-# lat_test = ptn.mp.proj_pur.proj_purification(lat_test, [0], ["a", "ah"])
+# lat = ptn.mp.lat.u1u1.genSpinlessFermiBose(sites_test, max_bosons)
+# lat = ptn.mp.proj_pur.proj_purification(lat, [0], ["a", "ah"])
 
 
 # def mpo_max_ent_pair_bos(site, max_bosons):
 #     """_summary_
 #     """
-#     op = lat_test.get('I')
+#     op = lat.get('I')
 #     op_tot = op.copy()
 #     for mode in range(1, max_bosons+1):
 #         print('mode = ', mode)
-#         op *= lat_test.get('a',site + 1 ) * lat_test.get('ah',site)  *  lat_test.get('a',site + idx_shift_lattice_doubling + 1) * lat_test.get('ah',site + idx_shift_lattice_doubling) #* 1./mode #FIXME: reverse order?
+#         op *= lat.get('a',site + 1 ) * lat.get('ah',site)  *  lat.get('a',site + idx_shift_lattice_doubling + 1) * lat.get('ah',site + idx_shift_lattice_doubling) #* 1./mode #FIXME: reverse order?
 #         op *= 1./mode
 #         op_tot += op
 #         op.truncate()
@@ -187,7 +187,7 @@ h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattic
         
 #     return op_tot    
 
-# vac_test =  ptn.mp.proj_pur.generateNearVacuumState(lat_test, 2, "0," + str( max_bosons ) )
+# vac_test =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, "0," + str( max_bosons ) )
 
 
 # purified_id = vac_test.copy() 
@@ -195,6 +195,59 @@ h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattic
 # purified_id *= mpo_max_ent_pair_bos(0, max_bosons) 
 # purified_id.normalise()
 # for site in range(4):
-#     print(site, ptn.mp.expectation(purified_id, lat_test.get('n',site)))
+#     print(site, ptn.mp.expectation(purified_id, lat.get('n',site)))
 
-#############    
+#############   
+
+#BUILD UNNORMALIZED PURIFIED IDENTITY
+
+def mpo_max_ent_pair_ferm(site):
+    """_summary_
+    """
+    
+    op = lat.get('I')
+    op_tot = op.copy()
+    for mode in range(1,2):
+        print('mode = ', mode)
+        op *= lat.get('c',site + 1 ) * lat.get('ch',site)  *  lat.get('c',site + idx_shift_lattice_doubling + 1) * lat.get('ch',site + idx_shift_lattice_doubling) #* 1./mode #FIXME: reverse order?
+        op *= 1./mode
+        op_tot += op
+        op.truncate()
+        op_tot.truncate()
+        
+    return op_tot  
+
+def mpo_max_ent_pair_bos(site, max_bosons):
+    """_summary_
+    """
+    op = lat.get('I')
+    op_tot = op.copy()
+    for mode in range(1, max_bosons+1):
+        print('mode = ', mode)
+        op *= lat.get('a',site + 1 ) * lat.get('ah',site)  *  lat.get('a',site + idx_shift_lattice_doubling + 1) * lat.get('ah',site + idx_shift_lattice_doubling) #* 1./mode #FIXME: reverse order?
+        op *= 1./mode
+        op_tot += op
+        op.truncate()
+        op_tot.truncate()
+        
+    return op_tot   
+
+
+purified_id = vac_state.copy() 
+
+for site in np.arange(0, 8, 2):
+    print('on site ', site)
+    if site != 4:
+        print( 'applying "mpo_max_ent_pair_ferm" on site {}'.format(site) )
+        purified_id *=  mpo_max_ent_pair_ferm(site)
+    
+    elif site == 4:
+        print( 'applying "mpo_max_ent_pair_bos" on site {}'.format(site) )    
+        purified_id *= mpo_max_ent_pair_bos(site, max_bosons)
+        
+
+###purified_id.normalise() #FIXME
+# for site in range(16):
+#     print(site, ptn.mp.expectation(purified_id, lat.get('n',site)))
+# quit()           
+
