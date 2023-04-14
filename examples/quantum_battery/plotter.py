@@ -10,6 +10,8 @@ n_bos_lind = np.loadtxt('n_bos')
 n_system_lind = np.loadtxt('n_system')
 U_lind = np.loadtxt('U_from_full_state')
 S_lind = np.loadtxt('S')
+n_0_lind = np.loadtxt('n_0')
+n_3_lind = np.loadtxt('n_3')
 os.chdir(parent_dir)
 
 #ED QJ
@@ -63,16 +65,17 @@ time_v_qj = np.linspace(0, 5, n_qj_mps.shape[1] )
 fig, ax = plt.subplots()
 
 #MPS LINDBLAD
-#for site in range(8):
-    #plt.plot(time_v_qj[1:], n_mps_lindblad[site, :], label='mps lind n, site '+str(site) )
+# for site in np.arange(0, 8, 2):
+#     plt.plot(time_v_qj[1:], n_mps_lindblad[site, :], label='mps lind n, site '+str(site) )
 
-plt.plot(time_v_qj[1:], n_mps_lindblad[2,:], label='mps lind n, site 2 ' )
+#plt.plot(time_v_qj[1:], n_mps_lindblad[0,:], label='mps lind n, site 2 ' )
 
 
 # N ON RIGHT LEAD 6
 # ax.plot(time_v_qj, n_qj_mps[6,:], label='n_3_qj_mps')
 # ax.plot(time_v_qj, n_3_qj, label='n_3_qj_ed')
 # ax.plot(time_v_qj, n_qj_kry_mps[6,:], label='n_3_kry_mps')
+plt.plot(time_v_lind, n_3_lind, label='n_3_lind')
 
 # N ON DOT
 #ax.plot(time_v_qj, n_qj_mps[2,:], label='n_3_qj_mps')
@@ -88,6 +91,8 @@ plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
 #ax.plot(time_v_qj, n_qj_mps[0,:], label='n_0_qj_mps')
 # ax.plot(time_v_qj, n_qj_kry_mps[0,:], label='n_0_kry_mps')
 #ax.plot(time_v_qj, n_0_qj, label='n_0_qj_ed')
+plt.plot(time_v_lind, n_0_lind, label='n_0_lind')
+
 
 #OCC BOSONIC SITE
 #plt.plot(time_v_qj[:], n_bos_qj[:], label='n_bos_ed')
@@ -96,7 +101,7 @@ plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
 
 # plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
 #plt.plot(time_v_qj, n_bos_qj - n_qj_mps[4,:], label='n_bos_mps')
-#plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
+plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
 #plt.plot(time_v_lind, n_bos_lind -n_bos_qj[1:] , label='n_bos_lind-n_bos_qj')
 
 #plt.plot(time_v_qj, n_qj_mps[4,:] + n_qj_mps[5,:], label='n_bos_mps_qj phys + aux')

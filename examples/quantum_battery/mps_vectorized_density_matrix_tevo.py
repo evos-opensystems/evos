@@ -227,7 +227,7 @@ def compute_vectorized_dissipator():
     second_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'ch',7 ) * lat.get( 'c',6 )   *  lat.get( 'c',7 ) * lat.get( 'ch',6 ) 
     
     second_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('c',7) * lat.get('ch',6) * lat.get('ch',7) * lat.get('c',6)
-    second_term *= 0.5
+    second_term *= -0.5
     
     
     third_term = delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l )  * lat.get( 'ch',1+ idx_shift_lattice_doubling ) * lat.get( 'c',0+ idx_shift_lattice_doubling )   *    lat.get( 'c',1+ idx_shift_lattice_doubling  ) * lat.get( 'ch',0 + idx_shift_lattice_doubling)
@@ -238,7 +238,7 @@ def compute_vectorized_dissipator():
     
     third_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('c',7+ idx_shift_lattice_doubling) * lat.get('ch',6+ idx_shift_lattice_doubling) * lat.get('ch',7+ idx_shift_lattice_doubling) * lat.get('c',6+ idx_shift_lattice_doubling)
     
-    third_term *= 0.5
+    third_term *= -0.5
     
     vectorized_dissipator = first_term + second_term + third_term
     vectorized_dissipator.truncate()
@@ -273,7 +273,11 @@ conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
 conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
 conf_tdvp.exp_conf.minIter = 20
 
-worker = ptn.mp.tdvp.PTDVP(vac_state.copy(),[vectorized_lindbladian.copy()],conf_tdvp.copy()) 
+
+init_state = vac_state.copy()
+#init_state *= lat.get('c',1) * lat.get('ch',0) #FIXME: remove this!
+
+worker = ptn.mp.tdvp.PTDVP( init_state.copy(),[vectorized_lindbladian.copy()],conf_tdvp.copy() ) 
 #initialize observables
 n_exp = np.zeros( ( 16,n_timesteps) )
 for time in range(n_timesteps):

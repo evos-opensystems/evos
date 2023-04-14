@@ -112,7 +112,7 @@ def make_writing_dir_and_change_to_it( parent_data_dirname: str, parameter_dict:
     return writing_dir
 
 parameter_dict = {'max_bosons': max_bosons, 'dt': dt, 't_max': t_max, 'mu_l' : mu_l, 'mu_r' : mu_r  }
-writing_dir = make_writing_dir_and_change_to_it('data_lindblad_ed', parameter_dict)
+writing_dir = make_writing_dir_and_change_to_it('data_lindblad_ed', parameter_dict, overwrite=True)
 
 ################
 
@@ -182,17 +182,16 @@ l_list = l_list_left + l_list_right
 #Initial State: using vacuum for now
 #NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
-init_state = lat.sso('ch',0) @ init_state #FIXME: remove this!!!!!!! 
+#init_state = lat.sso('ch',0) @ init_state #FIXME: remove this!!!!!!! 
 
 
 #Solve Lindblad Equation
 lindblad = lindblad.Lindblad(4)
-#init_state = lat.sso('ch',0) @ init_state #FIXME: remove this!!!!!!! 
 rho_0 = lindblad.ket_to_projector(init_state)        
 rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, l_list, h_tot) #l_list
 
 #Compute observables
-observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2), 'n_bos':lat.sso('ah',2) @ lat.sso('a',2)  }
+observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2), 'n_bos':lat.sso('ah',2) @ lat.sso('a',2), 'n_0': lat.sso('ch',0) @ lat.sso('c',0), 'n_3': lat.sso('ch',3) @ lat.sso('c',3)  }
 computed_observables =  lindblad.compute_observables(rho_t, observables, dt, t_max)
 
 #compute bosonic reduced density matrix at each timestep
@@ -262,6 +261,9 @@ for time in range(n_timesteps):
 np.savetxt('n_system', computed_observables['n_system'] )
 np.savetxt('U_from_full_state', computed_observables['U_from_full_state'] )
 np.savetxt('n_bos', computed_observables['n_bos'] )
+np.savetxt('n_0', computed_observables['n_0'] )
+np.savetxt('n_3', computed_observables['n_3'] )
+
 np.savetxt('S',S)
 
 #PLOT
