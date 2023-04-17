@@ -170,11 +170,16 @@ class MPSQuantumJumps():
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
                 psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
                 which_jump_op_list.append( which_jump_op ) #debugging
+                jump_time_list.append(i * dt )
                 jump_counter +=1 #debugging
             
             #normalize state
             psi_t.normalise()
-                
+            
             #compute observables
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
+        #at the end
         os.chdir('..') #exit the trajectory directory
+        np.savetxt('which_jump_op_list_last_trajectory',which_jump_op_list) #if trajectories run sequentially, this is being overwritten    
+        np.savetxt('jump_time_list',jump_time_list) #if trajectories run sequentially, this is being overwritten    
+

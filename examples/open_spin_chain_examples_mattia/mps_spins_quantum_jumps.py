@@ -108,7 +108,6 @@ def compute_sz(state, obs_array_shape,dtype):  #EXAMPLE 1D
     #OBS DEPENDENT PART START
     for site in range(n_sites):
         obs_array[site] = np.real( ptn.mp.expectation(state, lat.get('sz', site) ) ) / state.norm() ** 2 #NOTE: state is in general not normalized
-    
     #OBS DEPENDENT PART END
     return obs_array
 
@@ -127,7 +126,7 @@ obsdict.add_observable_computing_function('bdim_mat',compute_bdim_mat )
 conf_tdvp = ptn.tdvp.Conf()
 conf_tdvp.mode = ptn.tdvp.Mode.TwoSite 
 conf_tdvp.dt = tdvp_dt
-conf_tdvp.trunc.threshold = tdvp_trunc_threshold  #NOTE: set to zero for gse
+# conf_tdvp.trunc.threshold = tdvp_trunc_threshold  #NOTE: set to zero for gse
 conf_tdvp.trunc.weight = tdvp_trunc_weight #tdvp_trunc_weight #NOTE: set to zero for gse
 conf_tdvp.trunc.maxStates = tdvp_trunc_maxStates
 conf_tdvp.exp_conf.errTolerance = tdvp_exp_conf_errTolerance
