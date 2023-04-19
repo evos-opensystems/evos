@@ -27,7 +27,8 @@ os.chdir('..')
 
 # MPS QJ
 os.chdir('data_qj_mps')
-n_qj_mps = np.load('n_av.npy')
+nf_qj_mps = np.load('nf_av.npy')
+nb_qj_mps = np.load('nb_av.npy')
 block_entropies_qj_mps = np.load('block_entropies_av.npy')
 rdm_phon_qj_mps = np.load('rdm_phon_av.npy')
 bond_dim = np.load('bond_dim_av.npy')
@@ -61,8 +62,8 @@ os.chdir('..')
 
 ##########PLOT
 time_v_lind = np.linspace(0, 5, len(n_bos_lind) )
-#time_v_qj = np.linspace(0, 100, n_qj_mps.shape[1] )
-time_v_qj = np.linspace(0, 5, n_qj_mps.shape[1] )
+#time_v_qj = np.linspace(0, 100,nf_qj_mps.shape[1] )
+time_v_qj = np.linspace(0, 5,nf_qj_mps.shape[1] )
 
 fig, ax = plt.subplots()
 
@@ -70,51 +71,50 @@ fig, ax = plt.subplots()
 # for site in np.arange(0, 8, 2):
 #     plt.plot(time_v_qj[1:], n_mps_lindblad[site, :], label='mps lind n, site '+str(site) )
 
-plt.plot(time_v_qj[1:], n_mps_lindblad[0,:], label='mps lind n, site 0 ' )
-plt.plot(time_v_qj[1:], n_mps_lindblad[1,:], label='mps lind n, site 1 ' )
-plt.plot(time_v_qj[1:], n_mps_lindblad[4,:], label='mps lind n, site 4 ' )
+# plt.plot(time_v_qj[1:], n_mps_lindblad[0,:], label='mps lind n, site 0 ' )
+# plt.plot(time_v_qj[1:], n_mps_lindblad[1,:], label='mps lind n, site 1 ' )
+# plt.plot(time_v_qj[1:], n_mps_lindblad[4,:], label='mps lind n, site 4 ' )
 
 
 # N ON RIGHT LEAD 6
-# ax.plot(time_v_qj, n_qj_mps[6,:], label='n_3_qj_mps')
+# ax.plot(time_v_qj,nf_qj_mps[4,:], label='n_4_qj_mps')
 # ax.plot(time_v_qj, n_3_qj, label='n_3_qj_ed')
 # ax.plot(time_v_qj, n_qj_kry_mps[6,:], label='n_3_kry_mps')
-plt.plot(time_v_lind, n_3_lind, label='n_3_lind ed')
+#plt.plot(time_v_lind, n_3_lind, label='n_3_lind ed')
 
 # N ON DOT
-#ax.plot(time_v_qj, n_qj_mps[2,:], label='n_3_qj_mps')
-# ax.plot(time_v_qj, n_qj_kry_mps[2,:], label='n_3_kry_mps')
-#ax.plot(time_v_qj, n_system_qj, label='n_3_qj_ed')
-#ax.plot(time_v_qj, n_system_qj-n_qj_mps[2,:], label='n_3_qj_ed-n_3_qj_mps')
-plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
+#ax.plot(time_v_qj,nf_qj_mps[1,:], label='n_1_qj_mps')
+#ax.plot(time_v_qj, n_system_qj, label='n_sys_qj_ed')
+#ax.plot(time_v_qj, n_system_qj-nf_qj_mps[1,:], label='n_system_qj-n_1_qj_mps')
+#plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
 
 
 
 
 # N ON LEFT LEAD
-#ax.plot(time_v_qj, n_qj_mps[0,:], label='n_0_qj_mps')
+#ax.plot(time_v_qj,nf_qj_mps[0,:], label='n_0_qj_mps')
 # ax.plot(time_v_qj, n_qj_kry_mps[0,:], label='n_0_kry_mps')
 #ax.plot(time_v_qj, n_0_qj, label='n_0_qj_ed')
-plt.plot(time_v_lind, n_0_lind, label='n_0_lind ed')
+#plt.plot(time_v_lind, n_0_lind, label='n_0_lind ed')
 
 
 #OCC BOSONIC SITE
-#plt.plot(time_v_qj[:], n_bos_qj[:], label='n_bos_ed')
-#plt.plot(time_v_qj[:], n_qj_mps[4,:], label='n_bos_mps')
-#plt.plot(time_v_qj, n_qj_mps[4,:] - n_bos_qj, label='n_bos_mps - n_bos_ed')
+plt.plot(time_v_qj[:], n_bos_qj[:], label='n_bos_ed')
+plt.plot(time_v_qj[:],nb_qj_mps[2,:], label='n_bos_mps')
+#plt.plot(time_v_qj,nb_qj_mps[2,:] - n_bos_qj[:], label='n_bos_mps - n_bos_ed')
 
-#plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
-#plt.plot(time_v_qj, n_bos_qj - n_qj_mps[4,:], label='n_bos_mps')
+#plt.plot(time_v_qj,nf_qj_mps[4,:], label='n_bos_mps')
+#plt.plot(time_v_qj, n_bos_qj -nf_qj_mps[4,:], label='n_bos_mps')
 #plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
 #plt.plot(time_v_lind, n_bos_lind -n_bos_qj[1:] , label='n_bos_lind-n_bos_qj')
 
-#plt.plot(time_v_qj, n_qj_mps[4,:] + n_qj_mps[5,:], label='n_bos_mps_qj phys + aux')
+#plt.plot(time_v_qj,nf_qj_mps[4,:] +nf_qj_mps[5,:], label='n_bos_mps_qj phys + aux')
 #plt.plot(time_v_qj, n_qj_kry_mps[4,:], label='n_bos_mps_kry')
 #plt.plot(time_v_qj, n_qj_kry_mps[4,:]+n_qj_kry_mps[5,:], label='n_bos_mps_kry phys + aux')
 
 #ERROR ON RIGHT LEAD
-#ax.plot(time_v_qj, np.abs(n_qj_mps[6,:] - n_3_qj ), label='ed qj - mps qj')
-#ax.plot(time_v_qj, np.abs(n_qj_mps[6,:] -n_qj_kry_mps[6,:]  ), label='mps qj - mps kry')
+#ax.plot(time_v_qj, np.abs(nf_qj_mps[6,:] - n_3_qj ), label='ed qj - mps qj')
+#ax.plot(time_v_qj, np.abs(nf_qj_mps[6,:] -n_qj_kry_mps[6,:]  ), label='mps qj - mps kry')
 #ax.plot(time_v_qj, np.abs(n_qj_kry_mps[6,:] - n_3_qj ), label='mps kry - ed qj')
 
 #RDM
@@ -128,7 +128,7 @@ T_l = 1./0.5 #beta_l = 0.5 #FIXME: change this if changed in 'mps_qj.py'
 #plt.plot(time_v_qj, phonon_entanglement_entropy[0,:], label='ent entropy')
 #plt.plot(time_v_qj, phonon_energy[0,:], label='phon energy')
 #plt.plot(time_v_qj, phonon_energy[0,:] - T_l * phonon_entanglement_entropy[0,:], label='W_f')
-#plt.plot(time_v_qj, n_qj_mps[4,:], label='n_bos_mps')
+#plt.plot(time_v_qj,nf_qj_mps[4,:], label='n_bos_mps')
 
 
 #BOND DIM
