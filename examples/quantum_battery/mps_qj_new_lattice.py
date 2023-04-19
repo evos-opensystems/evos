@@ -60,6 +60,8 @@ n_timesteps = int(t_max/dt)
 n_trajectories = 1
 first_trajectory = 0
 
+os.chdir('data_qj_mps_test_gs')
+
 #Lattice
 ferm_bos_sites = [0,0,1,0] 
 lat = ptn.mp.lat.u1.genSpinlessFermiBose_NilxU1( ferm_bos_sites, max_bosons)
@@ -77,12 +79,17 @@ for site in [0,1,4]:
     vac_state *= lat.get('c',site)
     vac_state.normalise()    
 
-#for site in range(5):
-    #print('<n> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('n',site) ) ) )
-    #print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('nb',site) ) ) )
-
-#FIXME: FOR DEBUGGING: excite one particle on left lead
-#vac_state *= lat.get('ch',0)
+################FIXME: FOR DEBUGGING: increase bdim
+# vac_state_1 = vac_state.copy()
+# vac_state_1 *= lat.get('ch',0)
+# vac_state_1 *= lat.get('ch',1)
+# vac_state_1 *= lat.get('ch',4)
+# vac_state += vac_state_1
+# for site in range(5):
+#     # print('<n> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('n',site) ) ) )
+#     # print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('nb',site) ) ) )
+#     print(site,' bdim = ', vac_state[site].getTotalDims()[2]) 
+################FIXME: FOR DEBUGGING
 
 #HAMILTONIAN
 class Hamiltonian():
@@ -271,12 +278,10 @@ conf_tdvp.gse_conf.trunc_expansion = ptn.Truncation(1e-6, maxStates=500) #precis
 conf_tdvp.gse_conf.adaptive = True
 conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-dependet parameter 
 
-
 #compute time-evolution for one trajectory
 
 qj = mps_quantum_jumps.MPSQuantumJumps( 5, lat, h_tot, l_list ) #[], l_list
 
-os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 
 ######

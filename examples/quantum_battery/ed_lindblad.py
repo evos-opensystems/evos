@@ -182,8 +182,6 @@ l_list = l_list_left + l_list_right
 #Initial State: using vacuum for now
 #NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
-#init_state = lat.sso('ch',0) @ init_state #FIXME: remove this!!!!!!! 
-
 
 #Solve Lindblad Equation
 lindblad = lindblad.Lindblad(4)

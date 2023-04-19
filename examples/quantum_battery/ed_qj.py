@@ -138,8 +138,13 @@ l_list = l_list_left + l_list_right
 #NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
 
-# FIXME exite one particle in the left lead: USED TO DEBUGG
-#init_state = lat.sso('ch',0) @ init_state
+###########################FIXME: FOR DEBUGGING
+# init_state1  = init_state.copy()
+# init_state1  = lat.sso('ch',0) @ init_state1 
+# init_state1  = lat.sso('ch',1) @ init_state1 
+# init_state1  = lat.sso('ch',3) @ init_state1 
+# init_state = init_state + init_state1
+###########################FIXME: FOR DEBUGGING
 
 #Observables
 obsdict = observables.ObservablesDict()

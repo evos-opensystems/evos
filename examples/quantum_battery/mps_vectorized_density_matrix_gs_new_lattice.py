@@ -117,7 +117,7 @@ class Hamiltonian():
         return h_boson
     
     def h_v(self, F, N0, idx_shift_lattice_doubling): #system-oscillator
-        h_v = - F * ( lat.get('n',1 + idx_shift_lattice_doubling) - N0 * lat.get('I') ) *  ( lat.get('ah',2 + idx_shift_lattice_doubling) * lat.get('a',3 + idx_shift_lattice_doubling)  + lat.get('a',2 + idx_shift_lattice_doubling) * lat.get('ah',3 + idx_shift_lattice_doubling) ) 
+        h_v = - F * ( lat.get('n',1 + idx_shift_lattice_doubling) - N0 * lat.get('I') ) *  ( lat.get('a',3 + idx_shift_lattice_doubling) * lat.get('ah',2 + idx_shift_lattice_doubling)  + lat.get('ah',3 + idx_shift_lattice_doubling) * lat.get('a',2 + idx_shift_lattice_doubling) ) 
         #h_v.truncate()
         return h_v 
     
@@ -196,18 +196,18 @@ def compute_vectorized_dissipator(idx_shift_lattice_doubling):
     
     first_term += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * lat.get('ch',0 + idx_shift_lattice_doubling) * lat.get('ch',0)
 
-    #first_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r )* lat.get( 'c',4 + idx_shift_lattice_doubling ) *  lat.get( 'c',4 ) 
+    first_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r )* lat.get( 'c',4 + idx_shift_lattice_doubling ) *  lat.get( 'c',4 ) 
     
-    #first_term +=  delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4 + idx_shift_lattice_doubling) * lat.get('ch',4)
+    first_term +=  delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4 + idx_shift_lattice_doubling) * lat.get('ch',4)
     
     
     second_term = delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) * lat.get( 'c',0 )  *  lat.get( 'ch',0 )
     
     second_term += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * lat.get('ch',0) * lat.get('c',0)
     
-    #second_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4 ) * lat.get( 'ch',4 ) 
+    second_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4 ) * lat.get( 'ch',4 ) 
     
-    #second_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4) * lat.get('c',4)
+    second_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4) * lat.get('c',4)
     second_term *= -0.5
     
     
@@ -215,9 +215,9 @@ def compute_vectorized_dissipator(idx_shift_lattice_doubling):
     
     third_term += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * lat.get('ch',0+ idx_shift_lattice_doubling) * lat.get('c',0+ idx_shift_lattice_doubling)
     
-    #third_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4+ idx_shift_lattice_doubling ) * lat.get( 'ch',4+ idx_shift_lattice_doubling ) 
+    third_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4+ idx_shift_lattice_doubling ) * lat.get( 'ch',4+ idx_shift_lattice_doubling ) 
     
-    # third_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4+ idx_shift_lattice_doubling) * lat.get('c',4+ idx_shift_lattice_doubling)
+    third_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4+ idx_shift_lattice_doubling) * lat.get('c',4+ idx_shift_lattice_doubling)
     
     third_term *= -0.5
     
@@ -228,7 +228,7 @@ def compute_vectorized_dissipator(idx_shift_lattice_doubling):
 
 vectorized_dissipator = compute_vectorized_dissipator(idx_shift_lattice_doubling) 
 
-vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right #+ vectorized_dissipator  
+vectorized_lindbladian =  vectorized_dissipator  -1j*h_tot_left +1j*h_tot_right 
 vectorized_lindbladian.truncate()
 vectorized_lindbladian_dag = ptn.mp.dot( lat.get("I"), vectorized_lindbladian.copy() )
 vectorized_L_dag_L = vectorized_lindbladian * vectorized_lindbladian_dag
@@ -331,7 +331,6 @@ stages[8].trunc.threshold = 1e-15
 stages[8].convMinEnergyDiff = 1e-09
 #stages[8].convergenceMinSweeps = 5
 stages[8].mode.DMRG3S
-
 
 #10th stage
 stages.append(ptn.dmrg.DMRGStage())
