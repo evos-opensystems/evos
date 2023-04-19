@@ -23,7 +23,6 @@ arg_parser.add_argument("-mu_r",   "--checmical_pot_right_lead", dest = 'mu_r', 
 #FIXME: ADD MU_L AND MU_R
 args = arg_parser.parse_args()
 
-
 np.set_printoptions(threshold=sys.maxsize)
 sys.stdout.write('test')
 
@@ -132,7 +131,6 @@ h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattic
 # quit()
 
 #BUILD UNNORMALIZED PURIFIED IDENTITY
-
 def mpo_max_ent_pair_ferm(site):
     """_summary_
     """

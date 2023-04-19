@@ -255,12 +255,12 @@ conf_tdvp.mode = ptn.tdvp.Mode.GSE   #TwoSite, GSE, Subspace
 conf_tdvp.dt = 1j * dt
 conf_tdvp.trunc.threshold = 1e-10  #NOTE: set to zero for gse
 conf_tdvp.trunc.weight = 1e-15 #tdvp_trunc_weight #NOTE: set to zero for gse
-conf_tdvp.trunc.maxStates = 1000
+conf_tdvp.trunc.maxStates = 3000
 conf_tdvp.exp_conf.errTolerance = 1e-10
 conf_tdvp.exp_conf.inxTolerance = 1e-15
 conf_tdvp.exp_conf.maxIter =  10
 conf_tdvp.cache = 1
-conf_tdvp.maxt = t_max
+conf_tdvp.maxt = 1j*t_max
 
 conf_tdvp.gse_conf.mode = ptn.tdvp.GSEMode.BeforeTDVP
 conf_tdvp.gse_conf.krylov_order = 3 #FIXME 3,5 INCRESE
@@ -276,20 +276,25 @@ conf_tdvp.exp_conf.minIter = 20
 
 init_state = vac_state.copy()
 #init_state *= lat.get('c',1) * lat.get('ch',0) #FIXME: remove this!
-
-worker = ptn.mp.tdvp.PTDVP( init_state.copy(),[vectorized_lindbladian.copy()],conf_tdvp.copy() ) 
+psi_t = init_state.copy()
+#normalize initial state
+psi_t.normalise()
 #initialize observables
 n_exp = np.zeros( ( 16,n_timesteps) )
+#main tevo loop
 for time in range(n_timesteps):
+    #reinitialize worker with normalized state
+    worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[vectorized_lindbladian.copy()],conf_tdvp.copy() ) 
     worker.do_step()
     psi_t = worker.get_psi(False)
     
-    #normalize state
+    #Compute trace-norm for observables
     trace_norm_psi_t = ptn.mp.overlap(purified_id, psi_t)
-    psi_t *= 1./ trace_norm_psi_t
-    #print(trace_norm_psi_t)
     
-    #compute observables
+    #compute observables dividing by trace-norm
     for site in range(16):
-        n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site) ,psi_t) )
+        n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
     np.savetxt('n_exp', n_exp )
+
+    #Normalize state to reinitialize tdvp worker
+    psi_t.normalise()

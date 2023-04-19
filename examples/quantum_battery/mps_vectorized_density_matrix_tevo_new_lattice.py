@@ -225,137 +225,62 @@ vectorized_dissipator = compute_vectorized_dissipator(idx_shift_lattice_doubling
 
 vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right + vectorized_dissipator 
 vectorized_lindbladian.truncate()
-vectorized_lindbladian_dag = ptn.mp.dot( lat.get("I"), vectorized_lindbladian.copy() )
-vectorized_L_dag_L = vectorized_lindbladian * vectorized_lindbladian_dag
-vectorized_L_dag_L.truncate()
-lat.add('vectorized_L_dag_L', 'vectorized_L_dag_L', vectorized_L_dag_L)
-lat.save('lat')
 
-#GROUND STATE OF  L_DAGGER_L STARTING FROM PP VACUUM
+
+#NON-HERMITIAN, IMAGINARY-TIME TDVP CONFIG 
+conf_tdvp = ptn.tdvp.Conf()
+conf_tdvp.mode = ptn.tdvp.Mode.GSE   #TwoSite, GSE, Subspace
+conf_tdvp.dt = 1j * dt
+conf_tdvp.trunc.threshold = 1e-10  #NOTE: set to zero for gse
+conf_tdvp.trunc.weight = 1e-15 #tdvp_trunc_weight #NOTE: set to zero for gse
+conf_tdvp.trunc.maxStates = 3000
+conf_tdvp.exp_conf.errTolerance = 1e-10
+conf_tdvp.exp_conf.inxTolerance = 1e-15
+conf_tdvp.exp_conf.maxIter =  10
+conf_tdvp.cache = 1
+conf_tdvp.maxt = 1j*t_max
+
+conf_tdvp.gse_conf.mode = ptn.tdvp.GSEMode.BeforeTDVP
+conf_tdvp.gse_conf.krylov_order = 3 #FIXME 3,5 INCRESE
+conf_tdvp.gse_conf.trunc_op = ptn.Truncation(1e-8 , maxStates=500) #maxStates shuld be the same as the one used for tdvp! 1e-8 - 1e-6
+conf_tdvp.gse_conf.trunc_expansion = ptn.Truncation(1e-6, maxStates=500) #precision of GSE. par is trunc. treshold. do not goe below 10^-12 (numerical instability)!!
+conf_tdvp.gse_conf.adaptive = True
+conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-dependet parameter 
+
+conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
+conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
+conf_tdvp.exp_conf.minIter = 20
+
+
+init_state = vac_state.copy()
+#init_state *= lat.get('c',1) * lat.get('ch',0) #FIXME: remove this!
+psi_t = init_state.copy()
+#normalize initial state
+psi_t.normalise()
+#initialize observables
+n_exp = np.zeros( ( 10,n_timesteps) )
+n_b_exp = np.zeros( ( 10,n_timesteps) )
+
+#main tevo loop
 os.chdir('data_mps_lindblad')
-conf = ptn.dmrg.DMRGConfig()
-# give us a list to add stages
-stages = []
+for time in range(n_timesteps):
+    #reinitialize worker with normalized state
+    worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[vectorized_lindbladian.copy()],conf_tdvp.copy() ) 
+    worker.do_step()
+    psi_t = worker.get_psi(False)
+    
+    #Compute trace-norm for observables
+    trace_norm_psi_t = ptn.mp.overlap(purified_id, psi_t)
+    
+    #compute observables dividing by trace-norm
+    for site in range(10):
+        n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
+        n_b_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
 
-#first stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[0].trunc.maxStates = 16
-stages[0].convergenceMaxSweeps = 200
-stages[0].trunc.weight = 1e-6
-stages[0].trunc.threshold = 1e-8
-stages[0].convergenceMinSweeps = 50
-#stages[0].convMinEnergyDiff = -1
-stages[0].mode.DMRG3S
-#second stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[1].trunc.maxStates = 32
-stages[1].convergenceMaxSweeps = 150
-stages[1].trunc.weight = 1e-7
-stages[1].trunc.threshold = 1e-9
-stages[1].convergenceMinSweeps = 40
-#stages[1].convMinEnergyDiff = -1
-stages[1].mode.DMRG3S
+    np.savetxt('n_exp', n_exp )
+    np.savetxt('n_b_exp', n_b_exp )
 
-#third stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[2].trunc.maxStates = 64
-stages[2].convergenceMaxSweeps = 100
-stages[2].trunc.weight = 1e-8
-stages[2].trunc.threshold = 1e-10
-stages[2].convergenceMinSweeps = 30
-#[2].convMinEnergyDiff = -1
-stages[2].mode.TwoSite
-
-#fourth stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[3].trunc.maxStates = 128
-stages[3].convergenceMaxSweeps = 100
-stages[3].trunc.weight = 1e-10
-stages[3].trunc.threshold = 1e-12
-stages[3].convergenceMinSweeps = 25
-#stages[3].convMinEnergyDiff = -1
-stages[3].mode.DMRG3S
-
-#fifth stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[4].trunc.maxStates = 256
-stages[4].convergenceMaxSweeps = 100
-stages[4].trunc.weight = 1e-11
-stages[4].trunc.threshold = 1e-13
-stages[4].convergenceMinSweeps = 20
-#stages[4].convMinEnergyDiff = -1
-stages[4].mode.DMRG3S
-
-#6th stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[5].trunc.maxStates = 512
-stages[5].convergenceMaxSweeps = 100
-stages[5].trunc.weight = 1e-13
-stages[5].trunc.threshold = 1e-15
-stages[5].convMinEnergyDiff = 1e-08
-stages[5].convergenceMinSweeps = 15
-stages[5].mode.TwoSite
-
-#7th stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[6].trunc.maxStates = 1024
-stages[6].convergenceMaxSweeps = 50
-stages[6].trunc.weight = 1e-14
-stages[6].trunc.threshold = 1e-15
-stages[6].convMinEnergyDiff = 1e-08
-stages[6].convergenceMinSweeps = 10
-stages[6].mode.DMRG3S
-
-#8th stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[7].trunc.maxStates = 2048
-stages[7].convergenceMaxSweeps = 20
-stages[7].trunc.weight = 1e-15
-stages[7].trunc.threshold = 1e-15
-stages[7].convMinEnergyDiff = 1e-09
-stages[7].convergenceMinSweeps = 5
-stages[7].mode.DMRG3S
-
-#9th stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[8].trunc.maxStates = 4096
-stages[8].convergenceMaxSweeps = 20
-stages[8].trunc.weight = 1e-15
-stages[8].trunc.threshold = 1e-15
-stages[8].convMinEnergyDiff = 1e-09
-#stages[8].convergenceMinSweeps = 5
-stages[8].mode.DMRG3S
-
-
-#10th stage
-stages.append(ptn.dmrg.DMRGStage())
-stages[9].trunc.maxStates = 8192
-stages[9].convergenceMaxSweeps = 20
-stages[9].trunc.weight = 1e-15
-stages[9].trunc.threshold = 1e-15
-stages[9].convMinEnergyDiff = 1e-09
-stages[9].mode.DMRG3S
-
-# assign stages to DMRG configuration object
-conf.stages = stages
-dmrg= ptn.mp.dmrg.PDMRG(vac_state.copy(), [vectorized_L_dag_L], conf)
-
-# iterate over stages in config object
-energy_during_dmrg = []
-for m in conf.stages:
-    # run stage until either convergence is met or max. number of sweeps
-    ness_mps = dmrg.run()
-
-########### END GS CALCULATION
-
-#COMPUTE OBSERVABLES
-ness_mps_norm = ptn.mp.overlap(purified_id,ness_mps)
-ness_mps *= 1./ness_mps_norm
-n_exp = np.zeros(10)
-n_b_exp = np.zeros(10)
-for site in range(10):
-    n_exp[site] =  np.real( ptn.mp.expectation(purified_id, lat.get('n',site), ness_mps)   )
-    n_b_exp[site] =  np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), ness_mps)   )
-
-print('n_exp = ', n_exp)
-print('n_b_exp = ', n_b_exp)
+    #Normalize state to reinitialize tdvp worker
+    psi_t.normalise()
+    
+    

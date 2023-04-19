@@ -57,7 +57,7 @@ dt = args.dt
 t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 1
+n_trajectories = 200
 first_trajectory = 0
 
 #Lattice
@@ -74,8 +74,8 @@ vac_state *= lat.get('ch',3)
 vac_state *= lat.get('ch',7)    
 
 #FIXME: exite one particle in the left lead (USED TO DEBUGG WITHOUT INJECTION)
-vac_state *=  lat.get('c',1) * lat.get('ch',0)
-#vac_state *= lat.get('ch',6) * lat.get('c',7)
+#vac_state *=  lat.get('c',1) * lat.get('ch',0)
+##vac_state *= lat.get('ch',6) * lat.get('c',7)
 
 ################################################################
 # for site in range(8):
