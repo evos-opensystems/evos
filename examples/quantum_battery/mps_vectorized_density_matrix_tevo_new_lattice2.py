@@ -239,12 +239,12 @@ for time in range(n_timesteps):
     #print(trace_norm_psi_t)
     #quit()
     #compute observables dividing by trace-norm
-    for site in range(3):
+    for site in range(5):
         n_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
         n_b_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
 
     np.savetxt('n_exp', n_exp )
-    np.savetxt('n_b_exp', n_exp )
+    np.savetxt('n_b_exp', n_b_exp )
 
     #Normalize state to reinitialize tdvp worker
     psi_t.normalise()
@@ -258,5 +258,7 @@ fig = plt.figure()
 plt.plot(time_v, n_exp[0,:], label='n0')
 plt.plot(time_v, n_exp[1,:], label='n1')
 plt.plot(time_v, n_b_exp[2,:], label='nb2')
+plt.plot(time_v, n_exp[4,:], label='n4')
+
 plt.legend()
 fig.savefig('ps_vectorized_density_matrix_tevo_new_lattice2.png')    
