@@ -1,3 +1,6 @@
+"""Add descr.
+"""
+
 import evos.src.lattice.dot_with_oscillator_lattice as lattice 
 import evos.src.methods.lindblad as lindblad
 import evos.src.methods.partial_traces.partial_trace_tls_boson as pt 
@@ -180,13 +183,14 @@ l_list_right = lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r )
 l_list = l_list_left + l_list_right
 
 #Initial State: using vacuum for now
-#NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
+#NOTE: creating a particle on site 0. used for debugging!
+#init_state = lat.sso('ch',0) @ init_state #FIXME:remove this!
 
 #Solve Lindblad Equation
 lindblad = lindblad.Lindblad(4)
 rho_0 = lindblad.ket_to_projector(init_state)        
-rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, l_list, h_tot) #l_list
+rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, l_list, h_tot) #l_list, []
 
 #Compute observables
 observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2), 'n_bos':lat.sso('ah',2) @ lat.sso('a',2), 'n_0': lat.sso('ch',0) @ lat.sso('c',0), 'n_3': lat.sso('ch',3) @ lat.sso('c',3)  }
@@ -266,7 +270,12 @@ np.savetxt('S',S)
 
 #PLOT
 fig = plt.figure()
-#plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
+plt.plot(time_v, computed_observables['n_0'], label = 'n_0' )
+plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
+plt.plot(time_v, computed_observables['n_bos'], label = 'n_bos' )
+plt.plot(time_v, computed_observables['n_3'], label = 'n_3' )
+
+
 #plt.plot(time_v, computed_observables['U_from_full_state'], label = 'U_from_full_state' )
 # plt.plot(time_v, rho_bosonic[0,0,:], label = 'occ mode 0 boson' )
 # plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ mode 1 boson' )
@@ -282,8 +291,8 @@ fig = plt.figure()
 # plt.plot(time_v, f_neq, label = 'f_neq' )
 #plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
 # plt.plot(time_v, f_eq_vector, label = 'f_eq')
-plt.plot(time_v, sec_ord_coherence_funct_vec, label='g2')
+#plt.plot(time_v, sec_ord_coherence_funct_vec, label='g2')
 
 plt.legend()
-fig.savefig('lindblad.png')
+fig.savefig('ed_lindblad.png')
 #plt.show()

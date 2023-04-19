@@ -144,8 +144,51 @@ h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattic
 # lat.save('lat')
 # quit()
 
+#VECTORIZED DISSIPATOR
+def fermi_dist(beta, e, mu):
+    f = 1 / ( np.exp( beta * (e-mu) ) + 1)
+    return f
+
+def compute_vectorized_dissipator(idx_shift_lattice_doubling):
+    
+    first_term = lat.get( 'c',0 + idx_shift_lattice_doubling ) * lat.get( 'c',0 ) #delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) * 
+    
+    first_term +=  lat.get('ch',0 + idx_shift_lattice_doubling) * lat.get('ch',0) #delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) *
+
+    # first_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r )* lat.get( 'c',4 + idx_shift_lattice_doubling ) *  lat.get( 'c',4 ) 
+    
+    # first_term +=  delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4 + idx_shift_lattice_doubling) * lat.get('ch',4)
+    
+    
+    second_term =  lat.get( 'c',0 )  *  lat.get( 'ch',0 ) #delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) *
+    
+    second_term += lat.get('ch',0) * lat.get('c',0) #delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * 
+    
+    # second_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4 ) * lat.get( 'ch',4 ) 
+    
+    # second_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4) * lat.get('c',4)
+    second_term *= -0.5
+    
+    
+    third_term = lat.get( 'c',0 + idx_shift_lattice_doubling ) * lat.get( 'ch',0 + idx_shift_lattice_doubling) #delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) *
+    
+    third_term +=  lat.get('ch',0+ idx_shift_lattice_doubling) * lat.get('c',0+ idx_shift_lattice_doubling) #delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) *
+    
+    # third_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4+ idx_shift_lattice_doubling ) * lat.get( 'ch',4+ idx_shift_lattice_doubling ) 
+    
+    # third_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4+ idx_shift_lattice_doubling) * lat.get('c',4+ idx_shift_lattice_doubling)
+    
+    third_term *= -0.5
+    
+    vectorized_dissipator = first_term + second_term + third_term
+    vectorized_dissipator.truncate()
+    return vectorized_dissipator
+
+
+vectorized_dissipator = compute_vectorized_dissipator(idx_shift_lattice_doubling) 
+
 #VECTORIZED LINDBLADIAN
-vectorized_lindbladian = -1j*h_tot_left + 1j*h_tot_right 
+vectorized_lindbladian = -1j*h_tot_left + 1j*h_tot_right + vectorized_dissipator 
 
 #BUILD UNNORMALIZED PURIFIED IDENTITY
 def mpo_max_ent_pair_ferm(site):
@@ -224,30 +267,35 @@ n_b_exp = np.zeros( ( 5, n_timesteps) )
 
 #main tevo loop
 
-#excite particle on sites 0, 5
-vac_state *= lat.get('ch',0)    
-vac_state *= lat.get('ch',5)  
+#FIXME: ONLY FOR DEBUGGING: excite particle on sites 0, 5
+# vac_state *= lat.get('ch',0)    
+# vac_state *= lat.get('ch',5)  
 psi_t = vac_state.copy()
 
+#NOTE 1: the threshold, weight and max_bond_dim have to be rescaled with NORM!!!
+#NOTE 2: try to take out the worker and initialize it only once!
+#NOTE 3: remove the whole dissipator and rewrite it from scratch!
+worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[ vectorized_lindbladian.copy()], conf_tdvp.copy() ) 
 for time in range(n_timesteps):
     #reinitialize worker with normalized state
-    worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[ vectorized_lindbladian.copy()], conf_tdvp.copy() ) 
     worker.do_step()
     psi_t = worker.get_psi(False)
     #Compute trace-norm for observables
     trace_norm_psi_t = ptn.mp.overlap(purified_id, psi_t)
-    #print(trace_norm_psi_t)
+    psi_t *= 1./trace_norm_psi_t
+    print('trace_norm_psi_t = ',trace_norm_psi_t)
     #quit()
     #compute observables dividing by trace-norm
     for site in range(5):
-        n_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
-        n_b_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
+        n_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) ) #
+        n_b_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) ) #
 
     np.savetxt('n_exp', n_exp )
     np.savetxt('n_b_exp', n_b_exp )
 
     #Normalize state to reinitialize tdvp worker
-    psi_t.normalise()
+    print('psi_t.norm() = ',psi_t.norm())
+    #psi_t.normalise()
     
     
 #PLOT
