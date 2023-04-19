@@ -42,9 +42,9 @@ Om_kr = -0.5
 Gamma = 2
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0 #FIXME: is this correct?
-delta_l = 1
-delta_r = 1
+N0 = 0. #FIXME: is this correct?
+delta_l = 1.
+delta_r = 1.
 
 mu_l = args.mu_l
 mu_r = args.mu_r
@@ -82,7 +82,7 @@ for site in [0,1,4]:
     #print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('nb',site) ) ) )
 
 #FIXME: FOR DEBUGGING: excite one particle on left lead
-vac_state *= lat.get('ch',0)
+#vac_state *= lat.get('ch',0)
 
 #HAMILTONIAN
 class Hamiltonian():
@@ -143,7 +143,7 @@ def fermi_dist(beta, e, mu):
 def lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l ):
     l_list_left = []
     l_list_left.append( np.sqrt( delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) ) * lat.get( 'c',0 ) )
-    l_list_left.append( np.sqrt( delta_l * fermi_dist( 1./T_l, Om_kl, mu_l))* lat.get('ch',0) )
+    l_list_left.append( np.sqrt( delta_l * fermi_dist( 1./T_l, Om_kl, mu_l)) * lat.get('ch',0) )
     return l_list_left
 
 def lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r ):
@@ -264,6 +264,7 @@ conf_tdvp.cache = 1
 conf_tdvp.maxt = t_max
 
 conf_tdvp.gse_conf.mode = ptn.tdvp.GSEMode.BeforeTDVP
+##conf_tdvp.gse_conf.mode = conf_tdvp.gse_conf.mode.BeforeTDVP
 conf_tdvp.gse_conf.krylov_order = 3 #FIXME 3,5 INCRESE
 conf_tdvp.gse_conf.trunc_op = ptn.Truncation(1e-8 , maxStates=500) #maxStates shuld be the same as the one used for tdvp! 1e-8 - 1e-6
 conf_tdvp.gse_conf.trunc_expansion = ptn.Truncation(1e-6, maxStates=500) #precision of GSE. par is trunc. treshold. do not goe below 10^-12 (numerical instability)!!
@@ -273,7 +274,7 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-de
 
 #compute time-evolution for one trajectory
 
-qj = mps_quantum_jumps.MPSQuantumJumps( 8, lat, h_tot, [] ) #[], l_list
+qj = mps_quantum_jumps.MPSQuantumJumps( 5, lat, h_tot, l_list ) #[], l_list
 
 os.chdir('data_qj_mps')
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing

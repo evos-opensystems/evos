@@ -245,7 +245,7 @@ def compute_vectorized_dissipator():
     return vectorized_dissipator
 
 vectorized_dissipator = compute_vectorized_dissipator()    
-vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right + vectorized_dissipator 
+vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right #+ vectorized_dissipator 
 vectorized_lindbladian.truncate()
 
 

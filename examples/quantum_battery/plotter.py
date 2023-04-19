@@ -71,22 +71,25 @@ fig, ax = plt.subplots()
 # for site in np.arange(0, 8, 2):
 #     plt.plot(time_v_qj[1:], n_mps_lindblad[site, :], label='mps lind n, site '+str(site) )
 
-# plt.plot(time_v_qj[1:], n_mps_lindblad[0,:], label='mps lind n, site 0 ' )
-# plt.plot(time_v_qj[1:], n_mps_lindblad[1,:], label='mps lind n, site 1 ' )
-# plt.plot(time_v_qj[1:], n_mps_lindblad[4,:], label='mps lind n, site 4 ' )
+# plt.plot(time_v_lind[:], n_mps_lindblad[0,:], label='mps lind n, site 0 ' )
+# plt.plot(time_v_lind[:], n_mps_lindblad[1,:], label='mps lind n, site 1 ' )
+# plt.plot(time_v_lind[:], n_mps_lindblad[4,:], label='mps lind n, site 4 ' )
+
+plt.plot(time_v_lind[:], n_mps_lindblad[2,:], label='mps lind n, site 2 ' )
+
 
 
 # N ON RIGHT LEAD 6
 # ax.plot(time_v_qj,nf_qj_mps[4,:], label='n_4_qj_mps')
-# ax.plot(time_v_qj, n_3_qj, label='n_3_qj_ed')
+#ax.plot(time_v_qj, n_3_qj, label='n_3_qj_ed')
 # ax.plot(time_v_qj, n_qj_kry_mps[6,:], label='n_3_kry_mps')
 #plt.plot(time_v_lind, n_3_lind, label='n_3_lind ed')
 
 # N ON DOT
-#ax.plot(time_v_qj,nf_qj_mps[1,:], label='n_1_qj_mps')
-#ax.plot(time_v_qj, n_system_qj, label='n_sys_qj_ed')
-#ax.plot(time_v_qj, n_system_qj-nf_qj_mps[1,:], label='n_system_qj-n_1_qj_mps')
-#plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
+# ax.plot(time_v_qj[:],nf_qj_mps[1,:], label='n_1_qj_mps')
+# ax.plot(time_v_qj[:], n_system_qj[:], label='n_sys_qj_ed')
+#ax.plot(time_v_qj[:40], n_system_qj[:40]-nf_qj_mps[1,:40], label='n_system_qj-n_1_qj_mps')
+plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
 
 
 
@@ -99,8 +102,10 @@ fig, ax = plt.subplots()
 
 
 #OCC BOSONIC SITE
-plt.plot(time_v_qj[:], n_bos_qj[:], label='n_bos_ed')
-plt.plot(time_v_qj[:],nb_qj_mps[2,:], label='n_bos_mps')
+# plt.plot(time_v_qj[:], n_bos_qj[:], label='n_bos_ed')
+# plt.plot(time_v_qj[:],nb_qj_mps[2,:], label='n_bos_mps')
+#plt.plot(time_v_qj[:],nb_qj_mps[2,:] + nb_qj_mps[3,:], label='nb_qj_mps[2,:] + nb_qj_mps[3,:]')
+
 #plt.plot(time_v_qj,nb_qj_mps[2,:] - n_bos_qj[:], label='n_bos_mps - n_bos_ed')
 
 #plt.plot(time_v_qj,nf_qj_mps[4,:], label='n_bos_mps')
@@ -133,14 +138,14 @@ T_l = 1./0.5 #beta_l = 0.5 #FIXME: change this if changed in 'mps_qj.py'
 
 #BOND DIM
 i=0
-#for i in range(8):
-# ax.plot(time_v_qj, bond_dim[i,:], label='bdim site '+str(i))
-#ax.vlines(x=0.8, ymin=0, ymax=0.4, color='red')
+# for i in range(5):
+#     ax.plot(time_v_qj, bond_dim[i,:], label='bdim site '+str(i))
+    #ax.vlines(x=0.8, ymin=0, ymax=0.4, color='red')
 
 #PHYSDIM
-i=5
-#for i in range(8):
-#ax.plot(time_v_qj, phys_dim[i,:], label='phys dim site '+str(i))
+# i=5
+# for i in range(5):
+#     ax.plot(time_v_qj, phys_dim[i,:], label='phys dim site '+str(i))
 
 #ENTROPY
 #ax.plot(time_v_lind, S_lind, label='S_lind')

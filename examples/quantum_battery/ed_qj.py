@@ -48,8 +48,8 @@ Gamma = 2
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 N0 = 0. #FIXME: is this correct?
-delta_l = 1
-delta_r = 1
+delta_l = 1.
+delta_r = 1.
 
 mu_l = args.mu_l
 mu_r = args.mu_r
@@ -139,7 +139,7 @@ l_list = l_list_left + l_list_right
 init_state = lat.vacuum_state
 
 # FIXME exite one particle in the left lead: USED TO DEBUGG
-init_state = lat.sso('ch',0) @ init_state
+#init_state = lat.sso('ch',0) @ init_state
 
 #Observables
 obsdict = observables.ObservablesDict()
@@ -153,7 +153,7 @@ obsdict.initialize_observable('n_1',(1,), n_timesteps) #1D
 def compute_n_system(state, obs_array_shape,dtype): 
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    obs_array[0] = np.real( np.conjugate(state) @ lat.sso('ch',1) @ lat.sso('c',1) @ state  )  
+    obs_array[0] = np.real( np.conjugate(state) @ lat.sso('ch',1) @ lat.sso('c',1) @ state)  
     #OBS DEPENDENT PART END
     return obs_array
 
@@ -204,7 +204,7 @@ obsdict.add_observable_computing_function('n_1',compute_n_1)
 #compute QJ time evolution
 os.chdir('data_qj_ed')
 
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially

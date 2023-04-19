@@ -122,13 +122,15 @@ class Hamiltonian():
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattice_doubling=0):
-        h_tot =  self.h_boson(om_0, idx_shift_lattice_doubling) + self.h_v(F, N0, idx_shift_lattice_doubling) + self.h_s(eps, idx_shift_lattice_doubling) + self.h_t(g_kl, g_kr, idx_shift_lattice_doubling) + self.h_b(Om_kl, Om_kr, idx_shift_lattice_doubling) 
+        print('idx_shift_lattice_doubling = ', idx_shift_lattice_doubling)
+        h_tot =  self.h_s(eps, idx_shift_lattice_doubling) + self.h_t(g_kl, g_kr, idx_shift_lattice_doubling) + self.h_b(Om_kl, Om_kr, idx_shift_lattice_doubling)  + self.h_boson(om_0, idx_shift_lattice_doubling) + self.h_v(F, N0, idx_shift_lattice_doubling) 
         #h_tot.truncate()
         return h_tot    
     
 #Hamiltonian
-ham = Hamiltonian(lat, max_bosons)        
-h_tot_left = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
+ham = Hamiltonian(lat, max_bosons)      
+#h_s_left =  ham.h_v(F, N0, idx_shift_lattice_doubling=5)
+h_tot_left = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattice_doubling=0)
 h_tot_right = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, idx_shift_lattice_doubling = idx_shift_lattice_doubling)
     
 #BUILD UNNORMALIZED PURIFIED IDENTITY
@@ -165,7 +167,6 @@ def mpo_max_ent_pair_bos(site, max_bosons):
 
 
 purified_id = vac_state.copy()     
-idx_shift_lattice_doubling = 5
 for site in [0,1,4]:
     purified_id *=  mpo_max_ent_pair_ferm(site)
 for site in [2]:    
@@ -173,9 +174,13 @@ for site in [2]:
     
 ##################### 
 #checking occupation of purified Id
+
+# trace_norm_vac_state = ptn.mp.overlap(purified_id, vac_state)
+# print('trace_norm_vac_state = ', trace_norm_vac_state)
+
 ##purified_id.normalise()
 # for site in range(10):
-#     print('<n> on site {} is {}'.format(site, ptn.mp.expectation(purified_id, lat.get('n',site) ) ) )
+#     #print('<n> on site {} is {}'.format(site, ptn.mp.expectation(purified_id, lat.get('n',site) ) ) )
 #     print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(purified_id, lat.get('nb',site) ) ) )
 # quit()
 #####################     
@@ -187,13 +192,13 @@ def fermi_dist(beta, e, mu):
 
 def compute_vectorized_dissipator(idx_shift_lattice_doubling):
     
-    first_term =  delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) * lat.get( 'c',0 ) * lat.get( 'c',0 + idx_shift_lattice_doubling )
+    first_term =  delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) * lat.get( 'c',0 + idx_shift_lattice_doubling ) * lat.get( 'c',0 )
     
-    first_term += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * lat.get('ch',0) * lat.get('ch',0 + idx_shift_lattice_doubling)
+    first_term += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * lat.get('ch',0 + idx_shift_lattice_doubling) * lat.get('ch',0)
 
-    first_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4 ) * lat.get( 'c',4 + idx_shift_lattice_doubling ) 
+    first_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r )* lat.get( 'c',4 + idx_shift_lattice_doubling ) *  lat.get( 'c',4 ) 
     
-    first_term +=  delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4) * lat.get('ch',4 + idx_shift_lattice_doubling)
+    first_term +=  delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4 + idx_shift_lattice_doubling) * lat.get('ch',4)
     
     
     second_term = delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) * lat.get( 'c',0 )  *  lat.get( 'ch',0 )
@@ -223,9 +228,11 @@ def compute_vectorized_dissipator(idx_shift_lattice_doubling):
 
 vectorized_dissipator = compute_vectorized_dissipator(idx_shift_lattice_doubling) 
 
-vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right + vectorized_dissipator 
+vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right #+ vectorized_dissipator  
 vectorized_lindbladian.truncate()
-
+# lat.add('vectorized_lindbladian', 'vectorized_lindbladian', vectorized_lindbladian) #NOTE: L is not hermitian. this is correct
+# lat.save('lat')
+# quit()
 
 #NON-HERMITIAN, IMAGINARY-TIME TDVP CONFIG 
 conf_tdvp = ptn.tdvp.Conf()
@@ -258,14 +265,14 @@ psi_t = init_state.copy()
 #normalize initial state
 psi_t.normalise()
 #initialize observables
-n_exp = np.zeros( ( 10,n_timesteps) )
-n_b_exp = np.zeros( ( 10,n_timesteps) )
+n_exp = np.zeros( ( 10, n_timesteps) )
+n_b_exp = np.zeros( ( 10, n_timesteps) )
 
 #main tevo loop
 os.chdir('data_mps_lindblad')
 for time in range(n_timesteps):
     #reinitialize worker with normalized state
-    worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[vectorized_lindbladian.copy()],conf_tdvp.copy() ) 
+    worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[vectorized_dissipator.copy()],conf_tdvp.copy() ) 
     worker.do_step()
     psi_t = worker.get_psi(False)
     
@@ -274,13 +281,14 @@ for time in range(n_timesteps):
     
     #compute observables dividing by trace-norm
     for site in range(10):
-        n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
-        n_b_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
+        n_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
+        n_b_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
 
     np.savetxt('n_exp', n_exp )
     np.savetxt('n_b_exp', n_b_exp )
 
     #Normalize state to reinitialize tdvp worker
     psi_t.normalise()
+    
     
     
