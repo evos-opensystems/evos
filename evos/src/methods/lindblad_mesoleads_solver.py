@@ -113,7 +113,7 @@ class MesoscopicLeads():
         else: 
             for k in range(1, self.n_lead_left+1): 
                 #print('Ekin_lead left terms on sites:', k)
-                kin_leads += (self.eps_vec_l[k-1] - self.mu_L) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+                kin_leads += (self.eps_vec_l[k-1] ) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
          
    
         # HOPPING BETWEEN LEADS AND SYSTEM LEFT SIDE
@@ -143,7 +143,7 @@ class MesoscopicLeads():
         else:       
             for k in range(self.n_tot - self.n_lead_right + 1, self.n_tot+1):    
                 #print('Ekin_lead right terms on sites:', k)
-                kin_leads += (self.eps_vec_r[k - (self.n_tot - self.n_lead_right +1)] -self.mu_R) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+                kin_leads += (self.eps_vec_r[k - (self.n_tot - self.n_lead_right +1)] ) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
          
         # HOPPING BETWEEN LEADS AND SYSTEM RIGHT SIDE
         hop_sys_lead = np.zeros((self.dim_tot, self.dim_tot))
@@ -228,10 +228,11 @@ class SolveLindblad():
         #print(rho_vec)
         #initital state
         #init_state = rho_vec
-        print(' t_0 = ', t_0)
+        #print(' t_0 = ', t_0)
         print(' T = ', T)
         print('t = ', t)
-        sol = solve_ivp(lindblad_equation, (t_0,T), rho_vec, t_eval=[T])        
+        sol = solve_ivp(lindblad_equation, (0,T), rho_vec, t_eval=t)
+        #sol = solve_ivp(lindblad_equation, (t_0,T), rho_vec, t_eval=[T])        
         #print(sol.y)
         #new_init_state = sol.y[:,0]
         
