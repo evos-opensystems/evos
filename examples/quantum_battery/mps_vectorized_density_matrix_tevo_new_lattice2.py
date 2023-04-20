@@ -67,14 +67,15 @@ lat = ptn.mp.proj_pur.proj_purification(lat, [1], ["a", "ah"])
 #print(lat)
 
 #FIXME: PP vacuum is wrong!!
-vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, "0," + str( max_bosons ) )
+vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, str( max_bosons ) )
+#print(vac_state)
 
 #creating PP vacuum
-for mode in range(max_bosons):
-    vac_state *= lat.get('ah',3)
-    vac_state.normalise()
-    vac_state *= lat.get('ah',8)
-    vac_state.normalise()
+# for mode in range(max_bosons):
+#     vac_state *= lat.get('ah',3)
+#     vac_state.normalise()
+#     vac_state *= lat.get('ah',8)
+#     vac_state.normalise()
 
 #destroy particles on fermionic sites
 for site in [0,1,4,5,6,9]:
@@ -84,10 +85,16 @@ for site in [0,1,4,5,6,9]:
 
 
 
-# for site in range(10):
-#     #print('<n> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('n',site) ) ) )
-#     print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('nb',site) ) ) )
+#for site in range(10):
+    #print('<n> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('n',site) ) ) )
+    #print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('nb',site) ) ) )
+
+######################## TEST ANTICOMMUTATORS
+# anticomm_0_5 = lat.get('ch',0)*lat.get('c',9) + lat.get('c',9)*lat.get('ch',0)
+# anticomm_0_5.truncate()
+# print(anticomm_0_5)
 # quit()
+########################
 
 #Hamiltonian
 class Hamiltonian():
@@ -150,38 +157,10 @@ def fermi_dist(beta, e, mu):
     return f
 
 def compute_vectorized_dissipator(idx_shift_lattice_doubling):
-    
-    first_term = lat.get( 'c',0 + idx_shift_lattice_doubling ) * lat.get( 'c',0 ) #delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) * 
-    
-    first_term +=  lat.get('ch',0 + idx_shift_lattice_doubling) * lat.get('ch',0) #delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) *
-
-    # first_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r )* lat.get( 'c',4 + idx_shift_lattice_doubling ) *  lat.get( 'c',4 ) 
-    
-    # first_term +=  delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4 + idx_shift_lattice_doubling) * lat.get('ch',4)
-    
-    
-    second_term =  lat.get( 'c',0 )  *  lat.get( 'ch',0 ) #delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) *
-    
-    second_term += lat.get('ch',0) * lat.get('c',0) #delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * 
-    
-    # second_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4 ) * lat.get( 'ch',4 ) 
-    
-    # second_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4) * lat.get('c',4)
-    second_term *= -0.5
-    
-    
-    third_term = lat.get( 'c',0 + idx_shift_lattice_doubling ) * lat.get( 'ch',0 + idx_shift_lattice_doubling) #delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) *
-    
-    third_term +=  lat.get('ch',0+ idx_shift_lattice_doubling) * lat.get('c',0+ idx_shift_lattice_doubling) #delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) *
-    
-    # third_term += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * lat.get( 'c',4+ idx_shift_lattice_doubling ) * lat.get( 'ch',4+ idx_shift_lattice_doubling ) 
-    
-    # third_term += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * lat.get('ch',4+ idx_shift_lattice_doubling) * lat.get('c',4+ idx_shift_lattice_doubling)
-    
-    third_term *= -0.5
-    
-    vectorized_dissipator = first_term + second_term + third_term
-    vectorized_dissipator.truncate()
+    """test: jump operator is creator on site 0
+    """
+    vectorized_dissipator = ptn.mp.MPO(10)
+    vectorized_dissipator += lat.get('ch',0 + idx_shift_lattice_doubling) * lat.get('ch',0) - 0.5 * lat.get('ch',0) * lat.get('c',0) - 0.5 * lat.get('ch',0 + idx_shift_lattice_doubling) * lat.get('c',0 + idx_shift_lattice_doubling)
     return vectorized_dissipator
 
 
@@ -237,10 +216,9 @@ for site in [2]:
 # quit()    
 
 #NON-HERMITIAN, IMAGINARY-TIME TDVP CONFIG 
- 
 conf_tdvp = ptn.tdvp.Conf()
 conf_tdvp.mode = ptn.tdvp.Mode.GSE   #TwoSite, GSE, Subspace
-conf_tdvp.dt = 1j*dt
+conf_tdvp.dt = 1j * dt
 conf_tdvp.trunc.threshold = 1e-10  #NOTE: set to zero for gse
 conf_tdvp.trunc.weight = 1e-15 #tdvp_trunc_weight #NOTE: set to zero for gse
 conf_tdvp.trunc.maxStates = 3000
@@ -264,38 +242,37 @@ conf_tdvp.exp_conf.minIter = 20
 
 n_exp = np.zeros( ( 5, n_timesteps) )
 n_b_exp = np.zeros( ( 5, n_timesteps) )
-
-#main tevo loop
+phys_dim_phon = np.zeros( (n_timesteps) )
 
 #FIXME: ONLY FOR DEBUGGING: excite particle on sites 0, 5
 # vac_state *= lat.get('ch',0)    
 # vac_state *= lat.get('ch',5)  
 psi_t = vac_state.copy()
+#normalize initial state
+psi_t.normalise()
 
 #NOTE 1: the threshold, weight and max_bond_dim have to be rescaled with NORM!!!
 #NOTE 2: try to take out the worker and initialize it only once!
 #NOTE 3: remove the whole dissipator and rewrite it from scratch!
-worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[ vectorized_lindbladian.copy()], conf_tdvp.copy() ) 
+#NOTE 4: check how normalization was handeled for thermalization of single site and sx-sz system!
+
+#main tevo loop
 for time in range(n_timesteps):
     #reinitialize worker with normalized state
+    worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[vectorized_lindbladian.copy()],conf_tdvp.copy() ) 
     worker.do_step()
     psi_t = worker.get_psi(False)
+    
     #Compute trace-norm for observables
     trace_norm_psi_t = ptn.mp.overlap(purified_id, psi_t)
-    psi_t *= 1./trace_norm_psi_t
-    print('trace_norm_psi_t = ',trace_norm_psi_t)
-    #quit()
+    
     #compute observables dividing by trace-norm
     for site in range(5):
-        n_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) ) #
-        n_b_exp[site,time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) ) #
-
+        n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
     np.savetxt('n_exp', n_exp )
-    np.savetxt('n_b_exp', n_b_exp )
 
     #Normalize state to reinitialize tdvp worker
-    print('psi_t.norm() = ',psi_t.norm())
-    #psi_t.normalise()
+    psi_t.normalise()
     
     
 #PLOT
@@ -305,8 +282,9 @@ fig = plt.figure()
 
 plt.plot(time_v, n_exp[0,:], label='n0')
 plt.plot(time_v, n_exp[1,:], label='n1')
-plt.plot(time_v, n_b_exp[2,:], label='nb2')
+#plt.plot(time_v, n_b_exp[2,:], label='nb2')
 plt.plot(time_v, n_exp[4,:], label='n4')
+#plt.plot(time_v, phys_dim_phon[:], label='phys_dim_phon')
 
 plt.legend()
 fig.savefig('ps_vectorized_density_matrix_tevo_new_lattice2.png')    

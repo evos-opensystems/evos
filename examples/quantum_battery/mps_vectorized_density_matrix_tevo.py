@@ -245,7 +245,7 @@ def compute_vectorized_dissipator():
     return vectorized_dissipator
 
 vectorized_dissipator = compute_vectorized_dissipator()    
-vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right #+ vectorized_dissipator 
+vectorized_lindbladian = -1j*h_tot_left +1j*h_tot_right + vectorized_dissipator 
 vectorized_lindbladian.truncate()
 
 
@@ -298,3 +298,15 @@ for time in range(n_timesteps):
 
     #Normalize state to reinitialize tdvp worker
     psi_t.normalise()
+    
+#PLOT
+time_v = np.linspace(0,t_max,n_timesteps)
+
+fig = plt.figure()
+
+plt.plot(time_v, n_exp[0,:], label='n0')
+plt.plot(time_v, n_exp[2,:], label='n2')
+plt.plot(time_v, n_exp[6,:], label='n 6')
+
+plt.legend()
+fig.savefig('ps_vectorized_density_matrix_tevo.png')        
