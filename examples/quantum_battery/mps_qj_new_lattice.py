@@ -60,7 +60,7 @@ n_timesteps = int(t_max/dt)
 n_trajectories = 1
 first_trajectory = 0
 
-os.chdir('data_qj_mps_test_gs')
+os.chdir('data_qj_mps')
 
 #Lattice
 ferm_bos_sites = [0,0,1,0] 
@@ -68,29 +68,15 @@ lat = ptn.mp.lat.u1.genSpinlessFermiBose_NilxU1( ferm_bos_sites, max_bosons)
 lat = ptn.mp.proj_pur.proj_purification(lat, [1], ["a", "ah"])
 #print(lat)
 #FIXME: PP vacuum is wrong!!
-vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, "0," + str( max_bosons ) )
-#creating PP vacuum
-for mode in range(max_bosons):
-    vac_state *= lat.get('ah',3)
-    vac_state.normalise()
+vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, str( max_bosons ) )
 
 #creating vacuum for fermions
 for site in [0,1,4]:
     vac_state *= lat.get('c',site)
     vac_state.normalise()    
-
-################FIXME: FOR DEBUGGING: increase bdim
-# vac_state_1 = vac_state.copy()
-# vac_state_1 *= lat.get('ch',0)
-# vac_state_1 *= lat.get('ch',1)
-# vac_state_1 *= lat.get('ch',4)
-# vac_state += vac_state_1
-# for site in range(5):
-#     # print('<n> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('n',site) ) ) )
-#     # print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('nb',site) ) ) )
-#     print(site,' bdim = ', vac_state[site].getTotalDims()[2]) 
-################FIXME: FOR DEBUGGING
-
+    
+vac_state *= lat.get('ch',1) # FIXME: FOR DEBUGGING !!!!!!!!!
+    
 #HAMILTONIAN
 class Hamiltonian():
     
@@ -106,10 +92,7 @@ class Hamiltonian():
 
     def h_b(self, Om_kl, Om_kr): #leads
         #NOTE: added mu_l and mu_rto onsite energies
-        h_b = []
-        h_b.append( Om_kl * lat.get('n',0) ) 
-        h_b.append( Om_kr * lat.get('n',4) )
-        h_b = ptn.mp.addLog(h_b)
+        h_b = Om_kl * lat.get('n',0)  +  Om_kr * lat.get('n',4) 
         #h_b.truncate()
         return h_b
    
@@ -125,12 +108,12 @@ class Hamiltonian():
         return h_boson
     
     def h_v(self, F, N0): #system-oscillator
-        h_v = - F * ( lat.get('n',1) - N0 * lat.get('I') ) *  ( lat.get('ah',2) * lat.get('a',3)  + lat.get('a',2) * lat.get('ah',3) ) 
+        h_v = - F * ( lat.get('n',1) - N0 * lat.get('I') ) *  ( lat.get('a',3) * lat.get('ah',2)  + lat.get('ah',3) * lat.get('a',2) ) 
         #h_v.truncate()
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F):
-        h_tot =  self.h_boson(om_0) + self.h_v(F, N0) + self.h_s(eps) + self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr) 
+        h_tot = self.h_boson(om_0) + self.h_v(F, N0) + self.h_s(eps) + self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr) 
         #h_tot.truncate()
         return h_tot    
     
@@ -280,15 +263,9 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-de
 
 #compute time-evolution for one trajectory
 
-qj = mps_quantum_jumps.MPSQuantumJumps( 5, lat, h_tot, l_list ) #[], l_list
+qj = mps_quantum_jumps.MPSQuantumJumps( 5, lat, h_tot, [] ) #[], l_list
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
-
-######
-# energy_bos_t0 = ptn.mp.expectation(vac_state, h_boson)
-# nb_t0 = ptn.mp.expectation(vac_state, lat.get('nb',4)) 
-# ah_a_t0 = ptn.mp.expectation(vac_state, lat.get('a',4) * lat.get('ah',4) ) 
-# ah_a_ah_a_t0 = ptn.mp.expectation(vac_state, lat.get('ah',4) * lat.get('a',4) * lat.get('ah',5) * lat.get('a',5) ) 
 
 
 #COMPUTE ONE TRAJECTORY WITH TDVP 

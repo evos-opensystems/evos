@@ -97,19 +97,13 @@ class Hamiltonian():
         return h_v 
     
     def h_tot(self, eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F):
-        h_tot = + self.h_boson(om_0) + self.h_v(F) +self.h_s(eps) + self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr)
+        h_tot = self.h_boson(om_0) + self.h_v(F, N0) +self.h_s(eps) + self.h_t(g_kl, g_kr) + self.h_b(Om_kl, Om_kr)
         return h_tot
         
  
 #Hamiltonian
 ham = Hamiltonian(lat, max_bosons)
-h_s = ham.h_s(eps)
-h_b = ham.h_b(Om_kl, Om_kr)
-h_t = ham.h_t(g_kl, g_kr)
-h_boson = ham.h_boson(om_0)
-h_v = ham.h_v(F, N0)
-h_tot = h_s + h_b + h_t + h_boson + h_v 
-#h_tot = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
+h_tot = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
 # print('h_tot is symmetric: ', ( h_tot == h_tot.T ).all() )
 # quit()
 
@@ -137,14 +131,8 @@ l_list = l_list_left + l_list_right
 #Initial State: using vacuum for now
 #NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
+init_state  = lat.sso('ch',1) @ init_state # FIXME: FOR DEBUGGING
 
-###########################FIXME: FOR DEBUGGING
-# init_state1  = init_state.copy()
-# init_state1  = lat.sso('ch',0) @ init_state1 
-# init_state1  = lat.sso('ch',1) @ init_state1 
-# init_state1  = lat.sso('ch',3) @ init_state1 
-# init_state = init_state + init_state1
-###########################FIXME: FOR DEBUGGING
 
 #Observables
 obsdict = observables.ObservablesDict()
@@ -209,7 +197,7 @@ obsdict.add_observable_computing_function('n_1',compute_n_1)
 #compute QJ time evolution
 os.chdir('data_qj_ed')
 
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially

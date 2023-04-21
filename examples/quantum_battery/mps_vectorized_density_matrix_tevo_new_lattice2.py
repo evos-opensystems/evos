@@ -159,8 +159,9 @@ def fermi_dist(beta, e, mu):
 def compute_vectorized_dissipator(idx_shift_lattice_doubling):
     """test: jump operator is creator on site 0
     """
-    vectorized_dissipator = ptn.mp.MPO(10)
-    vectorized_dissipator += lat.get('ch',0 + idx_shift_lattice_doubling) * lat.get('ch',0) - 0.5 * lat.get('ch',0) * lat.get('c',0) - 0.5 * lat.get('ch',0 + idx_shift_lattice_doubling) * lat.get('c',0 + idx_shift_lattice_doubling)
+    vectorized_dissipator = lat.get('c',5) * lat.get('c',0) - 0.5 * lat.get('c',0) * lat.get('ch',0) - 0.5 * lat.get('c',5) * lat.get('ch',5)
+    #vectorized_dissipator = lat.get('n',5) * lat.get('n',0) - 0.5 * lat.get('n',0) * lat.get('n',0) - 0.5 * lat.get('n',5) * lat.get('n',5)
+
     return vectorized_dissipator
 
 
@@ -245,8 +246,8 @@ n_b_exp = np.zeros( ( 5, n_timesteps) )
 phys_dim_phon = np.zeros( (n_timesteps) )
 
 #FIXME: ONLY FOR DEBUGGING: excite particle on sites 0, 5
-# vac_state *= lat.get('ch',0)    
-# vac_state *= lat.get('ch',5)  
+vac_state *= lat.get('ch',0)    
+vac_state *= lat.get('ch',5)  
 psi_t = vac_state.copy()
 #normalize initial state
 psi_t.normalise()
@@ -269,7 +270,10 @@ for time in range(n_timesteps):
     #compute observables dividing by trace-norm
     for site in range(5):
         n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
+        n_b_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
+
     np.savetxt('n_exp', n_exp )
+    np.savetxt('n_b_exp', n_b_exp )
 
     #Normalize state to reinitialize tdvp worker
     psi_t.normalise()
