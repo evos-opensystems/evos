@@ -71,7 +71,7 @@ class DotWithOscillatorLattice():
             single_site_operator = np.kron( self.Id_f, np.kron( operator.copy(), np.kron( self.Id_b, self.parity ) ) )
             
         elif site == 2:
-            single_site_operator = np.kron( self.Id_f, np.kron( self.Id_f, np.kron( operator.copy(), self.parity ) ) )    
+            single_site_operator = np.kron( self.Id_f, np.kron( self.Id_f, np.kron( operator.copy(), self.Id_f ) ) )    
         
         elif site == 3:
             single_site_operator = np.kron( self.Id_f, np.kron( self.Id_f, np.kron( self.Id_b, operator.copy() ) ) )          
