@@ -37,7 +37,7 @@ max_bosons = args.max_bosons
 
 om_0 = 0.2
 m = 1
-lamb = 0.1
+lamb = 5 #FIXME: 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
@@ -131,7 +131,7 @@ l_list = l_list_left + l_list_right
 #Initial State: using vacuum for now
 #NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
-init_state  = lat.sso('ch',1) @ init_state # FIXME: FOR DEBUGGING
+#init_state  = lat.sso('ch',1) @ init_state # FIXME: FOR DEBUGGING
 
 
 #Observables
@@ -197,7 +197,7 @@ obsdict.add_observable_computing_function('n_1',compute_n_1)
 #compute QJ time evolution
 os.chdir('data_qj_ed')
 
-ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , []  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
+ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 #compute qj trajectories sequentially

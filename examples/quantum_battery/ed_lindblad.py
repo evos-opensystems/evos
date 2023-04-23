@@ -190,7 +190,7 @@ init_state = lat.sso('ch',0) @ init_state #FIXME:remove this!
 #Solve Lindblad Equation
 lindblad = lindblad.Lindblad(4)
 rho_0 = lindblad.ket_to_projector(init_state)        
-rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, [ lat.sso('c',0) ], h_tot) #l_list, [], lat.sso('ch',0)
+rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, [lat.sso('ch',0)], h_tot) #l_list, [], lat.sso('ch',0)
 
 #Compute observables
 observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2), 'n_bos':lat.sso('ah',2) @ lat.sso('a',2), 'n_0': lat.sso('ch',0) @ lat.sso('c',0), 'n_3': lat.sso('ch',3) @ lat.sso('c',3)  }

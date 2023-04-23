@@ -32,7 +32,7 @@ max_bosons = args.max_bosons
 
 om_0 = 0.2
 m = 1
-lamb = 0.1
+lamb = 5 #FIXME: 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
@@ -75,7 +75,7 @@ for site in [0,1,4]:
     vac_state *= lat.get('c',site)
     vac_state.normalise()    
     
-vac_state *= lat.get('ch',1) # FIXME: FOR DEBUGGING !!!!!!!!!
+#vac_state *= lat.get('ch',1) # FIXME: FOR DEBUGGING !!!!!!!!!
     
 #HAMILTONIAN
 class Hamiltonian():
@@ -263,7 +263,7 @@ conf_tdvp.gse_conf.sing_val_thresholds = [1e-12] # [1e-12] #most highly model-de
 
 #compute time-evolution for one trajectory
 
-qj = mps_quantum_jumps.MPSQuantumJumps( 5, lat, h_tot, [] ) #[], l_list
+qj = mps_quantum_jumps.MPSQuantumJumps( 5, lat, h_tot, l_list ) #[], l_list
 
 first_trajectory = first_trajectory  #+ rank  NOTE: uncomment "+ rank" when parallelizing
 

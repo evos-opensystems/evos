@@ -159,14 +159,28 @@ def fermi_dist(beta, e, mu):
 def compute_vectorized_dissipator(idx_shift_lattice_doubling):
     """test: jump operator is creator on site 0
     """
-    vectorized_dissipator = lat.get('c',5) * lat.get('c',0) - 0.5 * lat.get('c',0) * lat.get('ch',0) - 0.5 * lat.get('c',5) * lat.get('ch',5)
-    #vectorized_dissipator = lat.get('n',5) * lat.get('n',0) - 0.5 * lat.get('n',0) * lat.get('n',0) - 0.5 * lat.get('n',5) * lat.get('n',5)
+    #####
+    # vectorized_dissipator = lat.get('c',5) * lat.get('c',0) - 0.5 * lat.get('c',0) * lat.get('ch',0) - 0.5 * lat.get('c',5) * lat.get('ch',5) #annihilator
+    #vectorized_dissipator = lat.get('c',0) * lat.get('c',5) - 0.5 * lat.get('ch',0) * lat.get('c',0) - 0.5 * lat.get('ch',5) * lat.get('c',5) #annihilator with order swapped
 
+    #vectorized_dissipator = lat.get('n',5) * lat.get('n',0) - 0.5 * lat.get('n',0) * lat.get('n',0) - 0.5 * lat.get('n',5) * lat.get('n',5)
+    
+    vectorized_dissipator = lat.get('ch',5) * lat.get('ch',0) - 0.5 * lat.get('ch',0) * lat.get('c',0) - 0.5 * lat.get('ch',5) * lat.get('c',5) #creator
+    #vectorized_dissipator =  lat.get('ch',0) * lat.get('ch',5) - 0.5 * lat.get('c',0) * lat.get('ch',0) - 0.5 * lat.get('c',5)* lat.get('ch',5) #creator with order swapped
+
+    ####
+    #thermalization of leads:
+    # vectorized_dissipator = delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) * ( lat.get('c',5) * lat.get('c',0) - 0.5 * lat.get('c',0) * lat.get('ch',0) - 0.5 * lat.get('c',5) * lat.get('ch',5) ) 
+    # vectorized_dissipator += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * ( lat.get('ch',5) * lat.get('ch',0) - 0.5 * lat.get('ch',0) * lat.get('c',0) - 0.5 * lat.get('ch',5) * lat.get('c',5) ) 
+    # vectorized_dissipator +=  delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * ( lat.get('c',5+idx_shift_lattice_doubling) * lat.get('c',0+idx_shift_lattice_doubling) - 0.5 * lat.get('c',0+idx_shift_lattice_doubling) * lat.get('ch',0+idx_shift_lattice_doubling) - 0.5 * lat.get('c',5+idx_shift_lattice_doubling) * lat.get('ch',5+idx_shift_lattice_doubling) ) 
+    # vectorized_dissipator += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * ( lat.get('ch',5+idx_shift_lattice_doubling) * lat.get('ch',0+idx_shift_lattice_doubling) - 0.5 * lat.get('ch',0+idx_shift_lattice_doubling) * lat.get('c',0+idx_shift_lattice_doubling) - 0.5 * lat.get('ch',5+idx_shift_lattice_doubling) * lat.get('c',5+idx_shift_lattice_doubling) ) 
+    
     return vectorized_dissipator
 
 
 vectorized_dissipator = compute_vectorized_dissipator(idx_shift_lattice_doubling) 
-
+#print(vectorized_dissipator.truncate())
+#quit()
 #VECTORIZED LINDBLADIAN
 vectorized_lindbladian = -1j*h_tot_left + 1j*h_tot_right + vectorized_dissipator 
 
