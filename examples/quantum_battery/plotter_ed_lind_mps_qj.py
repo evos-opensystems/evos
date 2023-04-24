@@ -20,8 +20,9 @@ f_eq_vector_lind = np.loadtxt('f_eq_vector')
 sec_ord_coherence_funct_lind = np.loadtxt('sec_ord_coherence_funct')
 os.chdir(parent_dir)
 
+
 # MPS QJ
-qj_mps_dirname = 'data_qj_mps/max_bosons_4/dt_0.02/t_max_5/mu_l_0.5/mu_r_-0.5/n_trajectories_100/first_trajectory_0'
+qj_mps_dirname = 'data_qj_mps/max_bosons_4/dt_0.02/t_max_5/mu_l_0.5/mu_r_-0.5/n_trajectories_1/first_trajectory_4'
 os.chdir(qj_mps_dirname)
 nf_qj_mps = np.load('nf_av.npy')
 nb_qj_mps = np.load('nb_av.npy')
@@ -36,17 +37,40 @@ sec_ord_coherence_funct_qj_mps = np.load('sec_ord_coherence_funct_av.npy')
 os.chdir(parent_dir)
 
 
+#ED QJ
+qj_ed_dirname = 'data_qj_ed/max_bosons_4/dt_0.02/t_max_5/mu_l_0.5/mu_r_-0.5/n_trajectories_1/first_trajectory_4'
+os.chdir(qj_ed_dirname)
+n_1_av_ed_qj = np.loadtxt('n_1_av')
+n_bos_av_ed_qj = np.loadtxt('n_bos_av')
+free_energy_neq_qj_ed = np.loadtxt('free_energy_neq_av')
+sec_ord_coherence_funct_qj_ed = np.loadtxt('sec_ord_coherence_funct_av')
+os.chdir(parent_dir)
+
+
 #PLOTTER
 time_v = np.linspace(0, 5, len(sec_ord_coherence_funct_lind) )
 fig, ax = plt.subplots()
 
 #g2
-plt.plot(time_v, sec_ord_coherence_funct_lind, label='sec_ord_coherence_funct ed')
-plt.plot(time_v, sec_ord_coherence_funct_qj_mps[0,1:], label='sec_ord_coherence_funct_qj mps')
+#plt.plot(time_v, sec_ord_coherence_funct_lind, label='sec_ord_coherence_funct ed')
+#plt.plot(time_v, sec_ord_coherence_funct_qj_mps[0,1:], label='sec_ord_coherence_funct_qj mps')
+#plt.plot(time_v, sec_ord_coherence_funct_qj_ed[1:], label='sec_ord_coherence_funct_qj ed')
 
 #W_f
-plt.plot(time_v, f_neq_lind-f_eq_vector_lind, label='W_f lind')
-plt.plot(time_v, free_energy_neq_qj_mps[0,1:] -f_eq_vector_lind, label='W_f qj mps')
+#plt.plot(time_v, f_neq_lind-f_eq_vector_lind, label='W_f lind')
+#plt.plot(time_v, free_energy_neq_qj_mps[0,1:] -f_eq_vector_lind, label='W_f qj mps')
+#plt.plot(time_v, free_energy_neq_qj_ed[1:] -f_eq_vector_lind, label='W_f qj ed')
+
+##fermionic occupations
+#system
+#plt.plot(time_v, n_system_lind, label='n_system_lind ed')
+# plt.plot(time_v, nf_qj_mps[1,1:], label='nf_qj_mps 1')
+# plt.plot(time_v, n_1_av_ed_qj[1:], label='nf_qj_ed 1')
+
+#bond dimension
+for i in range(5):
+    ax.plot(time_v, bond_dim[i,1:], label='bdim site '+str(i))
+    ax.vlines(x=0.8, ymin=0, ymax=0.4, color='red')
 
 
 plt.legend()

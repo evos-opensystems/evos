@@ -5,15 +5,18 @@ import evos.src.lattice.dot_with_oscillator_lattice as lattice
 import evos.src.methods.partial_traces.partial_trace_tls_boson as pt 
 import evos.src.methods.ed_quantum_jumps as ed_quantum_jumps
 import evos.src.observables.observables as observables
+import evos.src.methods.partial_traces.partial_trace_tls_boson as pt 
 
 import numpy as np 
 #from scipy.integrate import solve_ivp
 import matplotlib.pyplot as plt
 from scipy.linalg import expm
 from numpy import linalg as la
+from scipy import linalg as sla
 import sys
 #import math
 import os
+
 np.set_printoptions(threshold=sys.maxsize)
 sys.stdout.write('test')
 import argparse
@@ -63,7 +66,66 @@ t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
-first_trajectory = 0
+first_trajectory = 4
+
+################
+def make_writing_dir_and_change_to_it( parent_data_dirname: str, parameter_dict: dict, overwrite: bool = False, create_directory: bool = True ) -> str :
+    """given a dictionary with some selected job's parameters, it creates the correct subfolder in which to run the job and changes to it
+
+    Parameters
+    ----------
+    parent_data_dirname : str
+        name of the parent directory
+    parameter_dict : dict
+        parameter dictionary specifying the directory
+
+    Returns
+    -------
+    str
+        path of the directory in which to write the states or the observables
+    """
+    import os 
+    from datetime import date
+
+    #go to parent folder if existing. create one with date attached and go to it if not existing
+    if os.path.isdir(parent_data_dirname):
+            os.chdir(parent_data_dirname)
+    else:
+        if create_directory:
+            parent_data_dirname += '_'+str( date.today() )
+            os.mkdir( parent_data_dirname )
+            os.chdir(parent_data_dirname)
+
+
+    dir_depth = len(parameter_dict)
+    count_dir_depth = 0
+    for par in parameter_dict:
+        subdir_name = par +'_'+str(parameter_dict[par])
+
+        #if reached lowest directory level AND it already exists
+        if count_dir_depth == dir_depth-1 and os.path.isdir(subdir_name): 
+            #print(subdir_name)
+            if not overwrite and create_directory: 
+                subdir_name += '_'+str( date.today() )
+        
+        #all other directory levels OR the lowest but it doesn't exists
+        if os.path.isdir(subdir_name):
+            os.chdir(subdir_name)
+        else:
+            if create_directory:
+                os.mkdir( subdir_name )
+                os.chdir(subdir_name)
+                
+        count_dir_depth += 1
+
+    writing_dir = os.getcwd()
+    return writing_dir
+
+parameter_dict = {'max_bosons': max_bosons, 'dt': dt, 't_max': t_max, 'mu_l' : mu_l, 'mu_r' : mu_r, 'n_trajectories' : n_trajectories, 'first_trajectory' : first_trajectory   }
+writing_dir = make_writing_dir_and_change_to_it('data_qj_ed', parameter_dict, overwrite=True)
+
+################
+
 
 #LATTICE
 lat = lattice.DotWithOscillatorLattice(max_bosons)
@@ -79,7 +141,6 @@ class Hamiltonian():
         return h_s 
 
     def h_b(self, Om_kl, Om_kr): #leads
-        #NOTE: added mu_l and mu_rto onsite energies
         h_b = Om_kl * lat.sso('ch',0) @ lat.sso('c',0) + Om_kr * lat.sso('ch',3) @ lat.sso('c',3)
         return h_b
    
@@ -109,7 +170,7 @@ h_tot = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F)
 
 #Lindblad operators
 def fermi_dist(beta, e, mu):
-    f = 1 / ( np.exp( beta * (e-mu) ) + 1)
+    f = 1. / ( np.exp( beta * (e-mu) ) + 1.)
     return f
 
 def lindblad_op_list_left_lead( Om_kl, delta_l, mu_l, T_l ):
@@ -131,8 +192,21 @@ l_list = l_list_left + l_list_right
 #Initial State: using vacuum for now
 #NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
-#init_state  = lat.sso('ch',1) @ init_state # FIXME: FOR DEBUGGING
 
+###########    FIXME: FOR DEBUGGING !!!!!!!!!
+occ_state = init_state.copy()
+occ_state = lat.sso('ch',0) @ occ_state
+occ_state /= la.norm(occ_state)
+occ_state = lat.sso('ch',1) @ occ_state
+occ_state /= la.norm(occ_state)
+occ_state = lat.sso('ah',2) @ occ_state
+occ_state /= la.norm(occ_state)
+occ_state = lat.sso('ch',3) @ occ_state
+occ_state /= la.norm(occ_state)
+
+init_state = init_state + occ_state
+init_state /= la.norm(init_state)
+###########    
 
 #Observables
 obsdict = observables.ObservablesDict()
@@ -142,6 +216,8 @@ obsdict.initialize_observable('U',(1,), n_timesteps) #1D
 obsdict.initialize_observable('n_bos',(1,), n_timesteps) #1D
 obsdict.initialize_observable('n_0',(1,), n_timesteps) #1D
 obsdict.initialize_observable('n_1',(1,), n_timesteps) #1D
+obsdict.initialize_observable('free_energy_neq',(1,), n_timesteps)
+obsdict.initialize_observable('sec_ord_coherence_funct',(1,), n_timesteps) 
 
 def compute_n_system(state, obs_array_shape,dtype): 
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -185,17 +261,54 @@ def compute_n_1(state, obs_array_shape,dtype):
     #OBS DEPENDENT PART END
     return obs_array
 
+def compute_free_energy_neq(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART STAR
+    #phonon energy
+    phonon_energy =  om_0 * np.real( np.conjugate(state) @ lat.sso('ah',2) @ lat.sso('a',2) @ state  )
+    #phononic RDM
+    rho_tot = np.outer( np.conjugate(state), state)
+    rho123 = pt.tracing_out_one_tls_from_tls_bosonic_system(0, rho_tot, [1,1,0,1], max_bosons)
+    rho23 = pt.tracing_out_one_tls_from_tls_bosonic_system(0, rho123, [1,0,1], max_bosons)
+    rdm = pt.tracing_out_one_tls_from_tls_bosonic_system(1, rho23, [0,1], max_bosons)
+    #von Neumann entropy
+    R = rdm * ( sla.logm( rdm )/ sla.logm( np.matrix( [ [ 2 ] ] ) ) )
+    S = - np.matrix.trace(R)
+    #non-eq. free energy
+    obs_array = phonon_energy - T_l * S
+    #OBS DEPENDENT PART END
+    return obs_array
+
+def compute_sec_ord_coherence_funct(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART STAR
+    #phononic RDM
+    rho_tot = np.outer( np.conjugate(state), state)
+    rho123 = pt.tracing_out_one_tls_from_tls_bosonic_system(0, rho_tot, [1,1,0,1], max_bosons)
+    rho23 = pt.tracing_out_one_tls_from_tls_bosonic_system(0, rho123, [1,0,1], max_bosons)
+    rdm = pt.tracing_out_one_tls_from_tls_bosonic_system(1, rho23, [0,1], max_bosons)
+    #g_2
+    numerator, denominator = 0., 0.
+    for mode in range(rdm.shape[0]): #'max_bosons+1'
+        numerator += mode * (mode - 1) * rdm[ mode, mode ]
+        denominator += (mode * rdm[ mode, mode ])
+    denominator = denominator ** 2
+    obs_array = numerator/denominator
+    #OBS DEPENDENT PART END
+    return obs_array
+
 obsdict.add_observable_computing_function('n_system',compute_n_system)
 obsdict.add_observable_computing_function('n_3',compute_n_3)
 obsdict.add_observable_computing_function('U',compute_U)
 obsdict.add_observable_computing_function('n_bos',compute_n_bos)
 obsdict.add_observable_computing_function('n_0',compute_n_0)
 obsdict.add_observable_computing_function('n_1',compute_n_1)
+obsdict.add_observable_computing_function('free_energy_neq', compute_free_energy_neq )
+obsdict.add_observable_computing_function('sec_ord_coherence_funct', compute_sec_ord_coherence_funct )
 
 #NOTE: von Neuman entropy is not computed here. It should be possible to compute it with syten
 
 #compute QJ time evolution
-os.chdir('data_qj_ed')
 
 ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(4, h_tot , l_list  ) #l_list, [ lat.sso('ch',0), lat.sso('c',0) ]
 

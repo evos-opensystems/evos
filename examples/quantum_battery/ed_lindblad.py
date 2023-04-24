@@ -32,9 +32,9 @@ sys.stdout.write('test')
 #PARAMETERS
 max_bosons = args.max_bosons
 
-om_0 = 0.2
+om_0 = 1 #0.2
 m = 1
-lamb = 0.1
+lamb = 1 #0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
@@ -291,9 +291,9 @@ fig = plt.figure()
 #plt.plot(time_v, S, label = 'S boson' )
 
 # plt.plot(time_v, f_neq, label = 'f_neq' )
-plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
+#plt.plot(time_v, f_neq - f_eq_vector, label = 'W_f' )
 # plt.plot(time_v, f_eq_vector, label = 'f_eq')
-#plt.plot(time_v, sec_ord_coherence_funct_vec, label='g2')
+plt.plot(time_v, sec_ord_coherence_funct_vec, label='g2')
 
 plt.legend()
 fig.savefig('ed_lindblad.png')

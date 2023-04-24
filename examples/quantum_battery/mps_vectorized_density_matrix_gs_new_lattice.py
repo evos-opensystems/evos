@@ -228,7 +228,7 @@ def compute_vectorized_dissipator(idx_shift_lattice_doubling):
 
 vectorized_dissipator = compute_vectorized_dissipator(idx_shift_lattice_doubling) 
 
-vectorized_lindbladian =  vectorized_dissipator  -1j*h_tot_left +1j*h_tot_right 
+vectorized_lindbladian =  vectorized_dissipator -1j*h_tot_left +1j*h_tot_right 
 vectorized_lindbladian.truncate()
 vectorized_lindbladian_dag = ptn.mp.dot( lat.get("I"), vectorized_lindbladian.copy() )
 vectorized_L_dag_L = vectorized_lindbladian * vectorized_lindbladian_dag
@@ -343,7 +343,7 @@ stages[9].mode.DMRG3S
 
 # assign stages to DMRG configuration object
 conf.stages = stages
-dmrg= ptn.mp.dmrg.PDMRG(vac_state.copy(), [vectorized_L_dag_L], conf)
+dmrg= ptn.mp.dmrg.PDMRG(vac_state.copy(), [h_tot_left+h_tot_right], conf)  #vectorized_L_dag_L
 
 # iterate over stages in config object
 energy_during_dmrg = []

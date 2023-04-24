@@ -57,8 +57,8 @@ dt = args.dt
 t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 100 #100
-first_trajectory = 0
+n_trajectories = 1
+first_trajectory = 4
 
 ################
 def make_writing_dir_and_change_to_it( parent_data_dirname: str, parameter_dict: dict, overwrite: bool = False, create_directory: bool = True ) -> str :
@@ -130,9 +130,22 @@ vac_state =  ptn.mp.proj_pur.generateNearVacuumState(lat, 2, str( max_bosons ) )
 for site in [0,1,4]:
     vac_state *= lat.get('c',site)
     vac_state.normalise()    
-    
-#vac_state *= lat.get('ch',1) # FIXME: FOR DEBUGGING !!!!!!!!!
-    
+ 
+###########    FIXME: FOR DEBUGGING !!!!!!!!!
+occ_state = vac_state.copy()
+occ_state *= lat.get('ch',0)
+occ_state.normalise()
+occ_state *= lat.get('ch',1)
+occ_state.normalise()
+occ_state *= lat.get('ah',2)*lat.get('a',3)
+occ_state.normalise()
+occ_state *= lat.get('ch',4)
+occ_state.normalise()
+
+vac_state = vac_state + occ_state
+vac_state.normalise()
+###########    
+
 #HAMILTONIAN
 class Hamiltonian():
     
