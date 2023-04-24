@@ -32,7 +32,7 @@ max_bosons = args.max_bosons
 
 om_0 = 0.2
 m = 1
-lamb = 5 #FIXME: 0.1
+lamb = 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
@@ -42,7 +42,7 @@ Om_kr = -0.5
 Gamma = 2
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0. #FIXME: is this correct?
+N0 = 0.5 #FIXME: is this correct?
 delta_l = 1.
 delta_r = 1.
 
@@ -57,10 +57,66 @@ dt = args.dt
 t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
-n_trajectories = 1
+n_trajectories = 100 #100
 first_trajectory = 0
 
-os.chdir('data_qj_mps')
+################
+def make_writing_dir_and_change_to_it( parent_data_dirname: str, parameter_dict: dict, overwrite: bool = False, create_directory: bool = True ) -> str :
+    """given a dictionary with some selected job's parameters, it creates the correct subfolder in which to run the job and changes to it
+
+    Parameters
+    ----------
+    parent_data_dirname : str
+        name of the parent directory
+    parameter_dict : dict
+        parameter dictionary specifying the directory
+
+    Returns
+    -------
+    str
+        path of the directory in which to write the states or the observables
+    """
+    import os 
+    from datetime import date
+
+    #go to parent folder if existing. create one with date attached and go to it if not existing
+    if os.path.isdir(parent_data_dirname):
+            os.chdir(parent_data_dirname)
+    else:
+        if create_directory:
+            parent_data_dirname += '_'+str( date.today() )
+            os.mkdir( parent_data_dirname )
+            os.chdir(parent_data_dirname)
+
+
+    dir_depth = len(parameter_dict)
+    count_dir_depth = 0
+    for par in parameter_dict:
+        subdir_name = par +'_'+str(parameter_dict[par])
+
+        #if reached lowest directory level AND it already exists
+        if count_dir_depth == dir_depth-1 and os.path.isdir(subdir_name): 
+            #print(subdir_name)
+            if not overwrite and create_directory: 
+                subdir_name += '_'+str( date.today() )
+        
+        #all other directory levels OR the lowest but it doesn't exists
+        if os.path.isdir(subdir_name):
+            os.chdir(subdir_name)
+        else:
+            if create_directory:
+                os.mkdir( subdir_name )
+                os.chdir(subdir_name)
+                
+        count_dir_depth += 1
+
+    writing_dir = os.getcwd()
+    return writing_dir
+
+parameter_dict = {'max_bosons': max_bosons, 'dt': dt, 't_max': t_max, 'mu_l' : mu_l, 'mu_r' : mu_r, 'n_trajectories' : n_trajectories, 'first_trajectory' : first_trajectory   }
+writing_dir = make_writing_dir_and_change_to_it('data_qj_mps', parameter_dict, overwrite=True)
+
+################
 
 #Lattice
 ferm_bos_sites = [0,0,1,0] 
@@ -158,6 +214,10 @@ obsdict.initialize_observable('phonon_entanglement_entropy',(1,), n_timesteps)
 obsdict.initialize_observable('phonon_energy',(1,), n_timesteps) 
 obsdict.initialize_observable('dot_energy',(1,), n_timesteps) 
 obsdict.initialize_observable('phys_dim',(5,), n_timesteps) 
+obsdict.initialize_observable('free_energy_neq',(1,), n_timesteps)
+obsdict.initialize_observable('sec_ord_coherence_funct',(1,), n_timesteps) 
+ 
+
 
 def compute_nf(state, obs_array_shape,dtype):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
@@ -185,7 +245,7 @@ def compute_block_entropies(state, obs_array_shape,dtype):  #EXAMPLE 1D
 def compute_rdm_phon(state, obs_array_shape,dtype = 'complex'):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    rdm = np.array(ptn.mp.rdm.o1rdm(state,4) )
+    rdm = np.array(ptn.mp.rdm.o1rdm(state,2) )
     obs_array[ :rdm.shape[0], :rdm.shape[1] ] = rdm 
     #OBS DEPENDENT PART END
     return obs_array
@@ -201,7 +261,7 @@ def compute_bond_dim(state, obs_array_shape,dtype):
 def compute_phonon_entanglement_entropy(state, obs_array_shape,dtype = 'complex'):  #EXAMPLE 1D
     obs_array = np.zeros( obs_array_shape, dtype=dtype)
     #OBS DEPENDENT PART START
-    rdm = np.array( ptn.mp.rdm.o1rdm( state, 4) )
+    rdm = np.array( ptn.mp.rdm.o1rdm( state, 2) )
     R = rdm * ( sla.logm( rdm )/ sla.logm( np.matrix( [ [ 2 ] ] ) ) )
     S = - np.matrix.trace(R)
     obs_array = S
@@ -230,6 +290,33 @@ def compute_phys_dim(state, obs_array_shape,dtype):
     #OBS DEPENDENT PART END
     return obs_array
 
+def compute_free_energy_neq(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART STAR
+    #phonon energy
+    phonon_energy = np.real( ptn.mp.expectation(state, h_boson ) )
+    #von Neumann entropy
+    rdm = np.array( ptn.mp.rdm.o1rdm( state, 2) )
+    R = rdm * ( sla.logm( rdm )/ sla.logm( np.matrix( [ [ 2 ] ] ) ) )
+    S = - np.matrix.trace(R)
+    #non-eq. free energy
+    obs_array = phonon_energy - T_l * S
+    #OBS DEPENDENT PART END
+    return obs_array
+
+def compute_sec_ord_coherence_funct(state, obs_array_shape,dtype):  
+    obs_array = np.zeros( obs_array_shape, dtype=dtype)
+    #OBS DEPENDENT PART STAR
+    rdm = np.array( ptn.mp.rdm.o1rdm( state, 2) )
+    numerator, denominator = 0., 0.
+    for mode in range(rdm.shape[0]): #NOTE: this is smaller than 'max_bosons+1' when PP truncates the physical dimension
+        numerator += mode * (mode - 1) * rdm[ mode, mode ]
+        denominator += (mode * rdm[ mode, mode ])
+    denominator = denominator ** 2
+    obs_array = numerator/denominator
+    #OBS DEPENDENT PART END
+    return obs_array
+
 obsdict.add_observable_computing_function('nf', compute_nf )
 obsdict.add_observable_computing_function('nb', compute_nb )
 obsdict.add_observable_computing_function('block_entropies', compute_block_entropies )
@@ -239,6 +326,8 @@ obsdict.add_observable_computing_function('phonon_entanglement_entropy', compute
 obsdict.add_observable_computing_function('phonon_energy', compute_phonon_energy )
 obsdict.add_observable_computing_function('dot_energy', compute_dot_energy )
 obsdict.add_observable_computing_function('phys_dim', compute_phys_dim )
+obsdict.add_observable_computing_function('free_energy_neq', compute_free_energy_neq )
+obsdict.add_observable_computing_function('sec_ord_coherence_funct', compute_sec_ord_coherence_funct )
 
 ########TDVP CONFIG
 conf_tdvp = ptn.tdvp.Conf()

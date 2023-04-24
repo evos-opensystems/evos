@@ -37,7 +37,7 @@ max_bosons = args.max_bosons
 
 om_0 = 0.2
 m = 1
-lamb = 5 #FIXME: 0.1
+lamb = 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
@@ -47,7 +47,7 @@ Om_kr = -0.5
 Gamma = 2
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0. #FIXME: is this correct?
+N0 = 0.5 #FIXME: is this correct?
 delta_l = 1.
 delta_r = 1.
 

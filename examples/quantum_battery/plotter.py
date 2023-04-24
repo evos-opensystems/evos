@@ -158,4 +158,6 @@ plt.ylabel('n')
 plt.xlabel('time')
 plt.title('Evolution with jumps')
 plt.legend()
+
+os.chdir('plots')
 fig.savefig('plotter.png')
