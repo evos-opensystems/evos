@@ -22,7 +22,7 @@ os.chdir(parent_dir)
 
 
 # MPS QJ
-qj_mps_dirname = 'data_qj_mps/max_bosons_4/dt_0.02/t_max_5/mu_l_0.5/mu_r_-0.5/n_trajectories_1/first_trajectory_4'
+qj_mps_dirname = 'data_qj_mps/max_bosons_4/dt_0.02/t_max_5/mu_l_0.5/mu_r_-0.5/n_trajectories_1000/first_trajectory_0'
 os.chdir(qj_mps_dirname)
 nf_qj_mps = np.load('nf_av.npy')
 nb_qj_mps = np.load('nb_av.npy')
@@ -38,7 +38,7 @@ os.chdir(parent_dir)
 
 
 #ED QJ
-qj_ed_dirname = 'data_qj_ed/max_bosons_4/dt_0.02/t_max_5/mu_l_0.5/mu_r_-0.5/n_trajectories_1/first_trajectory_4'
+qj_ed_dirname = 'data_qj_ed/max_bosons_4/dt_0.02/t_max_5/mu_l_0.5/mu_r_-0.5/n_trajectories_1000/first_trajectory_0'
 os.chdir(qj_ed_dirname)
 n_1_av_ed_qj = np.loadtxt('n_1_av')
 n_bos_av_ed_qj = np.loadtxt('n_bos_av')
@@ -63,14 +63,14 @@ fig, ax = plt.subplots()
 
 ##fermionic occupations
 #system
-#plt.plot(time_v, n_system_lind, label='n_system_lind ed')
-# plt.plot(time_v, nf_qj_mps[1,1:], label='nf_qj_mps 1')
-# plt.plot(time_v, n_1_av_ed_qj[1:], label='nf_qj_ed 1')
+plt.plot(time_v, n_system_lind, label='n_system_lind ed')
+plt.plot(time_v, nf_qj_mps[1,1:], label='nf_qj_mps 1')
+plt.plot(time_v, n_1_av_ed_qj[1:], label='nf_qj_ed 1')
 
 #bond dimension
-for i in range(5):
-    ax.plot(time_v, bond_dim[i,1:], label='bdim site '+str(i))
-    ax.vlines(x=0.8, ymin=0, ymax=0.4, color='red')
+# for i in range(5):
+#     ax.plot(time_v, bond_dim[i,1:], label='bdim site '+str(i))
+#     ax.vlines(x=0.8, ymin=0, ymax=0.4, color='red')
 
 
 plt.legend()

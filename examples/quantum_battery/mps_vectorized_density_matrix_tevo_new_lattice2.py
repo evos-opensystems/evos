@@ -305,4 +305,5 @@ plt.plot(time_v, n_exp[4,:], label='n4')
 #plt.plot(time_v, phys_dim_phon[:], label='phys_dim_phon')
 
 plt.legend()
-fig.savefig('ps_vectorized_density_matrix_tevo_new_lattice2.png')    
+os.chdir('plots')
+fig.savefig('mps_vectorized_density_matrix_tevo_new_lattice2.png')    

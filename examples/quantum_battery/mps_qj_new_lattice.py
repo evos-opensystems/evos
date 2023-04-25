@@ -30,9 +30,9 @@ sys.stdout.write('test')
 #PARAMETERS
 max_bosons = args.max_bosons
 
-om_0 = 0.2
+om_0 = 0.2 #0.2
 m = 1
-lamb = 0.1
+lamb = 0.1 #0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
@@ -58,7 +58,7 @@ t_max = args.t_max
 time_v = np.arange(0, t_max, dt)
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
-first_trajectory = 4
+first_trajectory = 5
 
 ################
 def make_writing_dir_and_change_to_it( parent_data_dirname: str, parameter_dict: dict, overwrite: bool = False, create_directory: bool = True ) -> str :
@@ -132,18 +132,18 @@ for site in [0,1,4]:
     vac_state.normalise()    
  
 ###########    FIXME: FOR DEBUGGING !!!!!!!!!
-occ_state = vac_state.copy()
-occ_state *= lat.get('ch',0)
-occ_state.normalise()
-occ_state *= lat.get('ch',1)
-occ_state.normalise()
-occ_state *= lat.get('ah',2)*lat.get('a',3)
-occ_state.normalise()
-occ_state *= lat.get('ch',4)
-occ_state.normalise()
+# occ_state = vac_state.copy()
+# occ_state *= lat.get('ch',0)
+# occ_state.normalise()
+# occ_state *= lat.get('ch',1)
+# occ_state.normalise()
+# occ_state *= lat.get('ah',2)*lat.get('a',3)
+# occ_state.normalise()
+# occ_state *= lat.get('ch',4)
+# occ_state.normalise()
 
-vac_state = vac_state + occ_state
-vac_state.normalise()
+# vac_state = vac_state + occ_state
+# vac_state.normalise()
 ###########    
 
 #HAMILTONIAN

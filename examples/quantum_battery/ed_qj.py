@@ -38,9 +38,9 @@ sys.stdout.write('test')
 #PARAMETERS
 max_bosons = args.max_bosons
 
-om_0 = 0.2
+om_0 = 1 #0.2
 m = 1
-lamb = 0.1
+lamb = 1 #0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
@@ -194,18 +194,18 @@ l_list = l_list_left + l_list_right
 init_state = lat.vacuum_state
 
 ###########    FIXME: FOR DEBUGGING !!!!!!!!!
-occ_state = init_state.copy()
-occ_state = lat.sso('ch',0) @ occ_state
-occ_state /= la.norm(occ_state)
-occ_state = lat.sso('ch',1) @ occ_state
-occ_state /= la.norm(occ_state)
-occ_state = lat.sso('ah',2) @ occ_state
-occ_state /= la.norm(occ_state)
-occ_state = lat.sso('ch',3) @ occ_state
-occ_state /= la.norm(occ_state)
+# occ_state = init_state.copy()
+# occ_state = lat.sso('ch',0) @ occ_state
+# occ_state /= la.norm(occ_state)
+# occ_state = lat.sso('ch',1) @ occ_state
+# occ_state /= la.norm(occ_state)
+# occ_state = lat.sso('ah',2) @ occ_state
+# occ_state /= la.norm(occ_state)
+# occ_state = lat.sso('ch',3) @ occ_state
+# occ_state /= la.norm(occ_state)
 
-init_state = init_state + occ_state
-init_state /= la.norm(init_state)
+# init_state = init_state + occ_state
+# init_state /= la.norm(init_state)
 ###########    
 
 #Observables

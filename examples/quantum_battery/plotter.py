@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 ########LOAD DATA
 parent_dir = os.getcwd()
 #LINDBLAD #FIXME: change dir by hand !!!!
-os.chdir('data_lindblad_ed/max_bosons_4/dt_0.02/t_max_2.0/mu_l_0.5/mu_r_-0.5')
+os.chdir('data_lindblad_ed/max_bosons_4/dt_0.02/t_max_5.0/mu_l_0.5/mu_r_-0.5')
 n_bos_lind = np.loadtxt('n_bos')
 n_system_lind = np.loadtxt('n_system')
 U_lind = np.loadtxt('U_from_full_state')
@@ -16,11 +16,11 @@ os.chdir(parent_dir)
 
 #ED QJ
 os.chdir('data_qj_ed')
-n_system_qj = np.loadtxt('n_system_av')
-n_3_qj = np.loadtxt('n_3_av')
-n_bos_qj = np.loadtxt('n_bos_av')
-n_0_qj = np.loadtxt('n_0_av')
-n_1_qj = np.loadtxt('n_1_av')
+#n_system_qj = np.loadtxt('n_system_av')
+# n_3_qj = np.loadtxt('n_3_av')
+# n_bos_qj = np.loadtxt('n_bos_av')
+# n_0_qj = np.loadtxt('n_0_av')
+# n_1_qj = np.loadtxt('n_1_av')
 # U_qj = np.loadtxt('U_av')
 os.chdir('..')
 
@@ -53,7 +53,7 @@ os.chdir('..')
 #MPS LINDBLAD
 os.chdir('data_mps_lindblad')
 n_mps_lindblad = np.loadtxt('n_exp')
-#n_b_mps_lindblad = np.loadtxt('n_b_exp')
+n_b_mps_lindblad = np.loadtxt('n_b_exp')
 
 os.chdir('..')
 
@@ -72,10 +72,10 @@ fig, ax = plt.subplots()
 #     plt.plot(time_v_qj[1:], n_mps_lindblad[site, :], label='mps lind n, site '+str(site) )
 
 # plt.plot(time_v_lind[:], n_mps_lindblad[0,:], label='mps lind n, site 0 ' )
-# plt.plot(time_v_lind[:], n_mps_lindblad[1,:], label='mps lind n, site 1 ' )
-# plt.plot(time_v_lind[:], n_mps_lindblad[4,:], label='mps lind n, site 4 ' )
+#plt.plot(time_v_lind[:], n_mps_lindblad[2,:], label='mps lind n, site 1 ' )
+# plt.plot(time_v_lind[:], n_mps_lindblad[8,:], label='mps lind n, site 8 ' )
 
-#plt.plot(time_v_lind[:], n_b_mps_lindblad[2,:], label='mps lind b_b, site 2 ' )
+plt.plot(time_v_lind[:], n_b_mps_lindblad[4,:], label='mps lind b_b, site 4 ' )
 
 
 
@@ -102,15 +102,15 @@ fig, ax = plt.subplots()
 
 
 #OCC BOSONIC SITE
-plt.plot(time_v_qj[:], n_bos_qj[:], label='n_bos_ed')
-plt.plot(time_v_qj[:],nb_qj_mps[2,:], label='n_bos_mps')
+# plt.plot(time_v_qj[:], n_bos_qj[:], label='n_bos_ed')
+# plt.plot(time_v_qj[:],nb_qj_mps[2,:], label='n_bos_mps')
 # plt.plot(time_v_qj[:],nb_qj_mps[2,:] + nb_qj_mps[3,:], label='nb_qj_mps[2,:] + nb_qj_mps[3,:]')
 
 #plt.plot(time_v_qj,nb_qj_mps[2,:] - n_bos_qj[:], label='n_bos_mps - n_bos_ed')
 
 #plt.plot(time_v_qj,nf_qj_mps[4,:], label='n_bos_mps')
 #plt.plot(time_v_qj, n_bos_qj -nf_qj_mps[4,:], label='n_bos_mps')
-#plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
+plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
 #plt.plot(time_v_lind, n_bos_lind -n_bos_qj[1:] , label='n_bos_lind-n_bos_qj')
 
 #plt.plot(time_v_qj,nf_qj_mps[4,:] +nf_qj_mps[5,:], label='n_bos_mps_qj phys + aux')
