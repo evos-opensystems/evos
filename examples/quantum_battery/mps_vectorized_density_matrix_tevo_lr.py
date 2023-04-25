@@ -21,6 +21,7 @@ arg_parser.add_argument("-mu_r",   "--checmical_pot_right_lead", dest = 'mu_r', 
 args = arg_parser.parse_args()
 
 np.set_printoptions(threshold=sys.maxsize)
+ptn.env.setDisableBacktraces(True)
 #sys.stdout.write('test')
 
 #PARAMETERS
@@ -314,15 +315,15 @@ for time in range(n_timesteps):
     
     
 #PLOT
-time_v = np.linspace(0,t_max,n_timesteps)
+# time_v = np.linspace(0,t_max,n_timesteps)
 
-fig = plt.figure()
+# fig = plt.figure()
 
-plt.plot(time_v, n_exp[0,:], label='n0')
-plt.plot(time_v, n_exp[1,:], label='n1')
-plt.plot(time_v, n_b_exp[4,:], label='nb4')
-plt.plot(time_v, n_exp[8,:], label='n8')
-#plt.plot(time_v, phys_dim_phon[:], label='phys_dim_phon')
+# plt.plot(time_v, n_exp[0,:], label='n0')
+# plt.plot(time_v, n_exp[1,:], label='n1')
+# plt.plot(time_v, n_b_exp[4,:], label='nb4')
+# plt.plot(time_v, n_exp[8,:], label='n8')
+# #plt.plot(time_v, phys_dim_phon[:], label='phys_dim_phon')
 
-plt.legend()
-fig.savefig('mps_vectorized_density_matrix_tevo_lr.png')    
+# plt.legend()
+# fig.savefig('mps_vectorized_density_matrix_tevo_lr.png')    
