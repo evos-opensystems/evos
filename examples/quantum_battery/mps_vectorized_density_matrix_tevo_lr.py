@@ -125,11 +125,17 @@ ham = Hamiltonian(lat, max_bosons)
 h_tot_even = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, even_odd_idx_shift = 0)
 h_tot_odd = ham.h_tot(eps, Om_kl, Om_kr, g_kl, g_kr, om_0, F, even_odd_idx_shift = even_odd_idx_shift)
 
+def fermi_dist(beta, e, mu):
+    f = 1 / ( np.exp( beta * (e-mu) ) + 1)
+    return f
 
 def compute_vectorized_dissipator():
     
-    #vectorized_dissipator = lat.get('c',1) * lat.get('c',0) - 0.5 * lat.get('c',0) * lat.get('ch',0) - 0.5 * lat.get('c',1) * lat.get('ch',1) #annihilator site 0
-    vectorized_dissipator = lat.get('ch',0) * lat.get('ch',1) - 0.5 * lat.get('ch',0) * lat.get('c',0) - 0.5 * lat.get('ch',1) * lat.get('c',1) #creator site 0
+    vectorized_dissipator = delta_l * np.exp( 1./T_l * ( Om_kl - mu_l ) ) * fermi_dist( 1./T_l, Om_kl, mu_l ) * ( lat.get('c',1) * lat.get('c',0) - 0.5 * lat.get('c',0) * lat.get('ch',0) - 0.5 * lat.get('c',1) * lat.get('ch',1) )#annihilator site 0
+    vectorized_dissipator += delta_l * fermi_dist( 1./T_l, Om_kl, mu_l) * ( lat.get('ch',0) * lat.get('ch',1) - 0.5 * lat.get('ch',0) * lat.get('c',0) - 0.5 * lat.get('ch',1) * lat.get('c',1) ) #creator site 0
+
+    vectorized_dissipator += delta_r * np.exp( 1./T_r * ( Om_kr - mu_r ) ) * fermi_dist( 1./T_r, Om_kr, mu_r ) * ( lat.get('c',9) * lat.get('c',8) - 0.5 * lat.get('c',8) * lat.get('ch',8) - 0.5 * lat.get('c',9) * lat.get('ch',9) )#annihilator site 0
+    vectorized_dissipator += delta_r * fermi_dist( 1./T_r, Om_kr, mu_r) * ( lat.get('ch',8) * lat.get('ch',9) - 0.5 * lat.get('ch',8) * lat.get('c',8) - 0.5 * lat.get('ch',9) * lat.get('c',9) )#creator site 0
 
     return vectorized_dissipator
 
