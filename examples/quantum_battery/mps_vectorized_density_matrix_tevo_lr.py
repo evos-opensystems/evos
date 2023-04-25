@@ -273,6 +273,7 @@ conf_tdvp.exp_conf.minIter = 20
 n_exp = np.zeros( ( 10, n_timesteps) )
 n_b_exp = np.zeros( ( 10, n_timesteps) )
 phys_dim_phon = np.zeros( (n_timesteps) )
+bond_dim =  np.zeros( ( 10, n_timesteps) )
 phonon_rdm = np.zeros( (max_bosons +1, max_bosons +1, n_timesteps), dtype='complex' )
 #FIXME: ONLY FOR DEBUGGING: excite particle on sites 0,1
 # vac_state *= lat.get('ch',0)    
@@ -295,7 +296,9 @@ for time in range(n_timesteps):
     for site in range(10):
         n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
         n_b_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
-
+        bond_dim[site, time] = psi_t[site].getTotalDims()[2]
+            
+    phys_dim_phon[time] = psi_t[4].getTotalDims()[0]        
     phonon_rdm_t = np.array(ptn.mp.rdm.o1rdm(psi_t,4) )
     phonon_rdm_t /= np.trace(phonon_rdm_t)
     phonon_rdm[ :phonon_rdm_t.shape[0], :phonon_rdm_t.shape[1], time ] = phonon_rdm_t 
@@ -303,6 +306,8 @@ for time in range(n_timesteps):
     np.save('n_exp', n_exp )
     np.save('n_b_exp', n_b_exp )
     np.save('phonon_rdm',phonon_rdm)
+    np.save('bond_dim',bond_dim)
+    np.save('phys_dim_phon',phys_dim_phon)
 
     #Normalize state to reinitialize tdvp worker
     psi_t.normalise()
