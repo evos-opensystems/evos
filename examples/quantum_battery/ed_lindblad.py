@@ -185,7 +185,7 @@ l_list = l_list_left + l_list_right
 #Initial State: using vacuum for now
 init_state = lat.vacuum_state
 #NOTE: creating a particle on site 0. used for debugging!
-init_state = lat.sso('ch',0) @ init_state #FIXME:remove this!
+#init_state = lat.sso('ch',0) @ init_state #FIXME:remove this!
 
 #Solve Lindblad Equation
 lindblad = lindblad.Lindblad(4)
@@ -270,6 +270,8 @@ np.savetxt('S',S)
 np.savetxt('f_neq', f_neq)
 np.savetxt('f_eq_vector', f_eq_vector)
 np.savetxt('sec_ord_coherence_funct',sec_ord_coherence_funct_vec)
+np.save('rho_bosonic',rho_bosonic)
+
 #PLOT
 fig = plt.figure()
 # plt.plot(time_v, computed_observables['n_0'], label = 'n_0' )

@@ -249,11 +249,11 @@ for site in [4]:
 conf_tdvp = ptn.tdvp.Conf()
 conf_tdvp.mode = ptn.tdvp.Mode.GSE   #TwoSite, GSE, Subspace
 conf_tdvp.dt = 1j * dt
-conf_tdvp.trunc.threshold = 1e-10  #NOTE: set to zero for gse
-conf_tdvp.trunc.weight = 1e-15 #tdvp_trunc_weight #NOTE: set to zero for gse
+conf_tdvp.trunc.threshold = 1e-8  #NOTE: set to zero for gse
+conf_tdvp.trunc.weight = 1e-10 #tdvp_trunc_weight #NOTE: set to zero for gse
 conf_tdvp.trunc.maxStates = 3000
-conf_tdvp.exp_conf.errTolerance = 1e-10
-conf_tdvp.exp_conf.inxTolerance = 1e-15
+conf_tdvp.exp_conf.errTolerance = 1e-7
+conf_tdvp.exp_conf.inxTolerance = 1e-6
 conf_tdvp.exp_conf.maxIter =  10
 conf_tdvp.cache = 1
 conf_tdvp.maxt = 1j*t_max
@@ -269,14 +269,14 @@ conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
 conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
 conf_tdvp.exp_conf.minIter = 20
 
-
+#INITIALIZE OBSERVABLES
 n_exp = np.zeros( ( 10, n_timesteps) )
 n_b_exp = np.zeros( ( 10, n_timesteps) )
 phys_dim_phon = np.zeros( (n_timesteps) )
-
+phonon_rdm = np.zeros( (max_bosons +1, max_bosons +1, n_timesteps), dtype='complex' )
 #FIXME: ONLY FOR DEBUGGING: excite particle on sites 0,1
-vac_state *= lat.get('ch',0)    
-vac_state *= lat.get('ch',1)  
+# vac_state *= lat.get('ch',0)    
+# vac_state *= lat.get('ch',1)  
 psi_t = vac_state.copy()
 #normalize initial state
 psi_t.normalise()
@@ -296,8 +296,13 @@ for time in range(n_timesteps):
         n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
         n_b_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
 
-    np.savetxt('n_exp', n_exp )
-    np.savetxt('n_b_exp', n_b_exp )
+    phonon_rdm_t = np.array(ptn.mp.rdm.o1rdm(psi_t,4) )
+    phonon_rdm_t /= np.trace(phonon_rdm_t)
+    phonon_rdm[ :phonon_rdm_t.shape[0], :phonon_rdm_t.shape[1], time ] = phonon_rdm_t 
+    #save observables
+    np.save('n_exp', n_exp )
+    np.save('n_b_exp', n_b_exp )
+    np.save('phonon_rdm',phonon_rdm)
 
     #Normalize state to reinitialize tdvp worker
     psi_t.normalise()

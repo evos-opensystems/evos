@@ -5,13 +5,14 @@ import matplotlib.pyplot as plt
 ########LOAD DATA
 parent_dir = os.getcwd()
 #LINDBLAD #FIXME: change dir by hand !!!!
-os.chdir('data_lindblad_ed/max_bosons_4/dt_0.02/t_max_5.0/mu_l_0.5/mu_r_-0.5')
+os.chdir('data_lindblad_ed/max_bosons_4/dt_0.05/t_max_5.0/mu_l_0.5/mu_r_-0.5')
 n_bos_lind = np.loadtxt('n_bos')
 n_system_lind = np.loadtxt('n_system')
 U_lind = np.loadtxt('U_from_full_state')
 S_lind = np.loadtxt('S')
 n_0_lind = np.loadtxt('n_0')
 n_3_lind = np.loadtxt('n_3')
+rho_bosonic = np.load('rho_bosonic.npy')
 os.chdir(parent_dir)
 
 #ED QJ
@@ -51,11 +52,11 @@ phys_dim_kry = np.load('phys_dim.npy')
 os.chdir('..')
 
 #MPS LINDBLAD
-os.chdir('data_mps_lindblad')
-n_mps_lindblad = np.loadtxt('n_exp')
-n_b_mps_lindblad = np.loadtxt('n_b_exp')
-
-os.chdir('..')
+os.chdir('data_mps_lindblad/max_bosons_4/dt_0.05/t_max_5.0/mu_l_0.5/mu_r_-0.5')
+n_mps_lindblad = np.load('n_exp.npy')
+n_b_mps_lindblad = np.load('n_b_exp.npy')
+phonon_rdm_mps_lindblad = np.load('phonon_rdm.npy')
+os.chdir(parent_dir)
 
 
 
@@ -75,7 +76,7 @@ fig, ax = plt.subplots()
 #plt.plot(time_v_lind[:], n_mps_lindblad[2,:], label='mps lind n, site 1 ' )
 # plt.plot(time_v_lind[:], n_mps_lindblad[8,:], label='mps lind n, site 8 ' )
 
-plt.plot(time_v_lind[:], n_b_mps_lindblad[4,:], label='mps lind b_b, site 4 ' )
+#plt.plot(time_v_lind[:], n_b_mps_lindblad[4,:], label='mps lind b_b, site 4 ' )
 
 
 
@@ -110,7 +111,7 @@ plt.plot(time_v_lind[:], n_b_mps_lindblad[4,:], label='mps lind b_b, site 4 ' )
 
 #plt.plot(time_v_qj,nf_qj_mps[4,:], label='n_bos_mps')
 #plt.plot(time_v_qj, n_bos_qj -nf_qj_mps[4,:], label='n_bos_mps')
-plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
+#plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
 #plt.plot(time_v_lind, n_bos_lind -n_bos_qj[1:] , label='n_bos_lind-n_bos_qj')
 
 #plt.plot(time_v_qj,nf_qj_mps[4,:] +nf_qj_mps[5,:], label='n_bos_mps_qj phys + aux')
@@ -152,7 +153,17 @@ i=0
 ##ax.plot(time_v_qj, block_entropies_qj_mps[3,:], label='n_system_qj_mps')
 
 #RDM
-#ax.plot(time_v_qj, rdm_phon_qj_mps[1,1,:], label='rdm[1,1] mps')
+#mps
+# ax.semilogy(time_v_lind, phonon_rdm_mps_lindblad[0,0,:], label='rdm[0,0] mps')
+# ax.semilogy(time_v_lind, phonon_rdm_mps_lindblad[1,1,:], label='rdm[1,1] mps')
+# ax.semilogy(time_v_lind, phonon_rdm_mps_lindblad[2,2,:], label='rdm[2,2] mps')
+# ax.semilogy(time_v_lind, phonon_rdm_mps_lindblad[3,3,:], label='rdm[3,3] mps')
+
+#ed
+# ax.semilogy(time_v_lind, rho_bosonic[0,0,:], label='rdm[0,0] ed')
+# ax.semilogy(time_v_lind, rho_bosonic[1,1,:], label='rdm[1,1] ed')
+# ax.semilogy(time_v_lind, rho_bosonic[2,2,:], label='rdm[2,2] ed')
+# ax.semilogy(time_v_lind, rho_bosonic[3,3,:], label='rdm[3,3] ed')
 
 plt.ylabel('n')
 plt.xlabel('time')
