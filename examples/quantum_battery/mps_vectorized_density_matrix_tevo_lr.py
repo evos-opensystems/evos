@@ -58,7 +58,64 @@ first_trajectory = 0
 
 even_odd_idx_shift = 1
 
-os.chdir('data_mps_lindblad')
+################
+def make_writing_dir_and_change_to_it( parent_data_dirname: str, parameter_dict: dict, overwrite: bool = False, create_directory: bool = True ) -> str :
+    """given a dictionary with some selected job's parameters, it creates the correct subfolder in which to run the job and changes to it
+
+    Parameters
+    ----------
+    parent_data_dirname : str
+        name of the parent directory
+    parameter_dict : dict
+        parameter dictionary specifying the directory
+
+    Returns
+    -------
+    str
+        path of the directory in which to write the states or the observables
+    """
+    import os 
+    from datetime import date
+
+    #go to parent folder if existing. create one with date attached and go to it if not existing
+    if os.path.isdir(parent_data_dirname):
+            os.chdir(parent_data_dirname)
+    else:
+        if create_directory:
+            parent_data_dirname += '_'+str( date.today() )
+            os.mkdir( parent_data_dirname )
+            os.chdir(parent_data_dirname)
+
+
+    dir_depth = len(parameter_dict)
+    count_dir_depth = 0
+    for par in parameter_dict:
+        subdir_name = par +'_'+str(parameter_dict[par])
+
+        #if reached lowest directory level AND it already exists
+        if count_dir_depth == dir_depth-1 and os.path.isdir(subdir_name): 
+            #print(subdir_name)
+            if not overwrite and create_directory: 
+                subdir_name += '_'+str( date.today() )
+        
+        #all other directory levels OR the lowest but it doesn't exists
+        if os.path.isdir(subdir_name):
+            os.chdir(subdir_name)
+        else:
+            if create_directory:
+                os.mkdir( subdir_name )
+                os.chdir(subdir_name)
+                
+        count_dir_depth += 1
+
+    writing_dir = os.getcwd()
+    return writing_dir
+
+parameter_dict = {'max_bosons': max_bosons, 'dt': dt, 't_max': t_max, 'mu_l' : mu_l, 'mu_r' : mu_r  }
+writing_dir = make_writing_dir_and_change_to_it('data_mps_lindblad', parameter_dict, overwrite=True)
+
+################
+
 
 #Lattice
 ferm_bos_sites = [0,0,0,0,1,1,0,0]
