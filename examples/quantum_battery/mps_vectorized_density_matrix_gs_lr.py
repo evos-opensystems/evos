@@ -43,8 +43,8 @@ delta_r = 1
 mu_l = args.mu_l
 mu_r = args.mu_r
 
-T_l = 1./0.5 #beta_l = 0.5
-T_r = 1./0.5 #beta_r = 0.5
+T_l = 1./0.5 #FIXME: beta_l = 0.5
+T_r = 1./0.5 #FIXME: beta_r = 0.5
 k_b = 1 #boltzmann constant
 
 even_odd_idx_shift = 1
@@ -198,7 +198,7 @@ vectorized_lindbladian = -1j*h_tot_even + 1j*h_tot_odd + compute_vectorized_diss
 vectorized_lindbladian.truncate()
 vectorized_lindbladian_dagger = ptn.mp.dot(lat.get("I"), vectorized_lindbladian.copy())
 l_dagger_l = vectorized_lindbladian * vectorized_lindbladian_dagger
-l_dagger_l.truncate()
+#l_dagger_l.truncate()
 
 #BUILD UNNORMALIZED PURIFIED IDENTITY
 def mpo_max_ent_pair_ferm(site):
@@ -212,7 +212,7 @@ def mpo_max_ent_pair_ferm(site):
         op *= lat.get('ch',site) * lat.get('ch',site + even_odd_idx_shift) 
         op *= 1./mode
         op_tot += op
-        op.truncate()
+        #op.truncate()
         #op_tot.truncate()
         
     return op_tot  
@@ -227,7 +227,7 @@ def mpo_max_ent_pair_bos(site, max_bosons):
         op *= lat.get('a',site + 1 ) * lat.get('ah',site)  *  lat.get('a',site + 2*even_odd_idx_shift + 1) * lat.get('ah',site + 2*even_odd_idx_shift) #* 1./mode #FIXME: reverse order?
         op *= 1./mode
         op_tot += op
-        op.truncate()
+        #op.truncate()
         #op_tot.truncate()
         
     return op_tot   
@@ -238,7 +238,8 @@ for site in [0,2,8]:
     purified_id.truncate()
 for site in [4]:    
     purified_id *= mpo_max_ent_pair_bos(site, max_bosons)            
-    purified_id.truncate()
+    #purified_id.truncate()
+
 
 #GROUND STATE SEARCH PREPARATION: computation of fermi sea from tight-binding hamiltonian
 # def compute_h_tight_binding():
@@ -249,6 +250,8 @@ for site in [4]:
 #     return h_tight_binding
 
 # h_tight_binding = compute_h_tight_binding()
+
+
 # #create state with two particles on physical sites and two on auxiliary sites
 # #FIXME: what is the actual occupation for spinless fermi sea? 1/2?
 # init_state_for_fermi_sea = vac_state.copy()
@@ -377,8 +380,6 @@ for site in [4]:
 ########### END FERMI SEA CALCULATION
 
 
-
-
 #GROUND STATE OF  L_DAGGER_L 
 conf = ptn.dmrg.DMRGConfig()
 # give us a list to add stages
@@ -386,7 +387,7 @@ stages = []
 
 #first stage
 stages.append(ptn.dmrg.DMRGStage())
-stages[0].trunc.maxStates = 16
+stages[0].trunc.maxStates = 100
 stages[0].convergenceMaxSweeps = 200
 stages[0].trunc.weight = 1e-6
 stages[0].trunc.threshold = 1e-8
@@ -395,7 +396,7 @@ stages[0].convergenceMinSweeps = 50
 stages[0].mode.DMRG3S
 #second stage
 stages.append(ptn.dmrg.DMRGStage())
-stages[1].trunc.maxStates = 32
+stages[1].trunc.maxStates = 150
 stages[1].convergenceMaxSweeps = 150
 stages[1].trunc.weight = 1e-7
 stages[1].trunc.threshold = 1e-9
@@ -405,7 +406,7 @@ stages[1].mode.DMRG3S
 
 #third stage
 stages.append(ptn.dmrg.DMRGStage())
-stages[2].trunc.maxStates = 64
+stages[2].trunc.maxStates = 200
 stages[2].convergenceMaxSweeps = 100
 stages[2].trunc.weight = 1e-8
 stages[2].trunc.threshold = 1e-10
@@ -415,7 +416,7 @@ stages[2].mode.TwoSite
 
 #fourth stage
 stages.append(ptn.dmrg.DMRGStage())
-stages[3].trunc.maxStates = 128
+stages[3].trunc.maxStates = 250
 stages[3].convergenceMaxSweeps = 100
 stages[3].trunc.weight = 1e-10
 stages[3].trunc.threshold = 1e-12
@@ -425,7 +426,7 @@ stages[3].mode.DMRG3S
 
 #fifth stage
 stages.append(ptn.dmrg.DMRGStage())
-stages[4].trunc.maxStates = 256
+stages[4].trunc.maxStates = 300
 stages[4].convergenceMaxSweeps = 100
 stages[4].trunc.weight = 1e-11
 stages[4].trunc.threshold = 1e-13
@@ -484,13 +485,17 @@ stages[9].mode.DMRG3S
 
 # assign stages to DMRG configuration object
 conf.stages = stages
-dmrg= ptn.mp.dmrg.PDMRG(purified_id.copy(), [l_dagger_l], conf)  #vectorized_L_dag_L
+dmrg= ptn.mp.dmrg.PDMRG(purified_id.copy(), [l_dagger_l], conf)  #fermi_sea, purified_id
 
 # iterate over stages in config object
-energy_during_dmrg = []
+# print('purified_id.norm() = ',purified_id.norm() )
+# quit()
+norm_during_dmrg = []
 for m in conf.stages:
     # run stage until either convergence is met or max. number of sweeps
     ness_mps = dmrg.run()
+    norm_during_dmrg.append(ness_mps.norm())
+    np.save('norm_during_dmrg',norm_during_dmrg)
 
 ########### END GS CALCULATION
 
