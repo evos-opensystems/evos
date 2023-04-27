@@ -26,6 +26,18 @@ one needs to track many observables or one when uses trajectory methods, since a
 
 You can access the documentation by running **make doc** in **evos**.
 
+## References
+
+1. Quantum jumps: [A. Daley] (https://arxiv.org/abs/1405.6694).
+
+2. Matrix-product state algorithms for Markovian and non-Markovian systems: [M. Moroder] (https://arxiv.org/abs/2207.08243).
+
+3. Mesoscopic leads method: [A. Lacerda] (https://arxiv.org/abs/2206.01090).
+
+4. Vectorization of lindblad equation for time evolution MPS: [S. Wolff] (https://arxiv.org/abs/2004.01133).
+
+5. Vectorization of lindblad equation for direct steady-state calculation with MPS: [H.P. Casagrande] (https://arxiv.org/abs/2009.08200).
+
 ## To Add
 
 1. ED and MPS hops
