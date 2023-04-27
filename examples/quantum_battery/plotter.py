@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 ########LOAD DATA
 parent_dir = os.getcwd()
 #LINDBLAD #FIXME: change dir by hand !!!!
-os.chdir('data_lindblad_ed/max_bosons_4/dt_0.05/t_max_5.0/mu_l_0.5/mu_r_-0.5')
+os.chdir('data_lindblad_ed/max_bosons_4/dt_0.02/t_max_5.0/mu_l_0.5/mu_r_-0.5') #same as mps lind: data_lindblad_ed/max_bosons_4/dt_0.05/t_max_5.0/mu_l_0.5/mu_r_-0.5
 n_bos_lind = np.loadtxt('n_bos')
 n_system_lind = np.loadtxt('n_system')
 U_lind = np.loadtxt('U_from_full_state')
@@ -52,7 +52,7 @@ phys_dim_kry = np.load('phys_dim.npy')
 os.chdir('..')
 
 #MPS LINDBLAD
-os.chdir('data_mps_lindblad/max_bosons_4/dt_0.05/t_max_5.0/mu_l_0.5/mu_r_-0.5')
+os.chdir('data_mps_lindblad/max_bosons_4/dt_0.02/t_max_5/mu_l_0.5/mu_r_-0.5') #same as ed: data_mps_lindblad/max_bosons_4/dt_0.05/t_max_5.0/mu_l_0.5/mu_r_-0.5
 n_mps_lindblad = np.load('n_exp.npy')
 n_b_mps_lindblad = np.load('n_b_exp.npy')
 phonon_rdm_mps_lindblad = np.load('phonon_rdm.npy')
@@ -73,7 +73,7 @@ fig, ax = plt.subplots()
 #     plt.plot(time_v_qj[1:], n_mps_lindblad[site, :], label='mps lind n, site '+str(site) )
 
 # plt.plot(time_v_lind[:], n_mps_lindblad[0,:], label='mps lind n, site 0 ' )
-#plt.plot(time_v_lind[:], n_mps_lindblad[2,:], label='mps lind n, site 1 ' )
+plt.plot(time_v_lind[:], n_mps_lindblad[2,:], label='mps lind n, site 1 ' )
 # plt.plot(time_v_lind[:], n_mps_lindblad[8,:], label='mps lind n, site 8 ' )
 
 #plt.plot(time_v_lind[:], n_b_mps_lindblad[4,:], label='mps lind b_b, site 4 ' )
@@ -90,7 +90,7 @@ fig, ax = plt.subplots()
 #ax.plot(time_v_qj[:],nf_qj_mps[1,:], label='n_1_qj_mps')
 #ax.plot(time_v_qj[:], n_system_qj[:], label='n_sys_qj_ed')
 #ax.plot(time_v_qj[:40], n_system_qj[:40]-nf_qj_mps[1,:40], label='n_system_qj-n_1_qj_mps')
-#plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
+plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
 
 
 
