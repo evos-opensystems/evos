@@ -73,10 +73,10 @@ fig, ax = plt.subplots()
 #     plt.plot(time_v_qj[1:], n_mps_lindblad[site, :], label='mps lind n, site '+str(site) )
 
 # plt.plot(time_v_lind[:], n_mps_lindblad[0,:], label='mps lind n, site 0 ' )
-plt.plot(time_v_lind[:], n_mps_lindblad[2,:], label='mps lind n, site 1 ' )
+#plt.plot(time_v_lind[:], n_mps_lindblad[2,:], label='mps lind n, site 1 ' )
 # plt.plot(time_v_lind[:], n_mps_lindblad[8,:], label='mps lind n, site 8 ' )
 
-#plt.plot(time_v_lind[:], n_b_mps_lindblad[4,:], label='mps lind b_b, site 4 ' )
+plt.plot(time_v_lind[:], n_b_mps_lindblad[4,:], label='mps lind n_b, site 4 ' )
 
 
 
@@ -90,7 +90,7 @@ plt.plot(time_v_lind[:], n_mps_lindblad[2,:], label='mps lind n, site 1 ' )
 #ax.plot(time_v_qj[:],nf_qj_mps[1,:], label='n_1_qj_mps')
 #ax.plot(time_v_qj[:], n_system_qj[:], label='n_sys_qj_ed')
 #ax.plot(time_v_qj[:40], n_system_qj[:40]-nf_qj_mps[1,:40], label='n_system_qj-n_1_qj_mps')
-plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
+#plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
 
 
 
@@ -111,7 +111,7 @@ plt.plot(time_v_lind, n_system_lind, label='n_system_lind ed')
 
 #plt.plot(time_v_qj,nf_qj_mps[4,:], label='n_bos_mps')
 #plt.plot(time_v_qj, n_bos_qj -nf_qj_mps[4,:], label='n_bos_mps')
-#plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
+plt.plot(time_v_lind, n_bos_lind, label='n_bos_lind ed')
 #plt.plot(time_v_lind, n_bos_lind -n_bos_qj[1:] , label='n_bos_lind-n_bos_qj')
 
 #plt.plot(time_v_qj,nf_qj_mps[4,:] +nf_qj_mps[5,:], label='n_bos_mps_qj phys + aux')

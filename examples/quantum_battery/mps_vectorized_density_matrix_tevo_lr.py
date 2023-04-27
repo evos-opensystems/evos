@@ -9,6 +9,7 @@ import sys
 import os
 from scipy import linalg as sla
 import argparse
+import psutil
 
 arg_parser = argparse.ArgumentParser(description = "Trying to reproduce 'https://arxiv.org/pdf/2201.07819.pdf' for a single driven left lead, and a single driven right one with ed lindblad. The dimension of the oscillator needs to be strongly truncated.")
 arg_parser.add_argument("-b",   "--bosons", dest = 'max_bosons',  default = 4, type = int, help = 'number of bosonic degrees of freedom - 1 [4]')
@@ -29,9 +30,9 @@ max_bosons = args.max_bosons
 
 om_0 = 0.2
 m = 1
-lamb = 0.1
+lamb = 0.1 #FIXME: 0.1
 x0 = np.sqrt( 2./ (m * om_0) )
-F = 2 *lamb / x0
+F = 2 * lamb / x0
 
 eps = 0  
 Om_kl = +0.5
@@ -39,7 +40,7 @@ Om_kr = -0.5
 Gamma = 2
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0.5 #0.5FIXME: is this correct?
+N0 = 0.5 #0.5 FIXME: is this correct?
 delta_l = 1
 delta_r = 1
 
@@ -131,9 +132,9 @@ for site in [0,1,2,3,8,9]:
     vac_state *= lat.get('c',site)
     vac_state.normalise()
     
-for site in range(10):
+#for site in range(10):
     #print('<n> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('n',site) ) ) )
-    print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('nb',site) ) ) )
+    #print('<n_b> on site {} is {}'.format(site, ptn.mp.expectation(vac_state, lat.get('nb',site) ) ) )
     
 
 #Hamiltonian
@@ -213,7 +214,7 @@ def mpo_max_ent_pair_ferm(site):
         op *= 1./mode
         op_tot += op
         op.truncate()
-        op_tot.truncate()
+        #op_tot.truncate()
         
     return op_tot  
 
@@ -228,7 +229,7 @@ def mpo_max_ent_pair_bos(site, max_bosons):
         op *= 1./mode
         op_tot += op
         op.truncate()
-        op_tot.truncate()
+        #op_tot.truncate()
         
     return op_tot   
 
@@ -259,6 +260,11 @@ conf_tdvp.exp_conf.maxIter =  10
 conf_tdvp.cache = 1
 conf_tdvp.maxt = 1j*t_max
 
+#Subspace parameters
+# conf_tdvp.expandMaxBlocksize = 100
+# conf_tdvp.expansion_trunc = ptn.Truncation(1e-6, maxStates=50)
+
+#GSE parameters
 conf_tdvp.gse_conf.mode = ptn.tdvp.GSEMode.BeforeTDVP
 conf_tdvp.gse_conf.krylov_order = 3 #FIXME 3,5 INCRESE
 conf_tdvp.gse_conf.trunc_op = ptn.Truncation(1e-8 , maxStates=500) #maxStates shuld be the same as the one used for tdvp! 1e-8 - 1e-6
@@ -276,6 +282,7 @@ n_b_exp = np.zeros( ( 10, n_timesteps) )
 phys_dim_phon = np.zeros( (n_timesteps) )
 bond_dim =  np.zeros( ( 10, n_timesteps) )
 phonon_rdm = np.zeros( (max_bosons +1, max_bosons +1, n_timesteps), dtype='complex' )
+g_2 = np.zeros( (n_timesteps) )
 #FIXME: ONLY FOR DEBUGGING: excite particle on sites 0,1
 # vac_state *= lat.get('ch',0)    
 # vac_state *= lat.get('ch',1)  
@@ -298,23 +305,31 @@ for time in range(n_timesteps):
         n_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('n',site), psi_t) / trace_norm_psi_t   ) #
         n_b_exp[site, time] = np.real( ptn.mp.expectation(purified_id, lat.get('nb',site), psi_t) / trace_norm_psi_t   ) #
         bond_dim[site, time] = psi_t[site].getTotalDims()[2]
-            
+        g_2_numerator = np.real( ptn.mp.expectation(purified_id, lat.get('a',5)*lat.get('ah',4) * lat.get('a',5)*lat.get('ah',4)  *  lat.get('ah',5)*lat.get('a',4) * lat.get('ah',5)*lat.get('a',4), psi_t ) / trace_norm_psi_t  )
+        g_2_denominator = np.real( ptn.mp.expectation(purified_id, lat.get('a',5)*lat.get('ah',4) * lat.get('ah',5)*lat.get('a',4), psi_t  ) / trace_norm_psi_t  )
+        g_2[time] =  g_2_numerator / g_2_denominator ** 2
     phys_dim_phon[time] = psi_t[4].getTotalDims()[0]        
     phonon_rdm_t = np.array(ptn.mp.rdm.o1rdm(psi_t,4) )
     phonon_rdm_t /= np.trace(phonon_rdm_t)
     phonon_rdm[ :phonon_rdm_t.shape[0], :phonon_rdm_t.shape[1], time ] = phonon_rdm_t 
     
+    process = psutil.Process(os.getpid())
+    memory_usage = process.memory_info().rss # in bytes
+
     #save observables
     np.save('n_exp', n_exp )
     np.save('n_b_exp', n_b_exp )
     np.save('phonon_rdm',phonon_rdm)
     np.save('bond_dim',bond_dim)
     np.save('phys_dim_phon',phys_dim_phon)
+    np.save('g_2',g_2)
+    np.save('memory_usage', memory_usage) 
 
     #Normalize state to reinitialize tdvp worker
     psi_t.normalise()
     
-    
+print('phys_dim_phon',phys_dim_phon)    
+
 #PLOT
 # time_v = np.linspace(0,t_max,n_timesteps)
 
