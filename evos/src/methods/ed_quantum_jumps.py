@@ -79,6 +79,7 @@ class EdQuantumJumps():
         for i in range( 1,len( intervals ) ):
             if r2 >= intervals[i-1] and r2 <= intervals[i]:
                 #print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
+                print('applying jump operator number {}'.format(i-1))
                 psi = states_after_jump_operator_application_list[i-1]
                 which_jump_op = i-1
                 break
@@ -133,7 +134,7 @@ class EdQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
-                #print('jump occured at timestep {}'.format(i)) #debugging
+                print('jump occured at time {}'.format(i*dt)) #debugging
                 jump_time_list.append(i) #debugging
                 psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
                 which_jump_op_list.append( which_jump_op ) #debugging

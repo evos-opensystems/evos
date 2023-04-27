@@ -19,17 +19,17 @@ class FermionBosonLattice():
         ch = np.array( [ [0,0], [1,0] ], dtype='complex' )
         c = np.array( [ [0,1], [0,0] ], dtype='complex' )
         
-        ah = np.zeros( (max_bosons + 1,max_bosons + 1) )
+        ah = np.zeros( (max_bosons + 1,max_bosons + 1), dtype='complex'  )
         for i in range( 1, max_bosons + 1 ):
             ah[i, i - 1] = np.sqrt(i)
             
-        a = np.zeros( ( max_bosons + 1, max_bosons + 1) )
+        a = np.zeros( ( max_bosons + 1, max_bosons + 1), dtype='complex'  )
         for i in range(max_bosons):
             a[i, i + 1 ] = np.sqrt(i+1)
          
         self.parity = np.array( [ [1,0], [0,-1] ], dtype='complex' )
-        self.Id_f = np.eye(2)
-        self.Id_b = np.eye(max_bosons+1)        
+        self.Id_f = np.eye(2, dtype='complex' )
+        self.Id_b = np.eye(max_bosons+1, dtype='complex' )        
         self.n_sites = n_sites 
         operators = {}
         self.operators = operators
@@ -66,32 +66,44 @@ class FermionBosonLattice():
         ValueError
             check spin input
         """
-        
+        # print()
+        # print('==========================================================================================')
+        # print()
+        # print('constructing operator {} on physical site {}'.format(operator_name, site))
+        # print()
         if ( spin == '0' and operator_name == 'c' ) or ( spin == '0' and operator_name == 'ch') :
             raise ValueError("Specify spin 'up' or 'down' for fermionic operator ")
-        elif ( spin == 'up' and operator_name == 'a' ) or ( spin == 'up' and operator_name == 'ah')  or  ( spin == 'down' and operator_name == 'a' ) or ( spin == 'up' and operator_name == 'down'):
+        elif (operator_name == 'c' or operator_name == 'ch') and (site+1) % 3 == 0 :
+            raise ValueError("Attempting to put a fermionic operator on a bosonic site")
+        elif (operator_name == 'a' or operator_name == 'ah') and (site+1) % 3 != 0 :
+            raise ValueError("Attempting to put a bosonic operator on a fermionic site")
+        elif ( spin == 'up' and operator_name == 'a' ) or ( spin == 'up' and operator_name == 'ah')  or  ( spin == 'down' and operator_name == 'a' ) or ( spin == 'down' and operator_name == 'ah'):
             raise ValueError("For bosonic operator spin must be '0' (default) ")
          
-        
         #get index of operator 
         if spin == 'up':
             operator_site = 2 * site - int( site/3 )
         elif spin == 'down':
             operator_site = 2 * site - int( site/3 ) + 1
         elif spin == '0': #default
-            operator_site = (site + 1) * 5 - 1
+            operator_site = site + 2 * int( (site +1)/3 )
         elif spin != '0' and spin != 'up' and spin != 'down':
             raise ValueError(" 'spin' must be either 'up' or 'down'. The default is '0' (i.e. boson) ")   
 
         operator = self.operators[operator_name]
+        
         #initialize single_site_operator
         if site == 0 and spin == 'up':
+            #print('site {} is the operator site'.format(site))
             single_site_operator = operator.copy()
         else:
+            #print('site {} is left fermionic'.format(site))
             single_site_operator = self.Id_f
         
+        #loop over all sites
         for site in range(1, 5 * self.n_sites ):
             if site == operator_site: #operator site
+                #print('site {} is the operator site'.format(site))
                 single_site_operator = np.kron(single_site_operator,operator)
                 
             
@@ -106,7 +118,9 @@ class FermionBosonLattice():
             elif site != operator_site and (site + 1) % 5 == 0: #bosonic site
                 #print('site {} is bosonic'.format(site))
                 single_site_operator = np.kron(single_site_operator,self.Id_b)
-                
+        # print()
+        # print('==========================================================================================')
+        # print()       
         return single_site_operator
 
                   
