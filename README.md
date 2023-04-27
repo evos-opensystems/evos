@@ -8,7 +8,7 @@ To install EVOS, run **make install** in the evos directory.
 
 ## Getting started
 
-To understand how to use evos, we recommend to have a look at some examples that you can find in **evos/evos/examples**. 
+To understand how to use evos, have a look at some examples that you can find in **evos/examples/get_started_examples**. 
 
 ## Structure
 
@@ -37,3 +37,5 @@ You can access the documentation by running **make doc** in **evos**.
 1. mps_quantum_jumps_time_dep.py has to be tested.
 
 ## To Fix
+
+1. remove observables.py and switch to observables_pickled.py in all examples and scripts
