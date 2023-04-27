@@ -303,6 +303,7 @@ for time in range(n_timesteps):
     phonon_rdm_t = np.array(ptn.mp.rdm.o1rdm(psi_t,4) )
     phonon_rdm_t /= np.trace(phonon_rdm_t)
     phonon_rdm[ :phonon_rdm_t.shape[0], :phonon_rdm_t.shape[1], time ] = phonon_rdm_t 
+    
     #save observables
     np.save('n_exp', n_exp )
     np.save('n_b_exp', n_b_exp )
