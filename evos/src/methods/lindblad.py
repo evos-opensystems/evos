@@ -7,31 +7,16 @@ class Lindblad():
     """
    
     
-    def __init__(self, lindbl_op_list: list, H: np.ndarray, n_sites: int):
-        """initialize the Lindblad() object by computing the complex conjugate of the Lindblad operators and setting some import
+    def __init__(self, n_sites: int):
+        """initialize the Lindblad() object
 
         Parameters
         ----------
-        lindbl_op_list : list
-            list containing the lindblad operators
-        H : np.ndarray
-            Hamiltonian matrix
         n_sites : int
             number of sites of the one-dimensional lattice
         """
-        
-        lindbl_op_list_conj = []
-        for op in lindbl_op_list:
-            lindbl_op_list_conj.append( op.conj().T )
-        self.lindbl_op_list = lindbl_op_list
-        self.lindbl_op_list_conj = lindbl_op_list_conj
-        
-        self.H = H
-        self.n_sites = n_sites
-        self.dim_H = H.shape[0]   
-    
-    #def lindblad_time_evolution(self, rho_0, t_max, dt):
-        """"""
+        self.n_sites = n_sites   
+
     def ket_to_projector(self, ket: np.ndarray) -> np.ndarray :
         return np.outer(np.conjugate(ket), ket)   
     
@@ -110,7 +95,7 @@ class Lindblad():
         rhs_v = self.vectorize_density_matrix(rhs)
         return rhs_v
         
-    def solve_lindblad_equation(self, rho_0: np.ndarray, dt: float, t_max: float) -> np.ndarray:
+    def solve_lindblad_equation(self, rho_0: np.ndarray, dt: float, t_max: float, lindbl_op_list: list, H: np.ndarray, t0 = 0) -> np.ndarray:
         """Solves the Lindblad equation for a given system, initial state and time interval.
         The Hamiltonian and the list of lindblad operators are taken from the instance and thus passed as input arguments.
 
@@ -122,19 +107,32 @@ class Lindblad():
             timestep
         t_max : float
             maximal evolution time
-
+        lindbl_op_list : list
+            list containing the lindblad operators
+        H : np.ndarray
+            Hamiltonian matrix
         Returns
         -------
         np.ndarray
             rank 3 tensor with rho_res[:,:,time] being the density matrix at the timestep 'time'
         """
         from scipy.integrate import solve_ivp
+                
+        lindbl_op_list_conj = []
+        for op in lindbl_op_list:
+            lindbl_op_list_conj.append( op.conj().T )
+        self.lindbl_op_list = lindbl_op_list
+        self.lindbl_op_list_conj = lindbl_op_list_conj
         
+        self.H = H
+        self.dim_H = H.shape[0]
+       
+       
         rho_0_v =  self.vectorize_density_matrix(rho_0)
-        n_timesteps = int(t_max/dt)
+        n_timesteps = int(t_max/dt) 
         self.n_timesteps = n_timesteps
-        time_v = np.linspace(0, t_max, n_timesteps )
-        res = solve_ivp(self.right_hand_side_lindblad_eq, (0,t_max), rho_0_v,t_eval=time_v)
+        time_v = np.linspace(t0, t_max, n_timesteps ) #+dt??
+        res = solve_ivp(self.right_hand_side_lindblad_eq, (t0,t_max), rho_0_v,t_eval=time_v )
         
         #rearrange the components of the matrix res (=vector with rho_res components at every timestep) into a rank3 tensor (density matrix at every timestep)
         rho_res = np.zeros( ( self.dim_H, self.dim_H, n_timesteps),dtype='complex')
@@ -172,6 +170,7 @@ class Lindblad():
             Dictionary whose keys are the the same as the keys of the input 'names_and_operators_dict' and whose values are numpy vectors 
             storing the expectation values for the relative operator at each timestep.
         """
+        self.n_timesteps = int(t_max/dt)
         obs_vector = np.zeros(self.n_timesteps)
         #initialize numpy vectors to save observables
         observables_dict = {}
