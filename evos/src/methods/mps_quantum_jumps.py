@@ -43,6 +43,16 @@ class MPSQuantumJumps():
         self.H_s = H_s
         self.H_as = H_as
         
+    def add_effective_hamiltonian_manually(self, H_eff_manually: ptn.mp.MPO):
+        """Overwrites the effective Hamiltonian H_eff that was computed by the __init__ method with the supplied effective hamiltonian
+
+        Parameters
+        ----------
+        H_eff_manually : ptn.mp.MPO
+            effective hamiltonian for the QJ evolution
+        """
+        
+        self.H_eff = H_eff
         
     def select_jump_operator(self, psi: ptn.mp.MPS, r2: float) -> tuple:
         """Selects which lindblad operator to apply for a jump out of the 'lindbl_op_list', given the state 'psi' and the pseudo-random number 'r2'
