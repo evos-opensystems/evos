@@ -18,4 +18,4 @@
 
 #SBATCH --constraint=avx2  #needed for using more than 1 cpu per task!
 
-python3 ed_lindblad.py  -b 40 -dt 100 -t_max 15000 -mu_l 10 -mu_r -10
+python3 ed_lindblad.py  -b 40 -dt 1000 -t_max 10000 -mu_l 1 -mu_r -1

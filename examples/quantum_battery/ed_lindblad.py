@@ -1,3 +1,6 @@
+"""Add descr.
+"""
+
 import evos.src.lattice.dot_with_oscillator_lattice as lattice 
 import evos.src.methods.lindblad as lindblad
 import evos.src.methods.partial_traces.partial_trace_tls_boson as pt 
@@ -29,9 +32,9 @@ sys.stdout.write('test')
 #PARAMETERS
 max_bosons = args.max_bosons
 
-om_0 = 0.2
+om_0 = 0.2 #0.2
 m = 1
-lamb = 0.1
+lamb = 0.1 #0.1
 x0 = np.sqrt( 2./ (m * om_0) )
 F = 2 *lamb / x0
 
@@ -41,7 +44,7 @@ Om_kr = -0.5
 Gamma = 2
 g_kl = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
 g_kr = np.sqrt( Gamma / (2.*np.pi) ) #FIXME: is this correct?
-N0 = 0. #FIXME: is this correct?
+N0 = 0.5 #0.5,  FIXME: is this correct?
 delta_l = 1
 delta_r = 1
 
@@ -180,15 +183,14 @@ l_list_right = lindblad_op_list_right_lead( Om_kr, delta_r, mu_r, T_r )
 l_list = l_list_left + l_list_right
 
 #Initial State: using vacuum for now
-#NOTE: vacuum for leads (compare with ed qj) or thermal state on leads (compare with doubled qj?
 init_state = lat.vacuum_state
-#init_state = lat.sso('ch',0) @ init_state #FIXME: remove this!!!!!!! 
-
+#NOTE: creating a particle on site 0. used for debugging!
+#init_state = lat.sso('ch',0) @ init_state #FIXME:remove this!
 
 #Solve Lindblad Equation
 lindblad = lindblad.Lindblad(4)
 rho_0 = lindblad.ket_to_projector(init_state)        
-rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, l_list, h_tot) #l_list
+rho_t = lindblad.solve_lindblad_equation(rho_0, dt, t_max, l_list, h_tot) #l_list, [], lat.sso('ch',0), [lat.sso('c',0), lat.sso('ch',0), lat.sso('c',3), lat.sso('ch',3) ]
 
 #Compute observables
 observables = {'n_system': lat.sso('ch',1) @ lat.sso('c',1), 'U_from_full_state': om_0 * lat.sso('ah',2) @ lat.sso('a',2), 'n_bos':lat.sso('ah',2) @ lat.sso('a',2), 'n_0': lat.sso('ch',0) @ lat.sso('c',0), 'n_3': lat.sso('ch',3) @ lat.sso('c',3)  }
@@ -265,10 +267,19 @@ np.savetxt('n_0', computed_observables['n_0'] )
 np.savetxt('n_3', computed_observables['n_3'] )
 
 np.savetxt('S',S)
+np.savetxt('f_neq', f_neq)
+np.savetxt('f_eq_vector', f_eq_vector)
+np.savetxt('sec_ord_coherence_funct',sec_ord_coherence_funct_vec)
+np.save('rho_bosonic',rho_bosonic)
 
 #PLOT
 fig = plt.figure()
-#plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
+# plt.plot(time_v, computed_observables['n_0'], label = 'n_0' )
+# plt.plot(time_v, computed_observables['n_system'], label = 'n_system' )
+# plt.plot(time_v, computed_observables['n_bos'], label = 'n_bos' )
+# plt.plot(time_v, computed_observables['n_3'], label = 'n_3' )
+
+
 #plt.plot(time_v, computed_observables['U_from_full_state'], label = 'U_from_full_state' )
 # plt.plot(time_v, rho_bosonic[0,0,:], label = 'occ mode 0 boson' )
 # plt.plot(time_v, rho_bosonic[1,1,:], label = 'occ mode 1 boson' )
@@ -287,5 +298,5 @@ fig = plt.figure()
 plt.plot(time_v, sec_ord_coherence_funct_vec, label='g2')
 
 plt.legend()
-fig.savefig('lindblad.png')
+fig.savefig('ed_lindblad.png')
 #plt.show()
