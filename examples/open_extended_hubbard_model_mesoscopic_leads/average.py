@@ -39,5 +39,5 @@ obsdict.initialize_observable('n',(n_tot,), n_timesteps) #2D
 
 
 
-obsdict.compute_trajectories_averages_and_errors( list(range(1000)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
+obsdict.compute_trajectories_averages_and_errors( list(range(2000)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 
