@@ -113,7 +113,7 @@ class MesoscopicLeads():
         else: 
             for k in range(1, self.n_lead_left+1): 
                 #print('Ekin_lead left terms on sites:', k)
-                kin_leads += (self.eps_vec_l[k-1] ) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
+                kin_leads += (self.eps_vec_l[k-1]  ) *( np.dot(spin_lat.sso('adag',k, 'up'), spin_lat.sso('a',k, 'up')) + np.dot(spin_lat.sso('adag',k, 'down'), spin_lat.sso('a',k, 'down')))
          
    
         # HOPPING BETWEEN LEADS AND SYSTEM LEFT SIDE
