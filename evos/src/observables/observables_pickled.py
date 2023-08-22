@@ -32,18 +32,13 @@ class ObservablesDict():
 
     def save_observables(self ):
         """Saves all the observables contained in the dictionary 'observables_array_dict'.
-        NOTE: in numpy arrays of rank > 2 need to be self.pickled.
+        NOTE: in numpy arrays of rank > 2 need to be self.pickledd.
         """
         for key, value in self.observables_array_dict.items():
             #print(key, value)
-            if len(value.shape) < 3:
-                # print('GOT A RANK < 3 ARRAY')
-                with open(key, 'wb') as f:
-                    np.savetxt(f, value)
-            if len(value.shape) >= 3:
-                # print('GOT A RANK 3 ARRAY')
-                with open(key, 'wb') as f:
-                    np.save(f, value)    
+            #with open(key, 'wb') as f:
+                #np.save(f, value)    
+            np.save(key, value)    
 
     def add_observable_computing_function(self,obs_name: str, observable_computing_function):
         """Assigns a function with which to compute the observable 'obs_name' at each timestep to the dictionary 'observables_comp_functions_dict'
@@ -157,7 +152,7 @@ class ObservablesDict():
             print('in trajectory {}'.format(trajectory) )
             os.chdir( str( trajectory ) )
             for key in self.observables_array_dict: #loop over observables
-                averaged_observables_array_dict[key + '_av'] += np.loadtxt( key ) 
+                averaged_observables_array_dict[key + '_av'] += np.load( key + '.npy' )
             os.chdir('..')        
             
         #normalize
@@ -168,7 +163,7 @@ class ObservablesDict():
         for trajectory in traj_list: #loop over trajectories
             os.chdir( str( trajectory ) )  
             for key in self.observables_array_dict: #loop over observables
-                obs = np.loadtxt(key) 
+                obs = np.load(key + '.npy')
                 obs_av = averaged_observables_array_dict[key + '_av']
                 stat_errors_observables_array_dict['err_' + key] =  (obs - obs_av ) ** 2  
             os.chdir('..') 
@@ -179,14 +174,16 @@ class ObservablesDict():
         
         #save observables
         for key in averaged_observables_array_dict:
-            with open(key, 'wb') as f:
-                np.savetxt(f, averaged_observables_array_dict[key])  
-                print('saved data in {}'.format(os.getcwd()))
+            #with open(key, 'wb') as f:
+                #np.save(f, averaged_observables_array_dict[key])    
+            np.save(key, averaged_observables_array_dict[key])    
+            print('saved data in {}'.format(os.getcwd()))
         
         #save errors
         for key in stat_errors_observables_array_dict:
-            with open(key, 'wb') as f:
-                np.savetxt(f, stat_errors_observables_array_dict[key]) 
+            # with open(key, 'wb') as f:
+            #     np.save(f, stat_errors_observables_array_dict[key])
+            np.save(key, stat_errors_observables_array_dict[key])
                     
         #remove single-trajectories folders
         #FIXME: this removes only the trajectories that passed the preprocessing phase!
