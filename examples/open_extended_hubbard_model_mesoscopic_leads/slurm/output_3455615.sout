@@ -1,0 +1,329 @@
+Loading intel-oneapi-mkl/2021.4.0
+  Loading requirement: intel-oneapi-tbb/2021.4.0
+first trajectory 1600
+first trajectory =  1600
+time_lat:0.0026641000000000026
+hopping terms on sites: 2 3
+coulomb terms on sites: 2
+coulomb terms on sites: 3
+coulomb neighbour terms on sites: 2 3
+Ekin_lead left terms on sites: 1
+left sys lead hopping on sites: 1 2
+Ekin_lead right terms on sites: 4
+right sys lead hopping on sites: 3 4
+[[0.+0.j 0.+0.j 0.+0.j ... 0.+0.j 0.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j 0.+0.j ... 0.+0.j 0.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j 0.+0.j ... 0.+0.j 0.+0.j 0.+0.j]
+ ...
+ [0.+0.j 0.+0.j 0.+0.j ... 2.+0.j 0.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j 0.+0.j ... 0.+0.j 2.+0.j 0.+0.j]
+ [0.+0.j 0.+0.j 0.+0.j ... 0.+0.j 0.+0.j 2.+0.j]]
+time_H:0.06718060999999997
+[[0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [1.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]
+ [0.]]
+k_left =  1
+k_right =  4
+computing trajectory 1600
+computing trajectory 1601
+computing trajectory 1602
+computing trajectory 1603
+computing trajectory 1604
+computing trajectory 1605
+computing trajectory 1606
+computing trajectory 1607
+computing trajectory 1608
+computing trajectory 1609
+computing trajectory 1610
+computing trajectory 1611
+computing trajectory 1612
+computing trajectory 1613
+computing trajectory 1614
+computing trajectory 1615
+computing trajectory 1616
+computing trajectory 1617
+computing trajectory 1618
+computing trajectory 1619
+computing trajectory 1620
+computing trajectory 1621
+computing trajectory 1622
+computing trajectory 1623
+computing trajectory 1624
+computing trajectory 1625
+computing trajectory 1626
+computing trajectory 1627
+computing trajectory 1628
+computing trajectory 1629
+computing trajectory 1630
+computing trajectory 1631
+computing trajectory 1632
+computing trajectory 1633
+computing trajectory 1634
+computing trajectory 1635
+computing trajectory 1636
+computing trajectory 1637
+computing trajectory 1638
+computing trajectory 1639
+computing trajectory 1640
+computing trajectory 1641
+computing trajectory 1642
+computing trajectory 1643
+computing trajectory 1644
+computing trajectory 1645
+computing trajectory 1646
+computing trajectory 1647
+computing trajectory 1648
+computing trajectory 1649
