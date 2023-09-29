@@ -146,15 +146,15 @@ class MPSQuantumJumps():
             r1 = r1_array[i] 
             #real-time step
             conf_tdvp.dt = dt
-            conf_tdvp.tend = dt
-            worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
+            conf_tdvp.maxt = dt
+            worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_s.copy()], self.conf_tdvp.copy() ) 
             worker_do_stepList = worker.do_step()
             psi_1_s = worker.get_psi(False)
             
             #imaginary-time step
             conf_tdvp.dt = 1j*dt
-            conf_tdvp.tend = 1j*dt
-            worker = ptn.mp.tdvp.PTDVP( psi_1_s.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
+            conf_tdvp.maxt = 1j*dt
+            worker = ptn.mp.tdvp.PTDVP( psi_1_s.copy(),[self.H_as.copy()], self.conf_tdvp.copy() ) 
             worker_do_stepList = worker.do_step()
             psi_1 = worker.get_psi(False)
             

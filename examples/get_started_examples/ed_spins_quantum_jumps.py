@@ -23,7 +23,7 @@ eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01
 t_max = 10
 n_timesteps = int(t_max/dt)
-n_trajectories = 2
+n_trajectories = 1
 trajectory = 0 
 
 try:
