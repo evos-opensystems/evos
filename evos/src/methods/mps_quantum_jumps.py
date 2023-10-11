@@ -95,6 +95,8 @@ class MPSQuantumJumps():
                 #print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
                 psi = states_after_jump_operator_application_list[i-1]
                 which_jump_op = i-1
+                print('r2 = ', r2)
+                print("applied jump op ", i-1)
                 break
         print('After jump, norm(psi) = {}'.format( psi.norm() ) )    
         print('finished "select_jump_operator" method')    
@@ -168,6 +170,7 @@ class MPSQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
+                print("applying jump at time ", i)
                 psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
                 which_jump_op_list.append( which_jump_op ) #debugging
                 jump_time_list.append(i * dt )
