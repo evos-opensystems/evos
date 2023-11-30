@@ -36,7 +36,7 @@ class DotWithOscillatorLattice():
         operators.update({'a':a})
         
         #vacuum state
-        vacuum_state = np.zeros( ( 8 * (max_bosons + 1) ), dtype='complex')
+        vacuum_state = np.zeros( ( 4 * (max_bosons + 1) ), dtype='complex')
         vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
            
