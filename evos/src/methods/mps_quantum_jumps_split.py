@@ -68,11 +68,11 @@ class MPSQuantumJumps():
         states_after_jump_operator_application_list = []
         #rescale threshold, weight and maxStates by norm
         norm = psi.norm() 
-        #threshold *= norm 
-        #weight *= norm ** 2
-        #maxStates = int(maxStates * norm ** 2 )
+        threshold *= norm 
+        weight *= norm ** 2
+        maxStates = int(maxStates * norm ** 2 )
         for jump_op in self.lindbl_op_list:
-            states_after_jump_operator_application = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ).scaled(norm), threshold, 12, 4)[0] #ptn.Truncation()
+            states_after_jump_operator_application = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ), threshold, 12, 4)[0] #ptn.Truncation()
             states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
         norms_after_jump_operator_application_vector_squared = np.zeros( len( states_after_jump_operator_application_list ) )
@@ -88,22 +88,19 @@ class MPSQuantumJumps():
         intervals[1] = norms_after_jump_operator_application_vector_squared[0]
         for i in range( 2, len(intervals ) ):
             intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector_squared[i-1]
-        
-        print('interval ', intervals)    
     
         #choose and apply jump operator 
         for i in range( 1,len( intervals ) ):
             if r2 >= intervals[i-1] and r2 <= intervals[i]:
-                print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
+                #print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
                 psi = states_after_jump_operator_application_list[i-1]
                 which_jump_op = i-1
-                norm_after_jump = psi.norm()
                 break
         print('After jump, norm(psi) = {}'.format( psi.norm() ) )    
         print('finished "select_jump_operator" method')    
         psi.normalise()
         print('The state after the jump has then be normalised')    
-        return psi, which_jump_op, norm_after_jump     
+        return psi, which_jump_op      
 
     
     def quantum_jump_single_trajectory_time_evolution(self, psi_t: ptn.mp.MPS, conf_tdvp, t_max: float, dt: float, trajectory: int, obsdict: dict):
@@ -126,12 +123,6 @@ class MPSQuantumJumps():
         """
         
         self.conf_tdvp = conf_tdvp
-        #non-hermitian tdvp #FIXME: specify this before
-        self.conf_tdvp.exp_conf.mode = 'N'  #FIXME: specify this before
-        self.conf_tdvp.exp_conf.submode = 'a' #FIXME: specify this before
-        self.conf_tdvp.exp_conf.minIter = 15 #FIXME: specify this before
-        worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() )
-        
         os.mkdir( str( trajectory ) ) #create directory in which to run trajectory
         os.chdir( str( trajectory ) ) #change to it
         n_timesteps = int(t_max/dt) #NOTE: read from instance or compute elsewhere
@@ -139,7 +130,6 @@ class MPSQuantumJumps():
         jump_time_list = [] #debugging
         which_jump_op_list = [] #debugging
         r2_atjump_list = [] #debugging
-        norm = []
         
         np.random.seed( trajectory + 1 ) #set seed for r1 this trajectory
         r1_array = np.random.uniform( 0, 1, n_timesteps ) #generate random numbers array r1
@@ -154,13 +144,17 @@ class MPSQuantumJumps():
         switched_to_1tdvp = False
         for i in range( n_timesteps ):
             r1 = r1_array[i] 
-            #reinitialize worker with normalized state
-            worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_eff.copy()], self.conf_tdvp.copy() ) 
+            #real-time step
+            conf_tdvp.dt = dt
+            conf_tdvp.maxt = dt
+            worker = ptn.mp.tdvp.PTDVP( psi_t.copy(),[self.H_s.copy()], self.conf_tdvp.copy() ) 
+            worker_do_stepList = worker.do_step()
+            psi_1_s = worker.get_psi(False)
             
-            process = psutil.Process(os.getpid())
-            memory_usage.append( process.memory_info().rss ) # in bytes
-            np.savetxt('memory_usage', memory_usage)
-            
+            #imaginary-time step
+            conf_tdvp.dt = 1j*dt
+            conf_tdvp.maxt = 1j*dt
+            worker = ptn.mp.tdvp.PTDVP( psi_1_s.copy(),[self.H_as.copy()], self.conf_tdvp.copy() ) 
             worker_do_stepList = worker.do_step()
             psi_1 = worker.get_psi(False)
             
@@ -172,13 +166,10 @@ class MPSQuantumJumps():
                 psi_t = psi_1.copy()
             
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
-                print('jump occured at time', i*conf_tdvp.dt)
-                psi_t, which_jump_op, norm_after_jump  = self.select_jump_operator( psi_t, r2_array[i] )   
+                psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
                 which_jump_op_list.append( which_jump_op ) #debugging
                 jump_time_list.append(i * dt )
                 jump_counter +=1 #debugging
-                norm.append(norm_after_jump) # debugging
-                
             
             #normalize state
             psi_t.normalise()
@@ -187,7 +178,6 @@ class MPSQuantumJumps():
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
         #at the end
         os.chdir('..') #exit the trajectory directory
-        np.savetxt('norm_after_jump', norm) #if trajectories run sequentially, this is being overwritten 
         np.savetxt('which_jump_op_list_last_trajectory',which_jump_op_list) #if trajectories run sequentially, this is being overwritten    
         np.savetxt('jump_time_list',jump_time_list) #if trajectories run sequentially, this is being overwritten    
 
