@@ -1,1 +1,0 @@
-"""Methods class should depend only from Representation (ED OR MPS) class"""
