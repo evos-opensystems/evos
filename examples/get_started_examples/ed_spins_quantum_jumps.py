@@ -21,10 +21,10 @@ seed_W = 7
 rng = np.random.default_rng(seed=seed_W) # random numbers
 eps_vec = rng.uniform(0, W, n_sites) #onsite disordered energy random numbers
 dt = 0.01
-t_max = 10
+t_max = 25
 n_timesteps = int(t_max/dt)
 n_trajectories = 1
-trajectory = 0 
+first_trajectory = 0
 
 try:
     os.system('mkdir data_qj_ed')
@@ -80,11 +80,11 @@ obsdict.add_observable_computing_function('sz_0',compute_sz_0 )
 obsdict.add_observable_computing_function('sz_1',compute_sz_1 )
 
 #Lindbladian: dissipation only on central site
-L = gamma * spin_lat.sso( 'sm', 1 ) #int( n_sites/2 )
+L = gamma * spin_lat.sso( 'sz', 1 ) #int( n_sites/2 )
 ed_quantum_jumps = ed_quantum_jumps.EdQuantumJumps(n_sites, H, [L])
 
 #compute qj trajectories sequentially
-for trajectory in range(n_trajectories): 
+for trajectory in range(first_trajectory, n_trajectories+first_trajectory): 
     print('computing trajectory {}'.format(trajectory))
     test_singlet_traj_evolution = ed_quantum_jumps.quantum_jump_single_trajectory_time_evolution(init_state, t_max, dt, trajectory, obsdict )
 
@@ -92,7 +92,7 @@ for trajectory in range(n_trajectories):
 read_directory = os.getcwd()
 write_directory = os.getcwd()
 
-obsdict.compute_trajectories_averages_and_errors( list(range(n_trajectories)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
+obsdict.compute_trajectories_averages_and_errors( list(range(first_trajectory, n_trajectories+first_trajectory)), os.getcwd(), os.getcwd(), remove_single_trajectories_results=True ) 
 print('process time: ', time.process_time() - time_start )
 
 #PLOT
@@ -108,3 +108,4 @@ plt.plot(time_v,sz_1, label= 'sz_1')
 plt.legend()
 plt.xlabel('time')
 fig.savefig('ed_spins_quantum_jumps.png')
+plt.show()

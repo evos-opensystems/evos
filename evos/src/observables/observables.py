@@ -170,7 +170,7 @@ class ObservablesDict():
             for key in self.observables_array_dict: #loop over observables
                 obs = np.loadtxt(key) 
                 obs_av = averaged_observables_array_dict[key + '_av']
-                stat_errors_observables_array_dict['err_' + key] =  (obs - obs_av ) ** 2  
+                stat_errors_observables_array_dict['err_' + key] +=  (obs - obs_av ) ** 2  
             os.chdir('..') 
             
         #normalize errors
