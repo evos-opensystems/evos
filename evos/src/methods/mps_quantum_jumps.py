@@ -189,5 +189,5 @@ class MPSQuantumJumps():
             #compute observables
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
         # #at the end
-        # os.chdir('..') #exit the trajectory directory
+        os.chdir('..') #exit the trajectory directory
         
