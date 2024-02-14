@@ -72,7 +72,7 @@ class MPSQuantumJumps():
         #weight *= norm ** 2
         #maxStates = int(maxStates * norm ** 2 )
         for jump_op in self.lindbl_op_list:
-            states_after_jump_operator_application = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ).scaled(norm), threshold, 12, 4)[0] #ptn.Truncation()
+            states_after_jump_operator_application = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ).scaled(norm), threshold, 4, 4)[0] #ptn.Truncation()
             states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
         norms_after_jump_operator_application_vector_squared = np.zeros( len( states_after_jump_operator_application_list ) )
