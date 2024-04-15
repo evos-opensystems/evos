@@ -11,7 +11,7 @@ import pyten as ptn
 class MPSQuantumJumps():
     """_summary_
     """
-    def __init__(self, n_sites: int, lat: ptn.mp.lat, H: ptn.mp.MPO, lindbl_op_list: list):
+    def __init__(self, n_sites: int, lat: ptn.mp.lat, H: ptn.mp.MPO, lindbl_op_list: list, max_exp_sweep = 4, max_opt_sweep = 4):
         """Computes the effective Hamiltonian and splits in into a Hermitian and and AntiHermitian part. Adds lindblad operators,
         effective hamiltonian and n_sites to instance variables.
         Similar init to that of the Lindblad class.
@@ -29,11 +29,13 @@ class MPSQuantumJumps():
         self.n_sites = n_sites
         self.lindbl_op_list = lindbl_op_list
         self.lat = lat
+        self.LdL = []
         H_eff = H.copy() #compute effective Hamiltonian H_eff = H - i/2 \sum_m L^\dagger _m * L_m 
         for i in range( len(lindbl_op_list) ):
             H_eff += - 0.5j * lindbl_op_list[i] * ptn.mp.dot( lat.get("I"), lindbl_op_list[i].copy() )  #NOTE: in pyten order of operators is reversed
             H_eff.truncate()
-        
+            self.LdL.append(lindbl_op_list[i] * ptn.mp.dot( lat.get("I"), lindbl_op_list[i].copy() ))
+
         H_eff_dag = ptn.mp.dot(lat.get("I"), H_eff.copy())
         H_s = 0.5 * ( H_eff.copy() + H_eff_dag.copy() ) #herm part
         H_a = 0.5 * ( H_eff.copy() - H_eff_dag.copy() ) #antiherm part
@@ -42,6 +44,10 @@ class MPSQuantumJumps():
         self.H_eff = H_eff
         self.H_s = H_s
         self.H_as = H_as
+
+        #param for applying jump operators
+        self.max_exp_sweep = max_exp_sweep
+        self.max_opt_sweep = max_opt_sweep
         
         
     def select_jump_operator(self, psi: ptn.mp.MPS, r2: float) -> tuple:
@@ -71,23 +77,49 @@ class MPSQuantumJumps():
         #threshold *= norm 
         #weight *= norm ** 2
         #maxStates = int(maxStates * norm ** 2 )
-        for jump_op in self.lindbl_op_list:
-            states_after_jump_operator_application = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ).scaled(norm), threshold, 4, 4)[0] #ptn.Truncation()
-            states_after_jump_operator_application_list.append( states_after_jump_operator_application )
 
-        norms_after_jump_operator_application_vector_squared = np.zeros( len( states_after_jump_operator_application_list ) )
-        for i in range( len( states_after_jump_operator_application_list ) ):
-            norms_after_jump_operator_application_vector_squared[i] = states_after_jump_operator_application_list[i].norm() ** 2
 
-        tot_norm = sum(norms_after_jump_operator_application_vector_squared)
+        # t1 = time.time()
+        # for jump_op in self.lindbl_op_list:
+        #     states_after_jump_operator_application = ptn.mp.apply_op_fit( psi.copy(), jump_op,  ptn.Truncation( threshold, maxStates, maxStates, weight ).scaled(norm), threshold, self.max_exp_sweep, self.max_opt_sweep)[0] #ptn.Truncation()
+        #     states_after_jump_operator_application_list.append( states_after_jump_operator_application )
+        # norms_after_jump_operator_application_vector_squared = np.zeros( len( states_after_jump_operator_application_list ) )
+        # t2  = time.time()
+        # print('time of all jumps application {:.3f}s'.format(t2-t1))
+        # t1 = time.time()
+        # for i in range( len( states_after_jump_operator_application_list ) ):
+        #     norms_after_jump_operator_application_vector_squared[i] = states_after_jump_operator_application_list[i].norm() ** 2
+        # t2 = time.time()
+        # print('time of all jumps application norm {:.3f}s'.format(t2-t1))
+        #Zhaoxuan: can be replaced by expectation instead of norm of MPO-MPS application
+        t1 = time.time()
+        norms_squared_exp = np.zeros( len(self.LdL) )
+        for i in range( len( self.LdL ) ):
+            norms_squared_exp[i] = ptn.mp.expectation(psi.copy(), self.LdL[i]).real
+        t2 = time.time()
+        print('time of all jumps expectation {:.3f}s'.format(t2-t1))
+        # print("==norms square of application==")
+        # print(norms_after_jump_operator_application_vector_squared)
+        print("==norms from expectation==")
+        print(norms_squared_exp)
+
+
+
+
+        # tot_norm = sum(norms_after_jump_operator_application_vector_squared)
+        tot_norm = sum(norms_squared_exp)
         #Normalize the probabilities
-        norms_after_jump_operator_application_vector_squared /= tot_norm
+        # norms_after_jump_operator_application_vector_squared /= tot_norm
+        norms_squared_exp /= tot_norm
 
         #make array with intervals proportional to probability of one jump occurring
-        intervals = np.zeros(len(states_after_jump_operator_application_list)+1)
-        intervals[1] = norms_after_jump_operator_application_vector_squared[0]
+        # intervals = np.zeros(len(states_after_jump_operator_application_list)+1)
+        intervals = np.zeros(len(self.LdL)+1)
+        # intervals[1] = norms_after_jump_operator_application_vector_squared[0]
+        intervals[1] = norms_squared_exp[0]
         for i in range( 2, len(intervals ) ):
-            intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector_squared[i-1]
+            # intervals[i] = intervals[i-1] + norms_after_jump_operator_application_vector_squared[i-1]
+            intervals[i] = intervals[i-1] + norms_squared_exp[i-1]
         
         print('interval ', intervals)    
     
@@ -95,9 +127,22 @@ class MPSQuantumJumps():
         for i in range( 1,len( intervals ) ):
             if r2 >= intervals[i-1] and r2 <= intervals[i]:
                 print(r2,"belongs to interval ",i, "that goes from ",intervals[i-1],"to",intervals[i])
-                psi = states_after_jump_operator_application_list[i-1]
+                #test
+                print("calculating jump operator application")
+                t1 = time.time()
+                # psi_test = ptn.mp.apply_op_fit( psi.copy(), self.lindbl_op_list[i-1],  ptn.Truncation( threshold, maxStates, maxStates, weight ).scaled(norm), threshold, self.max_exp_sweep, self.max_opt_sweep)[0]
+                psi = ptn.mp.apply_op_fit( psi.copy(), self.lindbl_op_list[i-1],  ptn.Truncation( threshold, maxStates, maxStates, weight ).scaled(norm), threshold, self.max_exp_sweep, self.max_opt_sweep)[0]
+                t2 = time.time()
+                print('time of one jump application {:.3f}s'.format(t2-t1))
+                #origin
+                # psi = states_after_jump_operator_application_list[i-1]
                 which_jump_op = i-1
+                print('which jump = ', which_jump_op)
                 norm_after_jump = psi.norm()
+                print('norm_after_jump = ', norm_after_jump)
+
+                # print('ovlp <app | exp> = {}'.format(ptn.mp.overlap(psi, psi_test)))
+                # print('norm |app|^2 = {}'.format(psi.norm()**2))
                 break
         print('After jump, norm(psi) = {}'.format( psi.norm() ) )    
         print('finished "select_jump_operator" method')    
@@ -140,6 +185,8 @@ class MPSQuantumJumps():
         which_jump_op_list = [] #debugging
         r2_atjump_list = [] #debugging
         norm = []
+        norm_evolution = []
+        jump_prob = []
         
         np.random.seed( trajectory + 1 ) #set seed for r1 this trajectory
         r1_array = np.random.uniform( 0, 1, n_timesteps ) #generate random numbers array r1
@@ -161,13 +208,18 @@ class MPSQuantumJumps():
             memory_usage.append( process.memory_info().rss ) # in bytes
             np.savetxt('memory_usage', memory_usage)
             
+            t1 = time.time()
+            psi_0 = worker.get_psi(False)
+            norm_psi0 = psi_0.norm()
+            print("norm before do_step() = {}".format(norm_psi0))
             worker_do_stepList = worker.do_step()
             psi_1 = worker.get_psi(False)
             
             norm_psi1 = psi_1.norm()
-             
+            print("norm after do_step() = {}".format(norm_psi1))
             delta_p = 1 - norm_psi1 ** 2
-            
+            print("jump probability = {}".format(delta_p))
+            t2 = time.time()
             if r1 > delta_p: #evolve with non-hermitian hamiltonian
                 psi_t = psi_1.copy()
             
@@ -181,10 +233,19 @@ class MPSQuantumJumps():
                 np.savetxt('norm_after_jump', norm) #if trajectories run sequentially, this is being overwritten 
                 np.savetxt('which_jump_op_list_last_trajectory',which_jump_op_list) #if trajectories run sequentially, this is being overwritten    
                 np.savetxt('jump_time_list',jump_time_list) #if trajectories run sequentially, this is being overwritten    
+            #debug
+            norm_evolution.append(norm_psi1)
+            np.savetxt('norm_evolution', norm_evolution)
+            jump_prob.append(delta_p)
+            np.savetxt('jump_prob', jump_prob)
 
-            
             #normalize state
             psi_t.normalise()
+
+            t3 = time.time()
+            te = (t2 - t1) / (60 * 60)
+            tj = (t3 - t2) / (60 * 60)
+            print("time of evolution = {:.4f}hrs; time of jump = {:.4f}hrs".format(te, tj))
             
             #compute observables
             obsdict.compute_all_observables_at_one_timestep(psi_t, i+1) 
