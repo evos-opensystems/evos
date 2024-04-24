@@ -11,4 +11,4 @@
 # from .backends.symmps import SymMPSBackend
 # from .backends.syten import SyTenBackend
 
-from src import *
+from .src import *
