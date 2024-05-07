@@ -97,9 +97,9 @@ class MPSSchroedinger():
                 total_time_index += 1
                 worker.do_step()
                 psi_t = worker.get_psi(False)
-                obsdict.compute_all_observables_at_one_timestep(psi_t, krylov_time_index + total_time_index + 1) #compute observables
+                obsdict.compute_all_observables_at_one_timestep(psi_t, krylov_time_index + total_time_index) #compute observables
                 if save_states:
-                    psi_t.save('state_t_' + str( round( (krylov_time_index + total_time_index + 1) *  np.real(tdvp_config.dt), 4 ) ) ) 
+                    psi_t.save('state_t_' + str( round( (krylov_time_index + total_time_index) *  np.real(tdvp_config.dt), 4 ) ) ) 
                 
             
             
