@@ -3,8 +3,6 @@ import os
 import sys
 import time
 from numpy import linalg as LA
-from scipy.linalg import expm
-import psutil
 import pyten as ptn
 
 class MPSSchroedinger():
