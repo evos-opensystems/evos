@@ -26,7 +26,7 @@ class BosonicLatticeYudong():
         ah_col_idx = ah_row_idx - 1
         ah_data    = np.sqrt(ah_row_idx)
 
-        ah = scipy.sparse.csr_matrix((ah_data, (ah_row_idx, ah_col_idx)), shape = (max_bosons+1, max_bosons+1), dtype='complex')
+        ah = scipy.sparse.csr_array((ah_data, (ah_row_idx, ah_col_idx)), shape = (max_bosons+1, max_bosons+1), dtype='complex')
 
         # ah = np.zeros((max_bosons+1,max_bosons+1 ) , dtype='complex')
         # for i in range(1,max_bosons+1):
@@ -36,13 +36,13 @@ class BosonicLatticeYudong():
         a_col_idx = a_row_idx + 1
         a_data    = np.sqrt(a_col_idx)
 
-        a = scipy.sparse.csr_matrix((a_data, (a_row_idx, a_col_idx)), shape = (max_bosons+1, max_bosons+1), dtype='complex')
+        a = scipy.sparse.csr_array((a_data, (a_row_idx, a_col_idx)), shape = (max_bosons+1, max_bosons+1), dtype='complex')
 
         # a = np.zeros( ( max_bosons+1, max_bosons+1 ) , dtype='complex' )
         # for i in range(max_bosons):
         #     a[i,i+1] = np.sqrt(i+1)
         
-        I = scipy.sparse.eye( max_bosons + 1, dtype='complex', format = "csr")
+        I = scipy.sparse.eye_array( max_bosons + 1, dtype='complex', format = "csr")
         
         self.n_sites = n_sites
         self.max_bosons = max_bosons
@@ -57,7 +57,7 @@ class BosonicLatticeYudong():
         vac_row  = [0]
         vac_col  = [0]
         vac_data = [1]
-        vacuum_state = scipy.sparse.csr_matrix((vac_data, (vac_row, vac_col)), shape = ((max_bosons + 1)**n_sites, 1), dtype='complex')
+        vacuum_state = scipy.sparse.csr_array((vac_data, (vac_row, vac_col)), shape = ((max_bosons + 1)**n_sites, 1), dtype='complex')
         # vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
     
