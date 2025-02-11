@@ -3,9 +3,9 @@
 First make this independently, in order to see what methods and attributes it need.
 Later make it inherit from an ABC class 'Lattice'. """
 import numpy as np
+import scipy.sparse
 
-
-class BosonicLatticeMattia():
+class BosonicLatticeYudong():
     """Vacuum = |1 0 ... 0 > = zero particles present."""
     
     def __init__(self, n_sites: int, max_bosons: int):
@@ -21,28 +21,40 @@ class BosonicLatticeMattia():
         max_bosons : int
             maximal number of bosons allowed per site, i.e. local Hilbert space dimension -1     
         """
-        #operators
-        ah = np.zeros((max_bosons+1,max_bosons+1 ) , dtype='complex')
-        for i in range(1,max_bosons+1):
-            ah[i,i-1] = np.sqrt(i)
-        a = np.zeros( ( max_bosons+1, max_bosons+1 ) , dtype='complex' )
-        for i in range(max_bosons):
-            a[i,i+1] = np.sqrt(i+1)
+        # Operators using sparse matrices (csr_matrix)
+        ah_row_idx = np.arange(1, max_bosons + 1)
+        ah_col_idx = ah_row_idx - 1
+        ah_data    = np.sqrt(ah_row_idx)
+
+        ah = scipy.sparse.csr_matrix((ah_data, (ah_row_idx, ah_col_idx)), shape = (max_bosons+1, max_bosons+1), dtype='complex')
+
+        # ah = np.zeros((max_bosons+1,max_bosons+1 ) , dtype='complex')
+        # for i in range(1,max_bosons+1):
+        #     ah[i,i-1] = np.sqrt(i)
+
+        a_row_idx = np.arange(0, max_bosons)
+        a_col_idx = a_row_idx + 1
+        a_data    = np.sqrt(a_col_idx)
+
+        a = scipy.sparse.csr_matrix((a_data, (a_row_idx, a_col_idx)), shape = (max_bosons+1, max_bosons+1), dtype='complex')
+
+        # a = np.zeros( ( max_bosons+1, max_bosons+1 ) , dtype='complex' )
+        # for i in range(max_bosons):
+        #     a[i,i+1] = np.sqrt(i+1)
         
+        I = scipy.sparse.eye( max_bosons + 1, dtype='complex', format = "csr")
         
-        I = np.eye( max_bosons + 1, dtype='complex')
-        
-        self.n_sites = n_sites 
+        self.n_sites = n_sites
         self.max_bosons = max_bosons
         self.I = I
 
         operators = {}
         self.operators = operators
-        operators.update( { 'ah' :ah } )
-        operators.update( { 'a' :a } )
+        operators.update( { 'ah' : ah } )
+        operators.update( { 'a'  : a  } )
         
         #vacuum state
-        vacuum_state = np.zeros( ( max_bosons + 1 )**n_sites, dtype='complex')
+        vacuum_state = scipy.sparse.csr_matrix(((max_bosons + 1)**n_sites, 1), dtype='complex')
         vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
     
@@ -70,8 +82,8 @@ class BosonicLatticeMattia():
         
         for i in range(1, self.n_sites):               
             if i == site:
-                single_site_operator = np.kron(single_site_operator,operator)  
+                single_site_operator = scipy.sparse.kron(single_site_operator, operator)  
             elif i != site:
-                single_site_operator = np.kron(single_site_operator,self.I)                   
+                single_site_operator = scipy.sparse.kron(single_site_operator, self.I)
             
         return single_site_operator 
