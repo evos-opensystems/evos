@@ -54,8 +54,11 @@ class BosonicLatticeYudong():
         operators.update( { 'a'  : a  } )
         
         #vacuum state
-        vacuum_state = scipy.sparse.csr_matrix(((max_bosons + 1)**n_sites, 1), dtype='complex')
-        vacuum_state[0] = 1
+        vac_row  = [0]
+        vac_col  = [0]
+        vac_data = [1]
+        vacuum_state = scipy.sparse.csr_matrix((vac_data, (vac_row, vac_col)), shape = ((max_bosons + 1)**n_sites, 1), dtype='complex')
+        # vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
     
     def sso(self, operator_name: str, site: int) -> np.ndarray :
@@ -82,8 +85,8 @@ class BosonicLatticeYudong():
         
         for i in range(1, self.n_sites):               
             if i == site:
-                single_site_operator = scipy.sparse.kron(single_site_operator, operator)  
+                single_site_operator = scipy.sparse.kron(single_site_operator, operator, format = "csr")  
             elif i != site:
-                single_site_operator = scipy.sparse.kron(single_site_operator, self.I)
+                single_site_operator = scipy.sparse.kron(single_site_operator, self.I, format = "csr")
             
         return single_site_operator 
