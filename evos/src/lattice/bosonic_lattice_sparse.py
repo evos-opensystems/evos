@@ -1,3 +1,8 @@
+"""
+Copy of bosonic_lattice_mattia, but with sparse matrices
+Made by Yudong Sun, 2025
+"""
+
 """One-dimensional lattice for bosons.
 
 First make this independently, in order to see what methods and attributes it need.
@@ -5,7 +10,7 @@ Later make it inherit from an ABC class 'Lattice'. """
 import numpy as np
 import scipy.sparse
 
-class BosonicLatticeYudong():
+class BosonicLatticeSparse():
     """Vacuum = |1 0 ... 0 > = zero particles present."""
     
     def __init__(self, n_sites: int, max_bosons: int):
