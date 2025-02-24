@@ -9,6 +9,7 @@ First make this independently, in order to see what methods and attributes it ne
 Later make it inherit from an ABC class 'Lattice'. """
 import numpy as np
 import scipy.sparse
+from typing import List, Union
 
 class BosonicLatticeSparse():
     """Vacuum = |1 0 ... 0 > = zero particles present."""
@@ -65,8 +66,31 @@ class BosonicLatticeSparse():
         vacuum_state = scipy.sparse.csr_matrix((vac_data, (vac_row, vac_col)), shape = ((max_bosons + 1)**n_sites, 1), dtype='complex')
         # vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
+
+    def get_fock_state(self, occupations: Union[List[int], np.ndarray]) -> scipy.sparse.csr_matrix:
+        """Given occupations on each site, generate the occupation
+
+        Args:
+            occupations (Union[List[int], np.ndarray]): 1D list of occupations corresponding to the site
+
+        Returns:
+            scipy.sparse.csr_matrix: Fock state
+        """
+
+        assert len(occupations) == self.n_sites, f"The number of sites in the input occupation list ({len(occupations) }) does not match the number of sites in the lattice ({self.n_sites})."
+        assert np.all(0 <= occupation <= self.max_bosons for occupation in occupations), f"Occupations must be between 0 and max_bosons = {self.max_bosons}."
+        
+        _occ_str = "".join([str(occupation) for occupation in occupations])
+        _occ_idx = int(_occ_str, self.max_bosons + 1) # str in base (max_bosons + 1) to int
+
+        _state_row  = [_occ_idx]
+        _state_col  = [0]
+        _state_data = [1]
+        _state = scipy.sparse.csr_matrix((_state_data, (_state_row, _state_col)), shape = self.vacuum_state.shape, dtype='complex')
+
+        return _state
     
-    def sso(self, operator_name: str, site: int) -> np.ndarray :
+    def sso(self, operator_name: str, site: int) -> scipy.sparse.csr_matrix :
         """Given an operator name and a site number, it computes the single site operator acting on the whole Hilbert space
         by computing kronecker products with the identity left and right to the site on which the operator is applied.
 
