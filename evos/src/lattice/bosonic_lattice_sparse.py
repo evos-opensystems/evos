@@ -68,7 +68,10 @@ class BosonicLatticeSparse():
         self.vacuum_state = vacuum_state
 
     def get_fock_state(self, occupations: Union[List[int], np.ndarray]) -> scipy.sparse.csr_matrix:
-        """Given occupations on each site, generate the occupation
+        """Given occupations on each site, generate the occupation.
+
+        Function uses the python built-in `int(str, base)`, which is limited to 2-36 for the local dimension. 
+        See https://docs.python.org/3/library/functions.html#int
 
         Args:
             occupations (Union[List[int], np.ndarray]): 1D list of occupations corresponding to the site
@@ -78,7 +81,17 @@ class BosonicLatticeSparse():
         """
 
         assert len(occupations) == self.n_sites, f"The number of sites in the input occupation list ({len(occupations) }) does not match the number of sites in the lattice ({self.n_sites})."
-        assert np.all(0 <= occupation <= self.max_bosons for occupation in occupations), f"Occupations must be between 0 and max_bosons = {self.max_bosons}."
+        assert np.all([0 <= occupation <= self.max_bosons for occupation in occupations]), f"Occupations must be between 0 and max_bosons = {self.max_bosons}."
+
+        if self.max_bosons > 35:
+            raise NotImplementedError(f"Local dimension = {self.max_bosons + 1} is too large for the built-in int(str, base) function.")
+            # If this happens, and you need it, implement the conversion manually
+            # idx = sum_i(occupation_i * (max_bosons + 1)**i) from LSB to MSB
+
+        if self.max_bosons > 9:
+            # Since anything more than 9/site i.e. localdim = 10 is not representable by a single digit
+            # convert occupations to letters
+            occupations = [chr((_occ-10) + 65) if _occ > 9 else _occ for _occ in occupations]
         
         _occ_str = "".join([str(occupation) for occupation in occupations])
         _occ_idx = int(_occ_str, self.max_bosons + 1) # str in base (max_bosons + 1) to int
