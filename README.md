@@ -28,7 +28,7 @@ You can access the documentation by running **make doc** in **evos**.
 
 ## Citation
 
-If you use EVOS in your research please cite
+If you use EVOS in your research, please cite
 
 1. @thesis{ediss34410,
             year = {2024},
@@ -37,7 +37,7 @@ If you use EVOS in your research please cite
            month = {November},
        publisher = {Ludwig-Maximilians-Universit{\"a}t M{\"u}nchen},
         keywords = {open quantum systems, tensor networks, photo excitations, electron-phonon interactions},
-             url = {http://nbn-resolving.de/urn:nbn:de:bvb:19-344104}
+             url = {http://nbn-resolving.de/urn:nbn:de:bvb:19-344104},
    }
  2. ADD EVOS AND ITS DOI
       
