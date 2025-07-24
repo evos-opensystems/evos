@@ -37,7 +37,7 @@ If you use EVOS in your research, please cite
            month = {November},
        publisher = {Ludwig-Maximilians-Universit{\"a}t M{\"u}nchen},
         keywords = {open quantum systems, tensor networks, photo excitations, electron-phonon interactions},
-             url = {http://nbn-resolving.de/urn:nbn:de:bvb:19-344104},
+             url = {[http://nbn-resolving.de/urn:nbn:de:bvb:19-344104](https://edoc.ub.uni-muenchen.de/34410/)},
    }
  2. ADD EVOS AND ITS DOI
       
