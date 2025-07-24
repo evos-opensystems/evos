@@ -1,6 +1,6 @@
-# EVOS (EvolVing Open Systems)
+# EVOS (Evolving Open Systems)
 
-Welcome to EVOS. Have fun with open systems!
+Welcome to EVOS!
 
 ## Installation 
 
@@ -34,19 +34,15 @@ You can access the documentation by running **make doc** in **evos**.
 
 3. Mesoscopic leads method: [A. Lacerda] (https://arxiv.org/abs/2206.01090).
 
-4. Vectorization of lindblad equation for time evolution MPS: [S. Wolff] (https://arxiv.org/abs/2004.01133).
+4. Vectorization of the Lindblad equation for time evolution MPS: [S. Wolff] (https://arxiv.org/abs/2004.01133).
 
-5. Vectorization of lindblad equation for direct steady-state calculation with MPS: [H.P. Casagrande] (https://arxiv.org/abs/2009.08200).
+5. Vectorization of the Lindblad equation for direct steady-state calculation with MPS: [H.P. Casagrande] (https://arxiv.org/abs/2009.08200).
 
 ## To Add
 
-1. ED and MPS hops
+1. ED and MPS HOPS
 2. MPS time evolution with vectorized Lindbladian
 3. MPS steady-state calculation with $\hat{L}^{\dagger} \hat{L} $
-
-## To Test
-
-1. mps_quantum_jumps_time_dep.py has to be tested.
 
 ## To Fix
 
