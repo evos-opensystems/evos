@@ -129,9 +129,9 @@ class Lindblad():
        
        
         rho_0_v =  self.vectorize_density_matrix(rho_0)
-        n_timesteps = int(t_max/dt) 
+        n_timesteps = int(t_max/dt) + 1
         self.n_timesteps = n_timesteps
-        time_v = np.linspace(t0, t_max, n_timesteps ) #+dt??
+        time_v = np.linspace(t0, t_max, n_timesteps) #+dt??
         res = solve_ivp(self.right_hand_side_lindblad_eq, (t0,t_max), rho_0_v,t_eval=time_v )
         
         #rearrange the components of the matrix res (=vector with rho_res components at every timestep) into a rank3 tensor (density matrix at every timestep)

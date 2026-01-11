@@ -1,12 +1,17 @@
+"""
+Copy of bosonic_lattice_mattia, but with sparse matrices
+Made by Yudong Sun, 2025
+"""
+
 """One-dimensional lattice for bosons.
 
 First make this independently, in order to see what methods and attributes it need.
 Later make it inherit from an ABC class 'Lattice'. """
-from typing import List, Union
 import numpy as np
+import scipy.sparse
+from typing import List, Union
 
-
-class BosonicLatticeMattia():
+class BosonicLatticeSparse():
     """Vacuum = |1 0 ... 0 > = zero particles present."""
     
     def __init__(self, n_sites: int, max_bosons: int):
@@ -22,32 +27,47 @@ class BosonicLatticeMattia():
         max_bosons : int
             maximal number of bosons allowed per site, i.e. local Hilbert space dimension -1     
         """
-        #operators
-        ah = np.zeros((max_bosons+1,max_bosons+1 ) , dtype='complex')
-        for i in range(1,max_bosons+1):
-            ah[i,i-1] = np.sqrt(i)
-        a = np.zeros( ( max_bosons+1, max_bosons+1 ) , dtype='complex' )
-        for i in range(max_bosons):
-            a[i,i+1] = np.sqrt(i+1)
+        # Operators using sparse matrices (csr_matrix)
+        ah_row_idx = np.arange(1, max_bosons + 1)
+        ah_col_idx = ah_row_idx - 1
+        ah_data    = np.sqrt(ah_row_idx)
+
+        ah = scipy.sparse.csr_matrix((ah_data, (ah_row_idx, ah_col_idx)), shape = (max_bosons+1, max_bosons+1), dtype='complex')
+
+        # ah = np.zeros((max_bosons+1,max_bosons+1 ) , dtype='complex')
+        # for i in range(1,max_bosons+1):
+        #     ah[i,i-1] = np.sqrt(i)
+
+        a_row_idx = np.arange(0, max_bosons)
+        a_col_idx = a_row_idx + 1
+        a_data    = np.sqrt(a_col_idx)
+
+        a = scipy.sparse.csr_matrix((a_data, (a_row_idx, a_col_idx)), shape = (max_bosons+1, max_bosons+1), dtype='complex')
+
+        # a = np.zeros( ( max_bosons+1, max_bosons+1 ) , dtype='complex' )
+        # for i in range(max_bosons):
+        #     a[i,i+1] = np.sqrt(i+1)
         
+        I = scipy.sparse.eye( max_bosons + 1, dtype='complex', format = "csr")
         
-        I = np.eye( max_bosons + 1, dtype='complex')
-        
-        self.n_sites = n_sites 
+        self.n_sites = n_sites
         self.max_bosons = max_bosons
         self.I = I
 
         operators = {}
         self.operators = operators
-        operators.update( { 'ah' :ah } )
-        operators.update( { 'a' :a } )
+        operators.update( { 'ah' : ah } )
+        operators.update( { 'a'  : a  } )
         
         #vacuum state
-        vacuum_state = np.zeros( ( max_bosons + 1 )**n_sites, dtype='complex')
-        vacuum_state[0] = 1
+        vac_row  = [0]
+        vac_col  = [0]
+        vac_data = [1]
+        vacuum_state = scipy.sparse.csr_matrix((vac_data, (vac_row, vac_col)), shape = ((max_bosons + 1)**n_sites, 1), dtype='complex')
+        # vacuum_state[0] = 1
         self.vacuum_state = vacuum_state
 
-    def get_fock_state(self, occupations: Union[List[int], np.ndarray]) -> np.ndarray:
+    def get_fock_state(self, occupations: Union[List[int], np.ndarray]) -> scipy.sparse.csr_matrix:
         """Given occupations on each site, generate the occupation.
 
         Function uses the python built-in `int(str, base)`, which is limited to 2-36 for the local dimension. 
@@ -71,17 +91,19 @@ class BosonicLatticeMattia():
         if self.max_bosons > 9:
             # Since anything more than 9/site i.e. localdim = 10 is not representable by a single digit
             # convert occupations to letters
-            occupations: List[Union[str, int]] = [chr((_occ-10) + 65) if _occ > 9 else _occ for _occ in occupations]
+            occupations = [chr((_occ-10) + 65) if _occ > 9 else _occ for _occ in occupations]
         
         _occ_str = "".join([str(occupation) for occupation in occupations])
         _occ_idx = int(_occ_str, self.max_bosons + 1) # str in base (max_bosons + 1) to int
 
-        _state = np.zeros(self.vacuum_state.shape, dtype='complex')
-        _state[_occ_idx] = 1
+        _state_row  = [_occ_idx]
+        _state_col  = [0]
+        _state_data = [1]
+        _state = scipy.sparse.csr_matrix((_state_data, (_state_row, _state_col)), shape = self.vacuum_state.shape, dtype='complex')
 
         return _state
     
-    def sso(self, operator_name: str, site: int) -> np.ndarray :
+    def sso(self, operator_name: str, site: int) -> scipy.sparse.csr_matrix :
         """Given an operator name and a site number, it computes the single site operator acting on the whole Hilbert space
         by computing kronecker products with the identity left and right to the site on which the operator is applied.
 
@@ -105,8 +127,8 @@ class BosonicLatticeMattia():
         
         for i in range(1, self.n_sites):               
             if i == site:
-                single_site_operator = np.kron(single_site_operator,operator)  
+                single_site_operator = scipy.sparse.kron(single_site_operator, operator, format = "csr")  
             elif i != site:
-                single_site_operator = np.kron(single_site_operator,self.I)                   
+                single_site_operator = scipy.sparse.kron(single_site_operator, self.I, format = "csr")
             
         return single_site_operator 

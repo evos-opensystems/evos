@@ -18,10 +18,12 @@ clean:
 #############################################################################
 .PHONY: build 
 
+# https://stackoverflow.com/a/48501944 Flags
+BUILDFLAGS := 
 build:
 	@echo "------------------------------------------------ building package ------------------------------------------------"
 	@echo ""
-	${EVOS_PYTHONBIN} -m pip install .
+	${EVOS_PYTHONBIN} -m pip install $(BUILDFLAGS) .
 
 # Cython rules
 #####################################################################
