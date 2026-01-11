@@ -136,11 +136,13 @@ class EdQuantumJumps():
             elif r1 <= delta_p: #select a lindblad operator and perform a jump
                 print('jump occured at time {}'.format(i*dt)) #debugging
                 jump_time_list.append(i) #debugging
+                np.savetxt('jump_time_list', jump_time_list)
+                
                 psi_t, which_jump_op  = self.select_jump_operator( psi_t, r2_array[i] )   
+                
                 which_jump_op_list.append( which_jump_op ) #debugging
+                np.savetxt('which_jump_op_list', which_jump_op_list)
                 r2_atjump_list.append( r2_array[i] ) #debugging
-                jump_counter +=1 #debugging
-                #print('state after jump: ',psi_t)
                 
             psi_t /= LA.norm( psi_t )
 
